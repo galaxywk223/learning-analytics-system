@@ -157,12 +157,30 @@
         background-color: #6c757d; /* default color */
     }
 
-    .category-color-1 { background-color: #0d6efd; }
-    .category-color-2 { background-color: #198754; }
-    .category-color-3 { background-color: #ffc107; color: #000; }
-    .category-color-4 { background-color: #dc3545; }
-    .category-color-5 { background-color: #6f42c1; }
-    .category-color-0 { background-color: #fd7e14; }
+    .category-color-1 {
+        background-color: #0d6efd;
+    }
+
+    .category-color-2 {
+        background-color: #198754;
+    }
+
+    .category-color-3 {
+        background-color: #ffc107;
+        color: #000;
+    }
+
+    .category-color-4 {
+        background-color: #dc3545;
+    }
+
+    .category-color-5 {
+        background-color: #6f42c1;
+    }
+
+    .category-color-0 {
+        background-color: #fd7e14;
+    }
 
     .log-notes-row {
         display: none;
@@ -274,104 +292,45 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // --- 1. 负责加载“添加/编辑”模态框内容的逻辑 ---
-    const formModal = document.getElementById('formModal');
-    if (formModal) {
-        formModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            const url = button.getAttribute('data-url');
-            const modalContent = formModal.querySelector('.modal-content');
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- 1. 负责加载“添加/编辑”模态框内容的逻辑 ---
+        const formModal = document.getElementById('formModal');
+        if (formModal) {
+            formModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const url = button.getAttribute('data-url');
+                const modalContent = formModal.querySelector('.modal-content');
 
-            fetch(url)
-                .then(response => response.text())
-                .then(html => {
-                    modalContent.innerHTML = html;
-                    const scripts = modalContent.getElementsByTagName('script');
-                    for (let i = 0; i < scripts.length; i++) {
-                        eval(scripts[i].innerText);
-                    }
-                    lucide.createIcons();
-                })
-                .catch(err => console.error('Failed to load modal content:', err));
-        });
-    }
-
-    // --- 2. 负责处理“删除”按钮点击事件的函数 ---
-    window.confirmDelete = function (event, logId) {
-        event.preventDefault();
-        if (confirm('确定要删除这条记录吗？此操作无法撤销。')) {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-            fetch(`/records/delete/${logId}`, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': csrfToken
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message, 'success');
-
-                    if (data.reload) {
-                        showToast('正在刷新...', 'info');
-                        setTimeout(() => window.location.reload(), 500);
-                        return;
-                    }
-
-                    if (data.remove_target) {
-                        const elementToRemove = document.querySelector(data.remove_target);
-                        if (elementToRemove) {
-                            elementToRemove.style.transition = 'opacity 0.3s ease';
-                            elementToRemove.style.opacity = '0';
-                            setTimeout(() => {
-                                const noteRowId = data.remove_target.replace('log-entry-row-', 'notes-');
-                                const noteElementToRemove = document.querySelector(noteRowId);
-                                if (noteElementToRemove) {
-                                    noteElementToRemove.remove();
-                                }
-                                elementToRemove.remove();
-                            }, 300);
+                fetch(url)
+                    .then(response => response.text())
+                    .then(html => {
+                        modalContent.innerHTML = html;
+                        const scripts = modalContent.getElementsByTagName('script');
+                        for (let i = 0; i < scripts.length; i++) {
+                            eval(scripts[i].innerText);
                         }
-                    }
-
-                    if (data.updates) {
-                        for (const key in data.updates) {
-                            const updateInfo = data.updates[key];
-                            const targetElement = document.querySelector(updateInfo.target_id);
-                            if (targetElement) {
-                                targetElement.textContent = updateInfo.value;
-                            }
-                        }
-                    }
-                } else {
-                    showToast(data.message || '删除失败', 'error');
-                }
-            })
-            .catch(err => {
-                console.error('Delete error:', err);
-                showToast('删除时发生网络错误。', 'error');
+                        lucide.createIcons();
+                    })
+                    .catch(err => console.error('Failed to load modal content:', err));
             });
         }
-    }
 
-    // --- 3. 负责处理“笔记”展开/折叠的逻辑 (使用事件委托) ---
-    document.body.addEventListener('click', function(event) {
-        const toggleBtn = event.target.closest('.notes-toggle-btn');
-        if (toggleBtn) {
-            event.preventDefault();
-            const targetId = toggleBtn.dataset.targetId;
-            const targetRow = document.getElementById(targetId);
-            if (targetRow) {
-                targetRow.style.display = (targetRow.style.display === 'table-row') ? 'none' : 'table-row';
+
+        // --- 3. 负责处理“笔记”展开/折叠的逻辑 (使用事件委托) ---
+        document.body.addEventListener('click', function (event) {
+            const toggleBtn = event.target.closest('.notes-toggle-btn');
+            if (toggleBtn) {
+                event.preventDefault();
+                const targetId = toggleBtn.dataset.targetId;
+                const targetRow = document.getElementById(targetId);
+                if (targetRow) {
+                    targetRow.style.display = (targetRow.style.display === 'table-row') ? 'none' : 'table-row';
+                }
             }
-        }
-    });
+        });
 
-    // --- 4. 初始化页面上的 Lucide 图标 ---
-    lucide.createIcons();
-});
+        // --- 4. 初始化页面上的 Lucide 图标 ---
+        lucide.createIcons();
+    });
 </script>
 {% endblock %}

@@ -4,7 +4,8 @@
     <td>
         <div class="task-cell" title="{{ log.task }}">
             {% if log.subcategory %}
-            <span class="category-tag category-color-{{ log.subcategory.category_id % 6 }}" title="{{log.subcategory.category.name}}">
+            <span class="category-tag category-color-{{ log.subcategory.category_id % 6 }}"
+                  title="{{log.subcategory.category.name}}">
                 {{ log.subcategory.name }}
             </span>
             {% endif %}
@@ -20,8 +21,16 @@
             <i data-lucide="message-square-text"></i>
         </a>
         {% endif %}
-        <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#formModal" data-url="{{ url_for('records.get_edit_form', log_id=log.id) }}" title="编辑"><i data-lucide="file-pen-line"></i></a>
-        <a href="#" class="action-btn delete" onclick="confirmDelete(event, {{ log.id }})" title="删除"><i data-lucide="trash-2"></i></a>
+        <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#formModal"
+           data-url="{{ url_for('records.get_edit_form', log_id=log.id) }}" title="编辑"><i
+                data-lucide="file-pen-line"></i></a>
+        <a href="#" class="action-btn delete"
+           data-delete-url="{{ url_for('records.delete', log_id=log.id) }}"
+           data-remove-target="#log-entry-row-{{ log.id }}"
+           data-entity-title="{{ log.task }}"
+           onclick="confirmDelete(event)" title="删除">
+            <i data-lucide="trash-2"></i>
+        </a>
     </td>
 </tr>
 {% if log.notes %}

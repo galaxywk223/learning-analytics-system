@@ -139,9 +139,54 @@ def add():
 @records_bp.route('/edit/<int:log_id>', methods=['POST'])
 @login_required
 def edit(log_id):
+    # 你的 service 函数只返回 success 和 message，所以我们先执行更新
     success, message = record_service.update_log_for_user(log_id, current_user, request.form)
+
     if success:
-        return jsonify({'success': True, 'message': message, 'reload': True})
+        # 更新成功后，我们从数据库重新获取刚刚更新的对象
+        updated_log = record_service.get_log_entry_for_user(log_id, current_user)
+        if not updated_log:
+            return jsonify({'success': False, 'message': '更新后无法重新获取记录。'}), 404
+
+        # 渲染更新后的 HTML 片段
+        html_to_replace = render_template('_log_entry_item.html', log=updated_log)
+
+        # 重新计算相关的统计数据
+        stage = updated_log.stage
+        daily_data = DailyData.query.filter_by(log_date=updated_log.log_date, stage_id=updated_log.stage_id).first()
+        new_daily_efficiency = round(daily_data.efficiency, 1) if daily_data else 0
+
+        year, week_num = get_custom_week_info(updated_log.log_date, stage.start_date)
+        weekly_data = WeeklyData.query.filter_by(year=year, week_num=week_num, stage_id=updated_log.stage_id).first()
+        new_weekly_efficiency = round(weekly_data.efficiency, 1) if weekly_data else 0
+
+        total_duration_minutes = db.session.query(func.sum(LogEntry.actual_duration)).filter(
+            LogEntry.log_date == updated_log.log_date,
+            LogEntry.stage_id == updated_log.stage_id
+        ).scalar() or 0
+        new_total_duration_hours = f"{total_duration_minutes / 60:.1f}h"
+
+        return jsonify({
+            'success': True,
+            'message': message,
+            'action': 'replace',
+            'replace_target': f'#log-entry-row-{updated_log.id}',
+            'html': html_to_replace,
+            'updates': {
+                'daily_efficiency': {
+                    'target_id': f"#daily-efficiency-badge-{updated_log.log_date.isoformat()}",
+                    'value': f"日效率: {new_daily_efficiency}"
+                },
+                'weekly_efficiency': {
+                    'target_id': f"#weekly-efficiency-badge-{year}-{week_num}",
+                    'value': f"周平均效率: {new_weekly_efficiency}"
+                },
+                'daily_duration': {
+                    'target_id': f"#daily-duration-text-{updated_log.log_date.isoformat()}",
+                    'value': new_total_duration_hours
+                }
+            }
+        })
     else:
         current_app.logger.error(f"为用户 {current_user.id} 编辑记录 {log_id} 时: {message}")
         return jsonify({'success': False, 'message': message}), 400
