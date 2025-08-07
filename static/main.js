@@ -36,7 +36,7 @@ const showToast = (message, category = 'info') => {
 };
 
 
-const handleAjaxFormSubmit = async (form) => {
+const submitAjaxForm = async (form) => {
     const modalInstance = form.closest('.modal') ? bootstrap.Modal.getInstance(form.closest('.modal')) : null;
 
     try {
@@ -55,7 +55,25 @@ const handleAjaxFormSubmit = async (form) => {
         if (response.ok) {
             showToast(result.message || '操作成功！', 'success');
             if (modalInstance) modalInstance.hide();
+            if (result.action === 'replace' && result.html && result.replace_target) {
+                const oldElement = document.querySelector(result.replace_target);
+                if (oldElement) {
+                    // 用返回的新HTML替换掉旧的元素
+                    oldElement.outerHTML = result.html;
 
+                    // 由于元素被替换了，需要重新找到它来初始化新图标
+                    const newElement = document.querySelector(result.replace_target);
+                    if (newElement) {
+                        lucide.createIcons({nodes: [newElement]});
+                        // 找到新卡片里的计时器，并立即更新一次，避免视觉上的延迟
+                        const newCard = newElement.querySelector('.countdown-card-new');
+                        if (newCard && typeof setProgress === 'function') {
+                            setProgress(newCard);
+                        }
+                    }
+                }
+                return; // 完成替换后，直接返回，不再执行下面的逻辑
+            }
             if (result.reload) {
                 setTimeout(() => window.location.reload(), 500);
                 return;
@@ -113,7 +131,53 @@ const handleAjaxFormSubmit = async (form) => {
         showToast('提交失败，请检查您的网络连接。', 'error');
     }
 };
+const confirmDelete = async (event) => {
+    event.preventDefault();
+    const link = event.currentTarget;
+    const deleteUrl = link.dataset.deleteUrl;
+    const removeTargetSelector = link.dataset.removeTarget;
+    const entityTitle = link.dataset.entityTitle || '此项目';
 
+    if (!deleteUrl || !removeTargetSelector) {
+        console.error('Delete button is missing data-delete-url or data-remove-target attribute.');
+        showToast('无法删除，页面元素配置不正确。', 'error');
+        return;
+    }
+
+    // 使用浏览器内置的确认框
+    if (!confirm(`您确定要删除 “${entityTitle}” 吗？此操作无法撤销。`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(deleteUrl, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            showToast(result.message || '删除成功！', 'success');
+            const elementToRemove = document.querySelector(removeTargetSelector);
+            if (elementToRemove) {
+                // 添加一个平滑的淡出效果
+                elementToRemove.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                elementToRemove.style.opacity = '0';
+                elementToRemove.style.transform = 'scale(0.95)';
+                setTimeout(() => elementToRemove.remove(), 400);
+            }
+        } else {
+            showToast(result.message || '删除失败。', 'error');
+        }
+    } catch (error) {
+        console.error('Deletion failed:', error);
+        showToast('删除操作失败，请检查网络连接。', 'error');
+    }
+};
 
 document.addEventListener('submit', function (event) {
     if (event.target.matches('form.ajax-form')) {

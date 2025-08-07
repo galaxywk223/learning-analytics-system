@@ -122,6 +122,7 @@ def _process_form_and_get_utc_datetime():
     return title, local_dt_aware.astimezone(pytz.utc)
 
 
+# 在 learning_logger/blueprints/countdown.py 中
 @countdown_bp.route('/add', methods=['POST'])
 @login_required
 def add():
@@ -129,14 +130,57 @@ def add():
         title, utc_dt = _process_form_and_get_utc_datetime()
         new_event = CountdownEvent(title=title, target_datetime_utc=utc_dt, user_id=current_user.id)
         db.session.add(new_event)
-        db.session.commit()
-        return jsonify({'success': True, 'message': f'新的倒计时目标 “{title}” 已添加！'})
+        db.session.commit()  # 先提交以获取 new_event.id 和其他默认值
+
+        # --- 新增逻辑：准备渲染新卡片所需的数据 ---
+        now_utc = datetime.now(pytz.utc)
+        # 确保时区信息正确
+        if new_event.target_datetime_utc.tzinfo is None:
+            new_event.target_datetime_utc = pytz.utc.localize(new_event.target_datetime_utc)
+        if new_event.created_at_utc.tzinfo is None:
+            new_event.created_at_utc = pytz.utc.localize(new_event.created_at_utc)
+
+        new_event.target_datetime_beijing = new_event.target_datetime_utc.astimezone(BEIJING_TZ)
+        new_event.target_iso_utc = new_event.target_datetime_utc.isoformat()
+
+        # 计算进度和状态
+        time_remaining = new_event.target_datetime_utc - now_utc
+        total_delta = new_event.target_datetime_utc - new_event.created_at_utc
+        elapsed_delta = now_utc - new_event.created_at_utc
+
+        if total_delta.total_seconds() > 0:
+            new_event.progress_percentage = min((elapsed_delta.total_seconds() / total_delta.total_seconds()) * 100,
+                                                100)
+        else:
+            new_event.progress_percentage = 100
+
+        if time_remaining.days < 1:
+            new_event.card_status = 'urgent'
+        elif time_remaining.days < 7:
+            new_event.card_status = 'warning'
+        else:
+            new_event.card_status = 'normal'
+        # --- 新增逻辑结束 ---
+
+        # 渲染新卡片的 HTML
+        html_to_add = render_template('_countdown_item.html', event=new_event)
+
+        # 返回包含 HTML 和目标容器的完整 JSON
+        return jsonify({
+            'success': True,
+            'message': f'新的倒计时目标 “{title}” 已添加！',
+            'html': html_to_add,
+            'target_container': '#active-events-container',
+            'action': 'prepend'  # 'prepend' 会让新项显示在最前面
+        })
+
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"添加倒计时事件时出错: {e}")
-        return jsonify({'success': False, 'message': f'添加目标时出错: {e}'}), 400
+        return jsonify({'success': False, 'message': f'添加目标时出错: {str(e)}'}), 400
 
 
+# 在 learning_logger/blueprints/countdown.py 中
 @countdown_bp.route('/edit/<int:event_id>', methods=['POST'])
 @login_required
 def edit(event_id):
@@ -145,13 +189,51 @@ def edit(event_id):
         title, utc_dt = _process_form_and_get_utc_datetime()
         event.title = title
         event.target_datetime_utc = utc_dt
-        db.session.commit()
-        return jsonify({'success': True, 'message': f'目标 “{title}” 已更新！'})
+        db.session.commit() # 提交更新
+
+        # --- 复用之前的逻辑，准备渲染卡片所需的数据 ---
+        now_utc = datetime.now(pytz.utc)
+        if event.target_datetime_utc.tzinfo is None:
+            event.target_datetime_utc = pytz.utc.localize(event.target_datetime_utc)
+        if event.created_at_utc.tzinfo is None:
+            event.created_at_utc = pytz.utc.localize(event.created_at_utc)
+
+        event.target_datetime_beijing = event.target_datetime_utc.astimezone(BEIJING_TZ)
+        event.target_iso_utc = event.target_datetime_utc.isoformat()
+
+        time_remaining = event.target_datetime_utc - now_utc
+        total_delta = event.target_datetime_utc - event.created_at_utc
+        elapsed_delta = now_utc - event.created_at_utc
+
+        if total_delta.total_seconds() > 0:
+            event.progress_percentage = min((elapsed_delta.total_seconds() / total_delta.total_seconds()) * 100, 100)
+        else:
+            event.progress_percentage = 100
+
+        if time_remaining.days < 1:
+            event.card_status = 'urgent'
+        elif time_remaining.days < 7:
+            event.card_status = 'warning'
+        else:
+            event.card_status = 'normal'
+        # --- 数据准备结束 ---
+
+        # 渲染更新后的卡片 HTML
+        html_to_replace = render_template('_countdown_item.html', event=event)
+
+        # 返回包含替换指令、目标和新HTML的JSON
+        return jsonify({
+            'success': True,
+            'message': f'目标 “{title}” 已更新！',
+            'action': 'replace',
+            'replace_target': f'#countdown-{event.id}', # 指定要替换哪个元素
+            'html': html_to_replace
+        })
+
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"编辑事件 {event_id} 时出错: {e}")
-        return jsonify({'success': False, 'message': f'更新目标时出错: {e}'}), 400
-
+        return jsonify({'success': False, 'message': f'更新目标时出错: {str(e)}'}), 400
 
 @countdown_bp.route('/delete/<int:event_id>', methods=['POST'])
 @login_required

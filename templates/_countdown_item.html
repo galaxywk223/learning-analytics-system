@@ -1,0 +1,41 @@
+{# 文件路径: templates/_countdown_item.html #}
+<div class="col-xl-3 col-lg-4 col-md-6" id="countdown-{{ event.id }}">
+    <div class="card countdown-card-new status-{{ event.card_status }}"
+         data-target-time="{{ event.target_iso_utc }}"
+         data-progress="{{ event.progress_percentage | round(2) }}">
+
+        <div class="card-header-new">
+            <span class="event-title">{{ event.title }}</span>
+            <div class="actions">
+                <a href="#" class="text-white" data-bs-toggle="modal" data-bs-target="#formModal"
+                   data-url="{{ url_for('countdown.get_edit_form', event_id=event.id) }}"><i data-lucide="pencil"
+                                                                                             style="width:18px;"></i></a>
+                <a href="#" class="text-white ms-2"
+                   data-delete-url="{{ url_for('countdown.delete', event_id=event.id) }}"
+                   data-remove-target="#countdown-{{ event.id }}"
+                   data-entity-title="{{ event.title }}"
+                   onclick="confirmDelete(event)">
+                    <i data-lucide="trash-2" style="width:18px;"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body-new">
+            <div class="progress-ring-container">
+                <svg class="progress-ring-svg" width="160" height="160" viewBox="0 0 120 120">
+                    <circle cx="60" cy="60" r="54" fill="none" stroke="#e6e6e6" stroke-width="12"/>
+                    <circle class="progress-ring-circle" cx="60" cy="60" r="54" fill="none" stroke-width="12"/>
+                </svg>
+                <div class="progress-ring-text">
+                    <div class="days-remaining" data-unit="days">0</div>
+                    <div class="days-label">天</div>
+                </div>
+            </div>
+            <div class="live-timer" data-unit="hms">00:00:00</div>
+        </div>
+
+        <div class="card-footer-new">
+            目标: {{ event.target_datetime_beijing.strftime('%Y-%m-%d %H:%M') }}
+        </div>
+    </div>
+</div>
