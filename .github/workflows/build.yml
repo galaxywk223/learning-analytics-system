@@ -1,0 +1,30 @@
+name: Build & Push Image
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: docker.io/galaxy880/mlogger
+          tags: |
+            type=raw,value=prod
+            type=sha,format=short
+      - uses: docker/build-push-action@v5
+        with:
+          push: true
+          context: .
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=docker.io/galaxy880/mlogger:buildcache
+          cache-to: type=registry,ref=docker.io/galaxy880/mlogger:buildcache,mode=max

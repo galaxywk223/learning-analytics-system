@@ -1,19 +1,79 @@
-# .gitignore
+# 字节码或优化文件
+*.py[cod]
+*$py.class
 
-# 忽略Python的缓存文件
+# C 扩展
+*.so
+*.pyd
+*.obj
+*.lib
+*.dll
+
+# 由 setuptools/distutils 生成
+dist/
+build/
+develop-eggs/
+*.egg-info/
+.eggs/
+parts/
+sdist/
+*.egg
+*.tar
+*.tar.gz
+*.whl
+
+# 虚拟环境
+/.venv/
+
+# PyInstaller
+# 通常不应将可执行文件提交到 Git
+*.manifest
+*.spec
+
+# Python 缓存
 __pycache__/
-*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
 
-# 忽略虚拟环境文件夹 (如果它在项目内)
-venv/
-.venv/
-env/
-.env
+# IDE 和编辑器配置
+/.vscode/
+/.idea/
+*.sublime-project
+*.sublime-workspace
 
-# 忽略本地数据库文件
+# 实例文件夹 (包含数据库、配置等)
+/instance/
 *.db
 *.sqlite3
 
-# 忽略IDE的配置文件夹
-.idea/
-.vscode/
+# 日志文件
+*.log
+logs/
+*.log.*
+
+# 运行时和临时文件
+*.swp
+*~
+.coverage
+coverage.xml
+htmlcov/
+*.sage.py
+
+# 操作系统生成的文件
+.DS_Store
+Thumbs.db
+
+# 环境变量文件 (确保不提交敏感信息)
+.env
+
+# 用户上传的文件
+/static/uploads/
+
+# 特定项目文件 (根据您的目录结构)
+# mlogger_0.1.0.tar 是一个构建产物，应该忽略
+mlogger_0.1.0.tar
+
+# 如果测试生成了文件，也应添加忽略规则
+# 例如：/tests/output/

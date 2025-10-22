@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: mlogger
+      POSTGRES_USER: mlogger
+      POSTGRES_PASSWORD: mlogger
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mlogger -d mlogger"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    environment:
+      FLASK_ENV: production
+      # 与你的 Config/ProductionConfig 约定一致，容器内用 Postgres 服务名 db 连接
+      DATABASE_URL: postgresql+psycopg2://mlogger:mlogger@db:5432/mlogger
+      SECRET_KEY: change-me-please
+      # 生产容器下将上传路径指向容器内 /data/uploads（后续会切换到对象存储接口）
+      UPLOAD_FOLDER_BASE: /data/uploads
+      LOG_LEVEL: info
+      SENTRY_DSN: ""
+
+    volumes:
+      - uploads-data:/data/uploads
+    ports:
+      - "8080:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  uploads-data:
