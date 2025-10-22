@@ -1,50 +1,71 @@
-# .github/workflows/deploy.yml
-name: Deploy to Aliyun ECS
+name: Build & Deploy (prod)
 
-# 触发条件：当代码被推送到 main 分支时
 on:
   push:
-    branches:
-      - main # 如果你的主分支是 master，请把这里改成 master
+    branches: ["main"] # 你的默认分支叫 main 就不用改；若是 master 就写 master
+  workflow_dispatch: # 允许手动触发
 
-# 任务
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: true
+
 jobs:
-  deploy:
-    # 运行环境
+  build-and-push:
     runs-on: ubuntu-latest
-    # 步骤
     steps:
-      # 步骤一：检出（下载）你的代码到虚拟环境
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # 步骤二：连接到你的阿里云服务器并执行部署命令
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@master
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # 只构建 amd64（你的服务器是 x86_64）
+          platforms: linux/amd64
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/mlogger:prod
+            ${{ secrets.DOCKERHUB_USERNAME }}/mlogger:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/mlogger:prod
+          cache-to: type=inline
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH to server & deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
           script: |
-            echo "--- 1. 进入正确目录 ---"
-            cd /var/www/my-learning-logger
-            echo "当前路径: $(pwd)"
-            
-            echo "--- 2. 检查文件权限和所有者 ---"
-            ls -la
-            
-            echo "--- 3. 检查当前Git状态 (非常关键) ---"
-            git status
-            
-            echo "--- 4. 使用强制手段更新代码 ---"
-            # 第1步：从远程仓库获取最新代码信息，这一步通常不会失败
-            git fetch origin
-            
-            # 第2步：硬重置！放弃所有本地修改，强制更新到和远程 main 分支完全一致
-            git reset --hard origin/main
-            
-            echo "--- 5. 检查强制更新后的最新commit ---"
-            git log -1
-            
-            echo "--- 6. 执行更新脚本 ---"
-            sh ./update.sh
+            set -euo pipefail
+            echo "Pulling latest prod image..."
+            podman pull docker.io/${{ secrets.DOCKERHUB_USERNAME }}/mlogger:prod
+            echo "Restarting service..."
+            systemctl restart container-mlogger-blue
+            echo "Health check..."
+            sleep 3
+            # 直连容器检查：允许 200 或 302
+            if ! curl -sI http://127.0.0.1:18081/ | head -n1 | grep -E ' 200| 302' > /dev/null; then
+              echo "Container health check failed. Recent logs:"
+              journalctl -u container-mlogger-blue -n 120 --no-pager || true
+              exit 1
+            fi
+            # 经 Nginx 检查
+            if ! curl -sI http://127.0.0.1/ | head -n1 | grep -E ' 200| 302' > /dev/null; then
+              echo "Nginx check failed. Nginx error log tail:"
+              tail -n 80 /var/log/nginx/error.log || true
+              exit 1
+            fi
+            echo "Deploy OK."
