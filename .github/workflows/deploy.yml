@@ -48,13 +48,24 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }} # 你的 Secret 里如果没填，就去把它设为 22
+          port: ${{ secrets.SSH_PORT }}
           script: |
             set -euo pipefail
-            echo "Pulling latest prod image..."
-            podman pull docker.io/${{ secrets.DOCKERHUB_USERNAME }}/mlogger:prod
+
+            echo "Pulling latest prod image (best-effort)..."
+            if ! podman pull docker.io/${{ secrets.DOCKERHUB_USERNAME }}/mlogger:prod; then
+              echo "WARN: pull failed, will try to use cached image."
+            fi
+
+            # 没有本地镜像就直接报错退出（避免起不来还不自知）
+            if ! podman image exists docker.io/${{ secrets.DOCKERHUB_USERNAME }}/mlogger:prod; then
+              echo "ERROR: prod image not present locally and pull failed. Abort."
+              exit 1
+            fi
+
             echo "Restarting service..."
             systemctl restart container-mlogger-blue
+
             echo "Health check..."
             sleep 3
             # 直连容器检查：允许 200 或 302
