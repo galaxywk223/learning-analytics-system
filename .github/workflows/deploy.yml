@@ -45,9 +45,10 @@ jobs:
       - name: SSH to server & deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }} # 你的 Secret 里如果没填，就去把它设为 22
           script: |
             set -euo pipefail
             echo "Pulling latest prod image..."
