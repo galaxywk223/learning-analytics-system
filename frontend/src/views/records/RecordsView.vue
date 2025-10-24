@@ -35,10 +35,10 @@
           <el-button
             type="primary"
             :disabled="!canAddRecord"
-            @click="openAddDialog"
+            @click="openAddDialog()"
           >
-          <el-icon><Plus /></el-icon>
-          添加新记录
+            <el-icon><Plus /></el-icon>
+            添加新记录
           </el-button>
         </el-tooltip>
       </div>
@@ -244,9 +244,9 @@
         @cancel="dialogVisible = false"
       />
       <template #footer>
-        <!-- 调试辅助：显示当前状态，用于定位“无法弹出”问题 -->
-        <div style="font-size:12px;color:#64748b;" v-if="__DEV__">
-          dialogVisible: {{ dialogVisible }} | currentStage: {{ currentStage?.id || 'none' }} | isEditing: {{ isEditing }}
+        <div style="font-size: 12px; color: #64748b" v-if="import.meta.env.DEV">
+          dialogVisible: {{ dialogVisible }} | currentStage:
+          {{ currentStage?.id || "none" }} | isEditing: {{ isEditing }} | defaultDate: {{ defaultDate || 'null' }}
         </div>
       </template>
     </el-dialog>
@@ -281,7 +281,9 @@ const expandedNotes = ref([]); // 记录展开的笔记ID
 
 const isEditing = computed(() => !!currentRecord.value?.id);
 // 是否可以添加记录（阶段已加载并选定）
-const canAddRecord = computed(() => !!currentStage.value?.id && !stagesStore.loading);
+const canAddRecord = computed(
+  () => !!currentStage.value?.id && !stagesStore.loading
+);
 
 // 获取当前活动阶段
 const currentStage = computed(() => stagesStore.activeStage);
@@ -324,6 +326,13 @@ const changeSort = (sort) => {
   loadRecords();
 };
 
+// 归一化日期（过滤事件对象）
+const normalizeDate = (raw) => {
+  if (!raw) return null;
+  if (typeof raw === 'object' && raw instanceof Event) return null; // 忽略事件
+  return raw;
+};
+
 // 打开添加对话框
 const openAddDialog = (date = null) => {
   // 阶段未选择时直接提示
@@ -332,10 +341,10 @@ const openAddDialog = (date = null) => {
     return;
   }
   currentRecord.value = null;
-  defaultDate.value = date;
+  defaultDate.value = normalizeDate(date);
   dialogVisible.value = true;
   // 调试日志便于排查“没有反应”问题
-  console.debug("打开添加记录对话框", { date });
+  console.debug("打开添加记录对话框", { raw: date, normalized: defaultDate.value });
 };
 
 // 打开编辑对话框
