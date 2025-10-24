@@ -244,9 +244,10 @@
         @cancel="dialogVisible = false"
       />
       <template #footer>
-        <div style="font-size: 12px; color: #64748b" v-if="import.meta.env.DEV">
+        <div style="font-size: 12px; color: #64748b" v-if="isDev">
           dialogVisible: {{ dialogVisible }} | currentStage:
-          {{ currentStage?.id || "none" }} | isEditing: {{ isEditing }} | defaultDate: {{ defaultDate || 'null' }}
+          {{ currentStage?.id || "none" }} | isEditing: {{ isEditing }} |
+          defaultDate: {{ defaultDate || "null" }}
         </div>
       </template>
     </el-dialog>
@@ -268,6 +269,8 @@ import { useStageStore } from "@/stores/modules/stage";
 import request from "@/utils/request";
 
 const stagesStore = useStageStore();
+// 开发环境标记，避免模板直接访问 import.meta 导致 parse 报错
+const isDev = !!import.meta.env && import.meta.env.DEV;
 
 const loading = ref(false);
 const submitting = ref(false);
@@ -329,7 +332,7 @@ const changeSort = (sort) => {
 // 归一化日期（过滤事件对象）
 const normalizeDate = (raw) => {
   if (!raw) return null;
-  if (typeof raw === 'object' && raw instanceof Event) return null; // 忽略事件
+  if (typeof raw === "object" && raw instanceof Event) return null; // 忽略事件
   return raw;
 };
 
@@ -344,7 +347,10 @@ const openAddDialog = (date = null) => {
   defaultDate.value = normalizeDate(date);
   dialogVisible.value = true;
   // 调试日志便于排查“没有反应”问题
-  console.debug("打开添加记录对话框", { raw: date, normalized: defaultDate.value });
+  console.debug("打开添加记录对话框", {
+    raw: date,
+    normalized: defaultDate.value,
+  });
 };
 
 // 打开编辑对话框
