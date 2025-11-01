@@ -6,54 +6,11 @@ from flask import Blueprint, request, jsonify, current_app, Response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import Stage
 from app.services.chart_service import get_chart_data_for_user, get_category_chart_data
-from app.services.wordcloud_service import generate_wordcloud_for_user
 from app.services.chart_plotter import export_trends_image, export_category_image
 import zipfile
 import io
 
 bp = Blueprint("charts", __name__)
-
-# 可用于前端展示的词云遮罩与调色板选项
-WORDCLOUD_MASK_OPTIONS = [
-    {"file": "random", "name": "随机形状"},
-    {"file": "brain-profile.png", "name": "大脑"},
-    {"file": "book-open.png", "name": "书本"},
-    {"file": "lightbulb-on.png", "name": "灯泡"},
-    {"file": "graduation-cap.png", "name": "毕业帽"},
-    {"file": "trophy-solid.png", "name": "奖杯"},
-    {"file": "tree-of-knowledge.png", "name": "知识树"},
-    {"file": "arrow-growth.png", "name": "成长箭头"},
-    {"file": "key-solid.png", "name": "智慧之钥"},
-    {"file": "puzzle-piece.png", "name": "知识拼图"},
-    {"file": "dialogue-bubble.png", "name": "思维气泡"},
-    {"file": "laptop-solid.png", "name": "电脑"},
-    {"file": "code-brackets.png", "name": "代码"},
-    {"file": "gear-solid.png", "name": "齿轮"},
-    {"file": "flask-solid.png", "name": "烧瓶"},
-    {"file": "microscope.png", "name": "显微镜"},
-    {"file": "bar-chart.png", "name": "图表"},
-]
-
-WORDCLOUD_PALETTES = [
-    {"name": "default", "label": "默认"},
-    {"name": "warm", "label": "暖色"},
-    {"name": "cool", "label": "冷色"},
-    {"name": "vibrant", "label": "鲜艳"},
-    {"name": "mono", "label": "单色"},
-]
-
-
-@bp.route("/wordcloud/options", methods=["GET"])
-@jwt_required()
-def wordcloud_options():
-    """返回词云遮罩与调色板可选项供前端渲染选择器"""
-    return jsonify(
-        {
-            "success": True,
-            "masks": WORDCLOUD_MASK_OPTIONS,
-            "palettes": WORDCLOUD_PALETTES,
-        }
-    ), 200
 
 
 @bp.route("/overview", methods=["GET"])
@@ -143,56 +100,6 @@ def get_stages_list():
     except Exception as e:
         current_app.logger.error(f"Error getting stages list: {e}", exc_info=True)
         return jsonify({"success": False, "message": "获取阶段列表失败"}), 500
-
-
-@bp.route("/wordcloud", methods=["GET"])
-@jwt_required()
-def get_wordcloud():
-    """
-    生成并返回词云图片
-    查询参数:
-    - stage_id: 阶段ID (可选, 'all'或具体ID)
-    - mask: 遮罩图片名称 (可选, 默认'random')
-    - palette: 调色板名称 (可选, 默认'default')
-
-    返回204状态码表示无数据
-    """
-    current_user_id = get_jwt_identity()
-
-    stage_id = request.args.get("stage_id")
-    mask_name = request.args.get("mask", "random")
-    palette = request.args.get("palette", "default")
-
-    try:
-        # 处理stage_id参数
-        if stage_id and stage_id != "all" and stage_id.isdigit():
-            stage = Stage.query.filter_by(
-                id=int(stage_id), user_id=current_user_id
-            ).first()
-            if not stage:
-                return jsonify({"success": False, "message": "阶段不存在"}), 404
-            stage_id = int(stage_id)
-        else:
-            stage_id = None
-
-        # 生成词云
-        img_buffer = generate_wordcloud_for_user(
-            current_user_id, stage_id=stage_id, mask_name=mask_name, palette=palette
-        )
-
-        if img_buffer:
-            return Response(
-                img_buffer.getvalue(),
-                mimetype="image/png",
-                headers={"Content-Type": "image/png"},
-            )
-        else:
-            # 返回204 No Content，与旧项目一致
-            return "", 204
-
-    except Exception as e:
-        current_app.logger.error(f"Error generating wordcloud: {e}", exc_info=True)
-        return jsonify({"success": False, "message": "生成词云失败"}), 500
 
 
 @bp.route("/export", methods=["GET"])

@@ -214,4 +214,4 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped src="@/styles/views/milestones/milestones-view.css"></style>
+<style scoped src="@/styles/views/milestones/milestones-view.scss"></style>

@@ -70,7 +70,6 @@ export const API_ENDPOINTS = {
     OVERVIEW: "/charts/overview",
     TRENDS: "/charts/trends",
     CATEGORY: "/charts/category",
-    WORDCLOUD: "/charts/wordcloud",
   },
 
   // 仪表盘

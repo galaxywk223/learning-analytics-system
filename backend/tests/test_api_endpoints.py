@@ -1,4 +1,4 @@
-"""Backend endpoint tests (structured records, dashboard summary, countdown enhancements, wordcloud options, settings).
+"""Backend endpoint tests (structured records, dashboard summary, countdown enhancements, settings).
 Using backend/app package directly (scheme A)."""
 
 from datetime import date, datetime, timedelta
@@ -199,18 +199,6 @@ def test_countdowns_enhanced_fields(client, db_session):
     assert future_ev["is_expired"] is False and future_ev["remaining_days"] > 0
     assert past_ev["is_expired"] is True
     assert "progress_percentage" in future_ev
-
-
-# ---------------- Wordcloud Options ----------------
-
-
-def test_wordcloud_options(client, db_session):
-    token, _ = register_and_login(client, username="u6", email="u6@test.com")
-    resp = client.get("/api/charts/wordcloud/options", headers=auth_headers(token))
-    assert resp.status_code == 200
-    data = resp.get_json()
-    assert data.get("success") is True
-    assert data.get("masks") and data.get("palettes")
 
 
 # ---------------- Settings CRUD ----------------

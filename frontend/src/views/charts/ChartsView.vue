@@ -23,12 +23,6 @@
           >
             🎯 分类占比
           </button>
-          <button
-            :class="['btn', charts.activeTab === 'wordcloud' && 'active']"
-            @click="charts.setActiveTab('wordcloud')"
-          >
-            ☁️ 词云分析
-          </button>
         </div>
         <!-- 周/日视图切换，仅在趋势分析 tab 显示 -->
         <div class="btn-group view-switch" v-if="charts.activeTab === 'trends'">
@@ -45,9 +39,9 @@
             📆 日视图
           </button>
         </div>
-        <!-- 阶段下拉，仅在分类占比与词云分析显示 -->
+        <!-- 阶段下拉，仅在分类占比显示 -->
         <select
-          v-if="charts.activeTab !== 'trends'"
+          v-if="charts.activeTab === 'categories'"
           class="stage-select"
           v-model="stageSelected"
           @change="charts.setStage(stageSelected)"
@@ -145,64 +139,6 @@
           @back="charts.backCategory"
         />
       </div>
-      <div
-        v-show="charts.activeTab === 'wordcloud'"
-        class="panel wordcloud-panel"
-      >
-        <div class="wordcloud-controls">
-          <div class="mask-grid" v-if="charts.wordcloudOptions.masks?.length">
-            <div
-              v-for="m in charts.wordcloudOptions.masks"
-              :key="m.file"
-              :class="['mask-item', currentMask === m.file && 'active']"
-              @click="selectMask(m.file)"
-              :title="m.name"
-            >
-              <img
-                v-if="m.file !== 'random'"
-                :src="getMaskImage(m.file)"
-                :alt="m.name"
-              />
-              <span v-else class="random-icon">🔀</span>
-            </div>
-          </div>
-          <el-select
-            v-model="currentPalette"
-            placeholder="🎨 调色板"
-            size="default"
-            style="width: 160px"
-            @change="selectPalette"
-          >
-            <el-option
-              v-for="p in charts.wordcloudOptions.palettes || []"
-              :key="p.name"
-              :label="p.label || p.name"
-              :value="p.name"
-            />
-          </el-select>
-          <button
-            class="export-btn"
-            style="padding: 0.5rem 1rem; font-size: 0.85rem"
-            @click="refreshWordcloud"
-            :disabled="charts.loading"
-          >
-            <span v-if="!charts.loading">🔄 刷新词云</span>
-            <span v-else>⏳ 生成中...</span>
-          </button>
-        </div>
-        <div class="wordcloud-display" v-loading="charts.wordcloudLoading">
-          <div
-            v-if="!charts.wordcloudLoading && !charts.wordcloudImageUrl"
-            class="alert alert-light text-center"
-          >
-            {{ charts.wordcloudMessage || "暂无词云数据，请调整筛选后重试。" }}
-          </div>
-          <WordCloudChart
-            :imageUrl="charts.wordcloudImageUrl"
-            :loading="charts.wordcloudLoading"
-          />
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -212,30 +148,13 @@ import { ref, onMounted } from "vue";
 import { useChartsStore } from "@/stores/modules/charts";
 import { chartsAPI } from "@/api/modules/charts";
 import TrendsChart from "@/components/business/charts/TrendsChart.vue";
-import CategoryChart from "@/components/business/charts/CategoryChart.vue";
-import WordCloudChart from "@/components/business/charts/WordCloudChart.vue";
+import CategoryComposite from "@/components/business/charts/CategoryComposite.vue";
 import KpiCard from "@/components/business/charts/KpiCard.vue";
 import { ElMessage } from "element-plus";
 
 const charts = useChartsStore();
 const stageSelected = ref("all");
 const exporting = ref(false);
-// 词云当前选择（与旧项目逻辑保持）
-const currentMask = ref("random");
-const currentPalette = ref("default");
-
-function selectMask(maskFile) {
-  currentMask.value = maskFile;
-  charts.setWordcloudMask(maskFile);
-}
-function selectPalette(pName) {
-  currentPalette.value = pName;
-  charts.setWordcloudPalette(pName);
-}
-function getMaskImage(file) {
-  // 使用前端 public 下的 images/masks 资源（旧项目静态结构复制）
-  return `/images/masks/${file}`;
-}
 
 async function handleExport() {
   exporting.value = true;
@@ -262,13 +181,6 @@ async function handleExport() {
   }
 }
 
-function refreshWordcloud() {
-  charts.fetchWordcloud({
-    palette: currentPalette.value,
-    mask: currentMask.value,
-  });
-}
-
 function onCategorySlice(cat) {
   if (!cat) return;
   charts.drillCategory(cat);
@@ -284,7 +196,6 @@ function jumpTo(index) {
 
 onMounted(async () => {
   await charts.initStages();
-  await charts.fetchWordcloudOptions();
   await charts.refreshAll();
 });
 </script>

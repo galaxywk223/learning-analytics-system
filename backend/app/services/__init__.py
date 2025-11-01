@@ -8,7 +8,6 @@ from .helpers import (
     parse_efficiency_to_numeric,
     moving_average,
 )
-from .wordcloud_service import generate_wordcloud_for_user
 from .chart_plotter import export_trends_image, export_category_image
 
 __all__ = [
@@ -17,7 +16,6 @@ __all__ = [
     "get_custom_week_info",
     "parse_efficiency_to_numeric",
     "moving_average",
-    "generate_wordcloud_for_user",
     "export_trends_image",
     "export_category_image",
 ]

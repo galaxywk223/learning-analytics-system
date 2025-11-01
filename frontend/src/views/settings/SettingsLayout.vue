@@ -67,5 +67,5 @@ import {
 </script>
 
 <style scoped>
-@import "@/styles/views/settings/layout.css";
+@import "@/styles/views/settings/layout.scss";
 </style>

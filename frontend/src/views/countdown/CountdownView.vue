@@ -204,4 +204,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped src="@/styles/views/countdown/countdown-view.css"></style>
+<style scoped src="@/styles/views/countdown/countdown-view.scss"></style>

@@ -190,4 +190,4 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style scoped src="@/styles/views/countdown/countdown-item.css"></style>
+<style scoped src="@/styles/views/countdown/countdown-item.scss"></style>

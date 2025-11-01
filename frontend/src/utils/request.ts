@@ -1,12 +1,12 @@
 /**
  * Axios HTTP客户端配置
  */
-import axios from "axios";
+import axios, { type AxiosInstance } from "axios";
 import { ElMessage } from "element-plus";
 import router from "@/router";
 
 // 创建axios实例
-const request = axios.create({
+const request: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000",
   timeout: 15000,
 });
@@ -30,7 +30,7 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
   (response) => {
-    // 保留 blob 响应的完整对象以访问 headers/status (用于导出与词云 204 判断)
+    // 保留 blob 响应的完整对象以访问 headers/status (用于导出等场景)
     if (response.config && response.config.responseType === "blob") {
       return response;
     }

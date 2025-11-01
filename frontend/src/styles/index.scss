@@ -1,0 +1,18 @@
+/**
+ * 样式统一入口文件
+ * 按照加载顺序组织：base -> themes -> layouts -> components -> views
+ */
+
+/* 基础样式 */
+@import "./base/base.scss";
+@import "./base/fonts.scss";
+
+/* 主题 */
+@import "./themes/themes.scss";
+
+/* 布局 */
+@import "./layouts/layout.scss";
+@import "./layouts/grid.scss";
+
+/* 组件 */
+@import "./components/components.scss";

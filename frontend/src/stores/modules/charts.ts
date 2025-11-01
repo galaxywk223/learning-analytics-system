@@ -14,7 +14,7 @@ export const useChartsStore = defineStore("charts", () => {
   // 过滤器
   const viewType = ref("weekly"); // 'weekly' | 'daily'
   const stageId = ref("all");
-  const activeTab = ref("trends"); // 'trends' | 'categories' | 'wordcloud'
+  const activeTab = ref("trends"); // 'trends' | 'categories'
 
   // 数据状态
   const loading = ref(false);
@@ -48,14 +48,6 @@ export const useChartsStore = defineStore("charts", () => {
   });
   const currentCategoryView = ref("main"); // 'main' | 'drilldown'
   const currentCategory = ref(""); // 当前下钻的分类名
-
-  // 词云
-  const wordcloudImageUrl = ref("");
-  const wordcloudOptions = ref({ masks: [], palettes: [] });
-  const currentMask = ref("random");
-  const currentPalette = ref("default");
-  const wordcloudLoading = ref(false);
-  const wordcloudMessage = ref("");
 
   // 阶段列表
   const stages = ref([]);
@@ -204,74 +196,12 @@ export const useChartsStore = defineStore("charts", () => {
   }
 
   /**
-   * 获取词云（与旧项目 loadWordCloud 对应）
-   */
-  async function fetchWordcloud(params = {}) {
-    wordcloudLoading.value = true;
-    try {
-      const timestamp = new Date().getTime();
-      const response = await chartsAPI.getWordcloud({
-        stage_id: stageId.value,
-        mask: params.mask || currentMask.value,
-        palette: params.palette || currentPalette.value,
-        t: timestamp,
-      });
-      // 204 无内容
-      if (response.status === 204) {
-        wordcloudMessage.value =
-          "在当前筛选的范围内没有找到任何笔记内容来生成词云。";
-        if (wordcloudImageUrl.value)
-          URL.revokeObjectURL(wordcloudImageUrl.value);
-        wordcloudImageUrl.value = "";
-        return;
-      }
-      const blob = response.data instanceof Blob ? response.data : response;
-      if (wordcloudImageUrl.value) {
-        URL.revokeObjectURL(wordcloudImageUrl.value);
-      }
-      if (blob && blob.size > 0) {
-        wordcloudImageUrl.value = URL.createObjectURL(blob);
-        wordcloudMessage.value = "";
-      } else {
-        wordcloudImageUrl.value = "";
-        wordcloudMessage.value = "暂无词云数据，请调整筛选后重试。";
-      }
-    } catch (error) {
-      console.error("Error loading wordcloud:", error);
-      if (wordcloudImageUrl.value) URL.revokeObjectURL(wordcloudImageUrl.value);
-      wordcloudImageUrl.value = "";
-      wordcloudMessage.value = "加载词云时发生网络错误，请稍后重试。";
-    } finally {
-      wordcloudLoading.value = false;
-    }
-  }
-
-  /**
-   * 获取词云选项
-   */
-  async function fetchWordcloudOptions() {
-    try {
-      const res = await chartsAPI.getWordcloudOptions();
-      if (res && res.success) {
-        wordcloudOptions.value = {
-          masks: res.masks || [],
-          palettes: res.palettes || [],
-        };
-      }
-    } catch (e) {
-      console.warn("获取词云选项失败", e);
-    }
-  }
-
-  /**
    * 刷新所有数据
    */
   async function refreshAll() {
     await fetchTrends();
     if (activeTab.value === "categories") {
       await fetchCategories();
-    } else if (activeTab.value === "wordcloud") {
-      await fetchWordcloud();
     }
   }
 
@@ -302,25 +232,7 @@ export const useChartsStore = defineStore("charts", () => {
     activeTab.value = tab;
     if (tab === "categories" && categoryData.value.main.labels.length === 0) {
       fetchCategories();
-    } else if (tab === "wordcloud" && !wordcloudImageUrl.value) {
-      fetchWordcloud();
     }
-  }
-
-  /**
-   * 设置词云遮罩
-   */
-  function setWordcloudMask(mask) {
-    currentMask.value = mask;
-    fetchWordcloud();
-  }
-
-  /**
-   * 设置词云调色板
-   */
-  function setWordcloudPalette(palette) {
-    currentPalette.value = palette;
-    fetchWordcloud();
   }
 
   // KPI 格式化辅助（与旧项目 blueprints 中格式保持一致）
@@ -344,12 +256,6 @@ export const useChartsStore = defineStore("charts", () => {
     categoryData,
     currentCategoryView,
     currentCategory,
-    wordcloudImageUrl,
-    wordcloudOptions,
-    currentMask,
-    currentPalette,
-    wordcloudLoading,
-    wordcloudMessage,
     stages,
     // 计算属性
     hasTrendsData,
@@ -360,14 +266,10 @@ export const useChartsStore = defineStore("charts", () => {
     fetchCategories,
     drillCategory,
     backCategory,
-    fetchWordcloud,
-    fetchWordcloudOptions,
     refreshAll,
     setViewType,
     setStage,
     setActiveTab,
-    setWordcloudMask,
-    setWordcloudPalette,
     getFormattedAvgDailyDuration,
   };
 });

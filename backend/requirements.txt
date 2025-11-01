@@ -28,8 +28,6 @@ pytz==2023.3
 # 图表和数据处理
 matplotlib==3.8.2
 numpy==1.26.2
-wordcloud==1.9.3
-jieba==0.42.1
 Pillow==10.1.0
 
 # 文本处理

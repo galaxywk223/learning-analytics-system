@@ -203,5 +203,5 @@ onMounted(fetchCategories);
 
 <style
   scoped
-  src="@/styles/views/milestones/milestone-category-manager.css"
+  src="@/styles/views/milestones/milestone-category-manager.scss"
 ></style>

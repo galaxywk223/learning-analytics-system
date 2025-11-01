@@ -118,4 +118,4 @@ async function deleteAttachment(att) {
 }
 </script>
 
-<style scoped src="@/styles/components/milestones/milestone-item.css"></style>
+<style scoped src="@/styles/components/milestones/milestone-item.scss"></style>

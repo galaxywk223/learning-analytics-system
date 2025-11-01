@@ -6,7 +6,7 @@ import zhCn from "element-plus/es/locale/lang/zh-cn";
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 
 // 导入统一的样式入口
-import "./styles/index.css";
+import "./styles/index.scss";
 
 import App from "./App.vue";
 import { createIcons } from "lucide";
