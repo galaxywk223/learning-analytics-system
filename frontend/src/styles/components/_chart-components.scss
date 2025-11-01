@@ -1,0 +1,123 @@
+// 词云图表组件样式
+.wordcloud-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  position: relative;
+
+  .wordcloud-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    animation: fadeInScale 0.5s ease;
+  }
+
+  .no-data {
+    padding: 3rem;
+    text-align: center;
+    color: #64748b;
+    font-size: 1rem;
+
+    &::before {
+      content: "☁️";
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// 分类图表组件样式
+.category-wrapper {
+  position: relative;
+  min-height: 400px;
+
+  .category-chart-container {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+    @media (max-width: 768px) {
+      padding: 1.5rem;
+    }
+  }
+
+  .chart-canvas {
+    max-height: 500px;
+    margin: 0 auto;
+
+    @media (max-width: 768px) {
+      max-height: 350px;
+    }
+  }
+
+  .back-button {
+    margin-bottom: 1rem;
+    padding: 0.6rem 1.2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &:hover {
+      transform: translateX(-4px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    &::before {
+      content: "⬅️";
+    }
+  }
+}
+
+// 分类复合组件样式
+.category-composite {
+  .main-chart,
+  .drilldown-chart {
+    margin-bottom: 2rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .chart-section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &::before {
+      content: "🎯";
+      font-size: 1.4rem;
+    }
+  }
+}

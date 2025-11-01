@@ -1,0 +1,38 @@
+// 认证页面颜色变量
+$auth-primary: #6366f1;
+$auth-primary-hover: #4f46e5;
+$auth-primary-light: #818cf8;
+$auth-secondary: #8b5cf6;
+$auth-accent: #ec4899;
+
+// 渐变色
+$auth-gradient-start: #6366f1;
+$auth-gradient-middle: #8b5cf6;
+$auth-gradient-end: #ec4899;
+
+// 背景色
+$auth-bg-light: #f8fafc;
+$auth-bg-white: #ffffff;
+$auth-bg-overlay: rgba(255, 255, 255, 0.95);
+
+// 文字颜色
+$auth-text-primary: #1e293b;
+$auth-text-secondary: #64748b;
+$auth-text-light: #94a3b8;
+
+// 边框和阴影
+$auth-border-color: #e2e8f0;
+$auth-box-shadow:
+  0 20px 25px -5px rgba(0, 0, 0, 0.1),
+  0 10px 10px -5px rgba(0, 0, 0, 0.04);
+$auth-box-shadow-hover: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+$auth-input-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+// 尺寸
+$auth-card-width: 480px;
+$auth-card-padding: 3rem;
+$auth-border-radius: 1rem;
+$auth-input-height: 48px;
+
+// 动画
+$auth-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

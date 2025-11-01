@@ -1,0 +1,18 @@
+/* 引用共享动画 + Records 特有动画 */
+@use "../../shared/animations";
+
+/* Records 页面特有动画 */
+@keyframes expandDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}

@@ -1,0 +1,53 @@
+// 认证页面混合工具
+
+@mixin glass-morphism {
+  background: $auth-bg-overlay;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@mixin gradient-background {
+  background: linear-gradient(
+    135deg,
+    $auth-gradient-start 0%,
+    $auth-gradient-middle 50%,
+    $auth-gradient-end 100%
+  );
+  background-size: 200% 200%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+@mixin input-focus {
+  &:focus {
+    border-color: $auth-primary;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    outline: none;
+  }
+}
+
+@mixin button-hover-effect {
+  transition: $auth-transition;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $auth-box-shadow-hover;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+@mixin responsive-card {
+  @media (max-width: 640px) {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-radius: 0;
+
+    .auth-card-body {
+      padding: 2rem 1.5rem;
+    }
+  }
+}

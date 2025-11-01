@@ -1,0 +1,47 @@
+# Flask核心
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+Flask-CORS==4.0.0
+
+# JWT认证
+Flask-JWT-Extended==4.6.0
+PyJWT==2.8.0
+
+# 数据库
+psycopg2-binary==2.9.9
+SQLAlchemy==2.0.23
+
+# 数据验证
+marshmallow==3.20.1
+flask-marshmallow==0.15.0
+marshmallow-sqlalchemy==0.29.0
+
+# 密码加密
+bcrypt==4.1.2
+Werkzeug==3.0.1
+
+# 工具库
+python-dotenv==1.0.0
+pytz==2023.3
+
+# 图表和数据处理
+matplotlib==3.8.2
+numpy==1.26.2
+wordcloud==1.9.3
+jieba==0.42.1
+Pillow==10.1.0
+
+# 文本处理
+bleach==6.1.0
+
+# 日志和监控
+python-json-logger==2.0.7
+sentry-sdk[flask]==1.39.2
+
+# 服务器
+gunicorn==21.2.0
+
+# 开发工具
+python-dateutil==2.8.2
+pytest==7.4.4

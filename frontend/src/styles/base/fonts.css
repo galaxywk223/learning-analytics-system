@@ -1,0 +1,7 @@
+/* src/assets/css/fonts.css */
+@font-face {
+  font-family: "MaShanZheng";
+  src: url("../fonts/MaShanZheng-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}

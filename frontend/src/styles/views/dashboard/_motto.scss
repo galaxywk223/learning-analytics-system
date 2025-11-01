@@ -1,0 +1,103 @@
+/* 格言卡片 */
+.motto-section {
+  padding: 0 30px 40px;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.motto-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 28px 32px;
+  max-width: 900px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.5);
+  animation: fadeInUp 0.6s ease-out 0.15s both;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  will-change: transform;
+}
+
+.motto-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.motto-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.motto-icon i {
+  width: 24px;
+  height: 24px;
+}
+
+.motto-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.motto-text {
+  font-family: "MaShanZheng", sans-serif;
+  font-size: 1.5rem;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.motto-refresh {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #f3f4f6;
+  color: #6b7280;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.motto-refresh:hover:not(:disabled) {
+  background: #e5e7eb;
+  color: #374151;
+  transform: rotate(90deg);
+}
+
+.motto-refresh:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.motto-refresh.spinning i {
+  animation: spin 1s linear infinite;
+}
+
+.motto-refresh i {
+  width: 20px;
+  height: 20px;
+}

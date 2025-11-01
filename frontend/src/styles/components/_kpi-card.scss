@@ -1,0 +1,142 @@
+// KPI 卡片组件样式
+.kpi-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border-left: 4px solid var(--bar-color, #6366f1);
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(
+      circle,
+      var(--icon-bg, #eef2ff) 0%,
+      transparent 70%
+    );
+    opacity: 0.5;
+    transform: translate(30%, -30%);
+    transition: transform 0.3s;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+
+    &::before {
+      transform: translate(20%, -20%) scale(1.2);
+    }
+
+    .icon-wrapper {
+      transform: rotate(5deg) scale(1.1);
+    }
+  }
+
+  .icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: var(--icon-bg, #eef2ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: var(--icon-color, #4f46e5);
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px var(--icon-shadow, rgba(79, 70, 229, 0.2));
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+  }
+
+  .content {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.5px;
+
+    @media (max-width: 768px) {
+      font-size: 1.5rem;
+    }
+  }
+
+  .label {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  // 不同颜色主题
+  &.primary {
+    --bar-color: #6366f1;
+    --icon-bg: #eef2ff;
+    --icon-color: #4f46e5;
+    --icon-shadow: rgba(79, 70, 229, 0.2);
+  }
+
+  &.amber {
+    --bar-color: #f59e0b;
+    --icon-bg: #fef3c7;
+    --icon-color: #d97706;
+    --icon-shadow: rgba(217, 119, 6, 0.2);
+  }
+
+  &.green {
+    --bar-color: #10b981;
+    --icon-bg: #d1fae5;
+    --icon-color: #047857;
+    --icon-shadow: rgba(4, 120, 87, 0.2);
+  }
+
+  &.blue {
+    --bar-color: #3b82f6;
+    --icon-bg: #dbeafe;
+    --icon-color: #1e40af;
+    --icon-shadow: rgba(30, 64, 175, 0.2);
+  }
+
+  &.purple {
+    --bar-color: #a855f7;
+    --icon-bg: #f3e8ff;
+    --icon-color: #7e22ce;
+    --icon-shadow: rgba(126, 34, 206, 0.2);
+  }
+
+  &.pink {
+    --bar-color: #ec4899;
+    --icon-bg: #fce7f3;
+    --icon-color: #be185d;
+    --icon-shadow: rgba(190, 24, 93, 0.2);
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+    gap: 1rem;
+
+    .icon-wrapper {
+      width: 52px;
+      height: 52px;
+      font-size: 1.5rem;
+    }
+  }
+}

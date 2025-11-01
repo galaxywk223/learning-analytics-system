@@ -231,10 +231,13 @@
     <!-- 添加/编辑对话框 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="isEditing ? '编辑记录' : '添加新纪录'"
-      width="800px"
+      :title="isEditing ? '✏️ 编辑记录' : '➕ 添加新记录'"
+      width="900px"
       @close="handleDialogClose"
-      class="modern-dialog"
+      class="record-dialog"
+      :append-to-body="true"
+      :destroy-on-close="false"
+      :close-on-click-modal="false"
     >
       <RecordForm
         :record="currentRecord"
@@ -243,13 +246,6 @@
         @submit="handleSubmit"
         @cancel="dialogVisible = false"
       />
-      <template #footer>
-        <div style="font-size: 12px; color: #64748b" v-if="isDev">
-          dialogVisible: {{ dialogVisible }} | currentStage:
-          {{ currentStage?.id || "none" }} | isEditing: {{ isEditing }} |
-          defaultDate: {{ defaultDate || "null" }}
-        </div>
-      </template>
     </el-dialog>
   </div>
 </template>
@@ -269,8 +265,6 @@ import { useStageStore } from "@/stores/modules/stage";
 import request from "@/utils/request";
 
 const stagesStore = useStageStore();
-// 开发环境标记，避免模板直接访问 import.meta 导致 parse 报错
-const isDev = !!import.meta.env && import.meta.env.DEV;
 
 const loading = ref(false);
 const submitting = ref(false);
@@ -284,9 +278,9 @@ const expandedNotes = ref([]); // 记录展开的笔记ID
 
 const isEditing = computed(() => !!currentRecord.value?.id);
 // 是否可以添加记录（阶段已加载并选定）
-const canAddRecord = computed(
-  () => !!currentStage.value?.id && !stagesStore.loading
-);
+const canAddRecord = computed(() => {
+  return !!currentStage.value?.id && !stagesStore.loading;
+});
 
 // 获取当前活动阶段
 const currentStage = computed(() => stagesStore.activeStage);
@@ -346,11 +340,6 @@ const openAddDialog = (date = null) => {
   currentRecord.value = null;
   defaultDate.value = normalizeDate(date);
   dialogVisible.value = true;
-  // 调试日志便于排查“没有反应”问题
-  console.debug("打开添加记录对话框", {
-    raw: date,
-    normalized: defaultDate.value,
-  });
 };
 
 // 打开编辑对话框
@@ -370,19 +359,23 @@ const handleDialogClose = () => {
 const handleSubmit = async (formData) => {
   submitting.value = true;
   try {
+    console.log("Submitting record data:", formData);
+    
     if (isEditing.value) {
       // 更新记录
-      await request.put(`/api/records/${currentRecord.value.id}`, {
+      const response = await request.put(`/api/records/${currentRecord.value.id}`, {
         ...formData,
         stage_id: currentStage.value.id,
       });
+      console.log("Update response:", response);
       ElMessage.success("记录更新成功!");
     } else {
       // 创建记录
-      await request.post("/api/records", {
+      const response = await request.post("/api/records", {
         ...formData,
         stage_id: currentStage.value.id,
       });
+      console.log("Create response:", response);
       ElMessage.success("新纪录添加成功!");
     }
 
@@ -390,7 +383,8 @@ const handleSubmit = async (formData) => {
     loadRecords();
   } catch (error) {
     console.error("提交失败:", error);
-    ElMessage.error(error.response?.data?.message || "操作失败");
+    const errorMsg = error.response?.data?.message || error.message || "操作失败";
+    ElMessage.error(errorMsg);
   } finally {
     submitting.value = false;
   }

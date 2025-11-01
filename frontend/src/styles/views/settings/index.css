@@ -1,0 +1,83 @@
+/* 设置页面样式汇总 */
+
+/* 导入所有设置相关样式 */
+@import "./layout.css";
+@import "./account.css";
+@import "./appearance.css";
+
+/* 通用工具类 */
+.d-none {
+  display: none !important;
+}
+
+.d-flex {
+  display: flex !important;
+}
+
+.align-items-center {
+  align-items: center !important;
+}
+
+.gap-2 {
+  gap: 0.5rem !important;
+}
+
+.mb-0 {
+  margin-bottom: 0 !important;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem !important;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem !important;
+}
+
+.mt-2 {
+  margin-top: 0.5rem !important;
+}
+
+.mt-4 {
+  margin-top: 1.5rem !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-muted {
+  color: #64748b !important;
+}
+
+.text-danger {
+  color: #ef4444 !important;
+}
+
+.small {
+  font-size: 0.875rem !important;
+}
+
+.fw-bold {
+  font-weight: 600 !important;
+}
+
+.w-100 {
+  width: 100% !important;
+}
+
+.vstack {
+  display: flex;
+  flex-direction: column;
+}
+
+.gap-4 {
+  gap: 1.5rem;
+}
+
+/* 通用卡片样式增强 */
+.settings-card .card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}

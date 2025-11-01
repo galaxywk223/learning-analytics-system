@@ -1,0 +1,7 @@
+// 认证页面样式统一导出
+@import "./variables";
+@import "./mixins";
+@import "./animations";
+
+// 此文件可以在需要时全局引入认证相关的样式
+// 例如在 main.js 中：import '@/styles/auth/index.scss'

@@ -1,38 +1,64 @@
+version: "3.8"
+
 services:
+  # PostgreSQL 数据库
   db:
     image: postgres:15-alpine
+    container_name: mlogger-db
     environment:
-      POSTGRES_DB: mlogger
-      POSTGRES_USER: mlogger
-      POSTGRES_PASSWORD: mlogger
+      POSTGRES_DB: ${DB_NAME:-mlogger}
+      POSTGRES_USER: ${DB_USER:-mlogger}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-mlogger123}
     volumes:
-      - db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mlogger -d mlogger"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-
-  api:
-    build: .
-    environment:
-      FLASK_ENV: production
-      # 与你的 Config/ProductionConfig 约定一致，容器内用 Postgres 服务名 db 连接
-      DATABASE_URL: postgresql+psycopg2://mlogger:mlogger@db:5432/mlogger
-      SECRET_KEY: change-me-please
-      # 生产容器下将上传路径指向容器内 /data/uploads（后续会切换到对象存储接口）
-      UPLOAD_FOLDER_BASE: /data/uploads
-      LOG_LEVEL: info
-      SENTRY_DSN: ""
-
-    volumes:
-      - uploads-data:/data/uploads
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - "8080:8000"
+      - "5432:5432"
+    networks:
+      - mlogger-network
+    restart: unless-stopped
+
+  # 后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mlogger-backend
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql+psycopg2://${DB_USER:-mlogger}:${DB_PASSWORD:-mlogger123}@db:5432/${DB_NAME:-mlogger}
+      - SECRET_KEY=${SECRET_KEY:-change-this-in-production}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-change-this-in-production}
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:80
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/instance:/app/instance
+    ports:
+      - "5000:5000"
     depends_on:
-      db:
-        condition: service_healthy
+      - db
+    networks:
+      - mlogger-network
+    restart: unless-stopped
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:5000}
+    container_name: mlogger-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - mlogger-network
+    restart: unless-stopped
 
 volumes:
-  db-data:
-  uploads-data:
+  postgres_data:
+
+networks:
+  mlogger-network:
+    driver: bridge

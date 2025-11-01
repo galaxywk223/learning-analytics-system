@@ -1,0 +1,101 @@
+/* 对话框与骨架屏 */
+:deep(.record-dialog) {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+  .el-dialog__header {
+    padding: 24px 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    margin: 0;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(255, 255, 255, 0.6) 50%,
+        rgba(255, 255, 255, 0.3) 100%
+      );
+    }
+  }
+
+  .el-dialog__title {
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.5px;
+  }
+
+  .el-dialog__headerbtn {
+    top: 24px;
+    right: 24px;
+    width: 40px;
+    height: 40px;
+
+    .el-dialog__close {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      border-radius: 50%;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(255, 255, 255, 0.15);
+
+      &:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.25);
+        transform: rotate(90deg);
+      }
+    }
+  }
+
+  .el-dialog__body {
+    padding: 32px;
+    background: #fff;
+    min-height: 400px;
+  }
+
+  .el-dialog__footer {
+    padding: 20px 32px 32px;
+    background: #fff;
+    border-top: 1px solid #f0f0f0;
+  }
+}
+
+:deep(.el-overlay) {
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(10px);
+}
+
+:deep(.el-skeleton) {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.el-skeleton__item) {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

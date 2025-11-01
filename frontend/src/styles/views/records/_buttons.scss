@@ -1,0 +1,45 @@
+/* 按钮组与主按钮 */
+:deep(.el-button-group) {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+}
+:deep(.el-button-group .el-button) {
+  border: none;
+  font-weight: 600;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+:deep(.el-button-group .el-button--primary) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+:deep(.el-button-group .el-button:not(.el-button--primary)) {
+  background: #fff;
+  color: #64748b;
+}
+:deep(.el-button-group .el-button:not(.el-button--primary)):hover {
+  background: #f8fafc;
+  color: #667eea;
+}
+:deep(.page-header-records .el-button--primary) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  will-change: transform;
+}
+:deep(.page-header-records .el-button--primary):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(102, 126, 234, 0.4);
+}
+:deep(.page-header-records .el-button--primary .el-icon) {
+  font-size: 1.1rem;
+  color: #fff !important;
+}

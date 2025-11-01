@@ -1,0 +1,63 @@
+/* Minimal grid system replicating Bootstrap subset for dashboard layout */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -0.75rem;
+  margin-left: -0.75rem;
+}
+.row.g-4 {
+  gap: 1.5rem;
+}
+.col-md-6,
+.col-lg-4,
+.col-lg-8 {
+  position: relative;
+  width: 100%;
+  padding-right: 0.75rem;
+  padding-left: 0.75rem;
+}
+@media (min-width: 768px) {
+  .col-md-6 {
+    flex: 0 0 auto;
+    width: 50%;
+  }
+}
+@media (min-width: 992px) {
+  .col-lg-4 {
+    flex: 0 0 auto;
+    width: 33.3333%;
+  }
+  .col-lg-8 {
+    flex: 0 0 auto;
+    width: 66.6667%;
+  }
+}
+.justify-content-center {
+  justify-content: center;
+}
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+.py-3 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.px-4 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+.d-flex {
+  display: flex;
+}
+.align-items-center {
+  align-items: center;
+}
+.flex-grow-1 {
+  flex-grow: 1;
+}
+.text-center {
+  text-align: center;
+}
+.ms-3 {
+  margin-left: 1rem;
+}

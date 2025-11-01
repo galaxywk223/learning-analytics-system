@@ -1,0 +1,48 @@
+/* static/css/themes.css */
+
+/* 此文件负责为不同的主题重写在 base.css中定义的全局颜色变量 */
+
+/* 默认主题: 淡雅紫 */
+[data-theme="palette-purple"] {
+    --color-primary: #A78BFA;
+    --color-primary-light: #DDD6FE;
+    --color-primary-dark: #8B5CF6;
+    --color-card-border: #EDE9FE;
+    --color-card-bg-hover: #FBFBFF;
+}
+
+/* 主题二: 活力绿 */
+[data-theme="palette-green"] {
+    --color-primary: #4ADE80;
+    --color-primary-light: #DCFCE7;
+    --color-primary-dark: #22C55E;
+    --color-card-border: #D1FAE5;
+    --color-card-bg-hover: #F7FEF9;
+}
+
+/* 主题三: 商务蓝 */
+[data-theme="palette-blue"] {
+    --color-primary: #60A5FA;
+    --color-primary-light: #DBEAFE;
+    --color-primary-dark: #3B82F6;
+    --color-card-border: #BFDBFE;
+    --color-card-bg-hover: #F8FBFF;
+}
+
+/* 主题四: 暖阳黄 */
+[data-theme="palette-yellow"] {
+    --color-primary: #FACC15;
+    --color-primary-light: #FEF9C3;
+    --color-primary-dark: #EAB308;
+    --color-card-border: #FEF08A;
+    --color-card-bg-hover: #FFFDF5;
+}
+
+/* 主题五: 热情红 */
+[data-theme="palette-red"] {
+    --color-primary: #F87171;
+    --color-primary-light: #FEE2E2;
+    --color-primary-dark: #EF4444;
+    --color-card-border: #FECACA;
+    --color-card-bg-hover: #FFF8F8;
+}

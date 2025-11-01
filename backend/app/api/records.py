@@ -67,8 +67,13 @@ def export_zip():
     """Export all user data as a zip archive (legacy path /export_zip supported)."""
     current_user_id = get_jwt_identity()
     try:
-        # Use data_service to build the in-memory zip (assumes service provides this)
-        ok, stream, filename = data_service.export_data_for_user(current_user_id)
+        # 获取用户对象
+        user = User.query.get(current_user_id)
+        if not user:
+            return jsonify({"success": False, "message": "用户不存在"}), 404
+
+        # Use data_service to build the in-memory zip
+        ok, stream, filename = data_service.export_data_for_user(user)
         if not ok:
             return jsonify({"success": False, "message": "导出失败"}), 500
         # Stream response similar to legacy implementation
@@ -189,13 +194,15 @@ def get_records():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 10, type=int)
 
-    # 构建基础查询
-    query = LogEntry.query.filter_by(user_id=current_user_id)
+    # 构建基础查询 - LogEntry 没有 user_id，需要通过 Stage 关联
+    query = LogEntry.query.join(Stage).filter(Stage.user_id == current_user_id)
 
-    # 可选的过滤条件
+    # 可选的过滤条件 - 通过 subcategory 的 category 过滤
     category_id = request.args.get("category_id", type=int)
     if category_id:
-        query = query.filter_by(category_id=category_id)
+        query = (
+            query.join(SubCategory).join(Category).filter(Category.id == category_id)
+        )
 
     # 按日期降序排序
     query = query.order_by(LogEntry.log_date.desc(), LogEntry.created_at.desc())
@@ -266,12 +273,12 @@ def create_record():
             .first()
         )
         if not subcategory:
-            return jsonify({"success": False, "message": "选择了无效的分类。"}), 404
-
-    # 如果没有子分类但提供了 category_id，可给出更友好的提示（可选逻辑）
-    if not subcategory_id and data.get("category_id"):
-        # 前端可能只选了分类但没选标签，提醒需要选择标签
-        return jsonify({"success": False, "message": "请为该分类选择一个标签（子分类）"}), 400
+            current_app.logger.warning(
+                f"Invalid subcategory {subcategory_id} for user {current_user_id}"
+            )
+            return jsonify({"success": False, "message": "选择了无效的标签。"}), 400
+    else:
+        current_app.logger.info(f"Creating record without subcategory for user {current_user_id}")
 
     try:
         # 处理时长：支持小时+分钟的格式（与旧项目一致）
@@ -351,7 +358,10 @@ def update_record(record_id):
                 .first()
             )
             if not subcategory:
-                return jsonify({"success": False, "message": "选择了无效的分类。"}), 404
+                current_app.logger.warning(
+                    f"Invalid subcategory {subcategory_id} for user {current_user_id}"
+                )
+                return jsonify({"success": False, "message": "选择了无效的标签。"}), 400
 
         # 处理时长：支持小时+分钟的格式
         if "duration_hours" in data or "duration_minutes" in data:
@@ -375,8 +385,8 @@ def update_record(record_id):
             record.mood = data["mood"]
         if "notes" in data:
             record.notes = data["notes"]
-        if "subcategory_id" in data:
-            record.subcategory_id = subcategory_id
+        # 更新分类：即使是 None 也要更新（允许清空分类）
+        record.subcategory_id = subcategory_id
 
         db.session.commit()
 
