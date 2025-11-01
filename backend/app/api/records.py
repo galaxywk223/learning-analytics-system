@@ -256,29 +256,28 @@ def create_record():
     if not data.get("stage_id") or not data.get("task"):
         return jsonify({"success": False, "message": "阶段和任务为必填项"}), 400
 
+    # subcategory_id 为必填项
+    subcategory_id = data.get("subcategory_id")
+    if not subcategory_id:
+        return jsonify({"success": False, "message": "请选择分类标签"}), 400
+
     # 验证阶段所有权
     stage = Stage.query.filter_by(id=data["stage_id"], user_id=current_user_id).first()
     if not stage:
         return jsonify({"success": False, "message": "阶段不存在"}), 404
 
     # 说明：当前模型通过 subcategory_id 关联分类；如果前端仍传 category_id，仅用于前端选择，不在 LogEntry 中保存。
-    # 验证子分类(如果提供)
-    subcategory_id = data.get("subcategory_id")
-    if subcategory_id:
-        subcategory = (
-            SubCategory.query.join(Category)
-            .filter(
-                SubCategory.id == subcategory_id, Category.user_id == current_user_id
-            )
-            .first()
+    # 验证子分类
+    subcategory = (
+        SubCategory.query.join(Category)
+        .filter(SubCategory.id == subcategory_id, Category.user_id == current_user_id)
+        .first()
+    )
+    if not subcategory:
+        current_app.logger.warning(
+            f"Invalid subcategory {subcategory_id} for user {current_user_id}"
         )
-        if not subcategory:
-            current_app.logger.warning(
-                f"Invalid subcategory {subcategory_id} for user {current_user_id}"
-            )
-            return jsonify({"success": False, "message": "选择了无效的标签。"}), 400
-    else:
-        current_app.logger.info(f"Creating record without subcategory for user {current_user_id}")
+        return jsonify({"success": False, "message": "选择了无效的标签。"}), 400
 
     try:
         # 处理时长：支持小时+分钟的格式（与旧项目一致）
@@ -346,22 +345,25 @@ def update_record(record_id):
     old_date = record.log_date
 
     try:
-        # 验证子分类(如果提供)
+        # subcategory_id 为必填项
         subcategory_id = data.get("subcategory_id")
-        if subcategory_id:
-            subcategory = (
-                SubCategory.query.join(Category)
-                .filter(
-                    SubCategory.id == subcategory_id,
-                    Category.user_id == current_user_id,
-                )
-                .first()
+        if not subcategory_id:
+            return jsonify({"success": False, "message": "请选择分类标签"}), 400
+
+        # 验证子分类
+        subcategory = (
+            SubCategory.query.join(Category)
+            .filter(
+                SubCategory.id == subcategory_id,
+                Category.user_id == current_user_id,
             )
-            if not subcategory:
-                current_app.logger.warning(
-                    f"Invalid subcategory {subcategory_id} for user {current_user_id}"
-                )
-                return jsonify({"success": False, "message": "选择了无效的标签。"}), 400
+            .first()
+        )
+        if not subcategory:
+            current_app.logger.warning(
+                f"Invalid subcategory {subcategory_id} for user {current_user_id}"
+            )
+            return jsonify({"success": False, "message": "选择了无效的标签。"}), 400
 
         # 处理时长：支持小时+分钟的格式
         if "duration_hours" in data or "duration_minutes" in data:

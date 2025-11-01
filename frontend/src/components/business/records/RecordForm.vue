@@ -93,11 +93,10 @@
         <el-form-item label="🏷️ 标签" prop="subcategory_id">
           <el-select
             v-model="form.subcategory_id"
-            placeholder="请先选择分类"
+            placeholder="请选择标签"
             style="width: 100%"
             size="large"
             :disabled="!subCategoryOptions.length"
-            clearable
           >
             <el-option
               v-for="item in subCategoryOptions"
@@ -193,6 +192,10 @@ const form = reactive({
 const rules = {
   task: [{ required: true, message: "请输入任务名称", trigger: "blur" }],
   log_date: [{ required: true, message: "请选择日期", trigger: "change" }],
+  category_id: [{ required: true, message: "请选择分类", trigger: "change" }],
+  subcategory_id: [
+    { required: true, message: "请选择标签", trigger: "change" },
+  ],
 };
 
 const subCategoryOptions = computed(() => {
@@ -279,7 +282,13 @@ const submitForm = async () => {
   if (!formRef.value) return;
   try {
     await formRef.value.validate();
-    
+
+    // 检查是否选择了标签
+    if (!form.subcategory_id) {
+      ElMessage.error("请先选择分类和标签");
+      return;
+    }
+
     // 构建提交数据，只包含有效字段
     const submitData = {
       task: form.task,
@@ -287,16 +296,16 @@ const submitForm = async () => {
       time_slot: form.time_slot || null,
       duration_hours: form.duration_hours || 0,
       duration_minutes: form.duration_minutes || 0,
-      subcategory_id: form.subcategory_id || null,
+      subcategory_id: form.subcategory_id,
       mood: form.mood || 3,
       notes: form.notes || null,
     };
-    
+
     // 如果是编辑模式，添加ID
     if (isEditing.value) {
       submitData.id = form.id;
     }
-    
+
     console.log("Submitting form data:", submitData);
     emit("submit", submitData);
   } catch (error) {
