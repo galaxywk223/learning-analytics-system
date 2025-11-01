@@ -53,7 +53,9 @@ export const useChartsStore = defineStore("charts", () => {
   const stages = ref([]);
 
   // ========== 计算属性 ==========
-  const hasTrendsData = computed(() => rawChartData.value.has_data === true);
+  const hasTrendsData = computed(
+    () => (rawChartData.value as any).has_data === true
+  );
   const hasCategoryData = computed(() => {
     return (
       (categoryData.value.main.labels &&
@@ -69,7 +71,7 @@ export const useChartsStore = defineStore("charts", () => {
    */
   async function initStages() {
     try {
-      const res = await chartsAPI.getStages();
+      const res: any = await chartsAPI.getStages();
       if (res.success && res.data && res.data.stages) {
         stages.value = res.data.stages;
       } else {
@@ -88,7 +90,10 @@ export const useChartsStore = defineStore("charts", () => {
   async function fetchTrends() {
     loading.value = true;
     try {
-      const data = await chartsAPI.getOverview();
+      const data: any = await chartsAPI.getOverview({
+        view: viewType.value,
+        stage_id: stageId.value,
+      });
 
       if (!data || !data.has_data) {
         rawChartData.value = { has_data: false };
@@ -154,14 +159,38 @@ export const useChartsStore = defineStore("charts", () => {
    */
   async function fetchCategories() {
     try {
-      const data = await chartsAPI.getCategories({ stage_id: stageId.value });
+      console.log(
+        "[Charts Store] Fetching categories with stage_id:",
+        stageId.value
+      );
+      const response = await chartsAPI.getCategories({
+        stage_id: stageId.value,
+      });
+      console.log("[Charts Store] Received category response:", response);
 
-      if (data) {
-        categoryData.value = data;
+      // 确保我们获取的是数据对象，而不是 Axios Response
+      const data = (response as any).data || response;
+      console.log("[Charts Store] Extracted category data:", data);
+      console.log("[Charts Store] Data main labels:", data?.main?.labels);
+      console.log("[Charts Store] Data main data:", data?.main?.data);
+
+      if (data && data.main) {
+        categoryData.value = {
+          main: {
+            labels: data.main.labels || [],
+            data: data.main.data || [],
+          },
+          drilldown: data.drilldown || {},
+        };
+        console.log("[Charts Store] Category data set:", categoryData.value);
+        console.log("[Charts Store] hasCategoryData:", hasCategoryData.value);
         // 重置视图状态
         currentCategoryView.value = "main";
         currentCategory.value = "";
       } else {
+        console.log(
+          "[Charts Store] No valid data received, setting empty structure"
+        );
         categoryData.value = {
           main: { labels: [], data: [] },
           drilldown: {},
@@ -199,9 +228,20 @@ export const useChartsStore = defineStore("charts", () => {
    * 刷新所有数据
    */
   async function refreshAll() {
+    console.log(
+      "[Charts Store] refreshAll called, activeTab:",
+      activeTab.value
+    );
     await fetchTrends();
     if (activeTab.value === "categories") {
+      console.log(
+        "[Charts Store] Active tab is categories, fetching category data..."
+      );
       await fetchCategories();
+    } else {
+      console.log(
+        "[Charts Store] Active tab is not categories, skipping category fetch"
+      );
     }
   }
 
@@ -229,9 +269,18 @@ export const useChartsStore = defineStore("charts", () => {
    * 设置活动标签页
    */
   function setActiveTab(tab) {
+    console.log("[Charts Store] setActiveTab called with:", tab);
     activeTab.value = tab;
     if (tab === "categories" && categoryData.value.main.labels.length === 0) {
+      console.log(
+        "[Charts Store] Switching to categories tab with no data, fetching..."
+      );
       fetchCategories();
+    } else if (tab === "categories") {
+      console.log(
+        "[Charts Store] Switching to categories tab, current labels:",
+        categoryData.value.main.labels
+      );
     }
   }
 

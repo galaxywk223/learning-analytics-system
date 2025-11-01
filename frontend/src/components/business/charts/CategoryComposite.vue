@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { Chart } from "chart.js/auto";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 
@@ -50,7 +50,17 @@ let barChart = null;
 const view = ref("main");
 const currentCategory = ref("");
 const totalHours = ref(0);
-const hasData = ref(false);
+
+// 改为计算属性，实时检查是否有数据
+const hasData = computed(() => {
+  if (view.value === "main") {
+    return props.main && props.main.labels && props.main.labels.length > 0;
+  } else {
+    const dl = props.drilldown[currentCategory.value];
+    return dl && dl.labels && dl.labels.length > 0;
+  }
+});
+
 const currentTitle = ref("分类时长占比");
 const barTitle = ref("分类时长排行");
 const TOP_N = 10;
@@ -76,7 +86,17 @@ function buildColors(count) {
 }
 
 function renderCharts() {
-  if (!doughnutCanvas.value || !barCanvas.value) return;
+  console.log("[CategoryComposite] renderCharts called");
+  console.log("[CategoryComposite] doughnutCanvas:", doughnutCanvas.value);
+  console.log("[CategoryComposite] barCanvas:", barCanvas.value);
+  console.log("[CategoryComposite] props.main:", props.main);
+  console.log("[CategoryComposite] props.drilldown:", props.drilldown);
+
+  if (!doughnutCanvas.value || !barCanvas.value) {
+    console.log("[CategoryComposite] Canvas not ready, skipping render");
+    return;
+  }
+
   // 计算数据源
   let sourceArray = [];
   if (view.value === "main") {
@@ -93,8 +113,11 @@ function renderCharts() {
     currentTitle.value = currentCategory.value + " - 标签详情";
     barTitle.value = currentCategory.value + " - 标签排行";
   }
+
+  console.log("[CategoryComposite] sourceArray:", sourceArray);
   totalHours.value = sourceArray.reduce((s, i) => s + i.value, 0);
-  hasData.value = sourceArray.length > 0;
+  console.log("[CategoryComposite] totalHours:", totalHours.value);
+  // hasData 现在是计算属性，不需要手动设置
   const colors = buildColors(sourceArray.length);
 
   // 销毁旧图
