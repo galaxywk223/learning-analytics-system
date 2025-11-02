@@ -57,8 +57,12 @@
                   class="btn btn-sm btn-outline-danger w-100"
                   @click="removeBackground"
                 >
-                  <Icon icon="lucide:trash-2" class="me-2" style="width: 16px" /></i
-                  >移除背景
+                  <Icon
+                    icon="lucide:trash-2"
+                    class="me-2"
+                    style="width: 16px"
+                  />
+                  移除背景
                 </button>
               </div>
             </div>
@@ -187,9 +191,6 @@ async function handleFileChange(e) {
     if (fileInput.value) fileInput.value.value = "";
   }
 }
-onMounted(() => {
-  import("lucide").then((m) => m.createIcons()).catch(() => {});
-});
 </script>
 <style scoped>
 .appearance-settings {

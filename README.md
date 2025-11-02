@@ -13,6 +13,7 @@
 
 确保你的电脑已安装以下软件：
 
+- **Visual Studio Code** (推荐的开发工具)
 - Python 3.12+
 - Node.js 22+
 - PostgreSQL 17+
@@ -23,7 +24,65 @@
 python --version
 node --version
 psql --version
+code --version
 ```
+
+---
+
+## 💻 VS Code 开发环境配置
+
+本项目推荐使用 **Visual Studio Code** 进行开发，以下是推荐的配置：
+
+### 安装 VS Code
+
+1. 访问 [Visual Studio Code 官网](https://code.visualstudio.com/) 下载安装
+2. 安装后，在命令行运行 `code --version` 验证安装成功
+
+### 推荐安装的扩展
+
+**Python 开发必备：**
+
+- `Python` - Python 语言支持
+- `Pylance` - Python 代码智能提示
+- `Python Debugger` - Python 调试工具
+
+**前端开发必备：**
+
+- `Vue - Official` (Volar) - Vue 3 语言支持
+- `TypeScript Vue Plugin (Volar)` - Vue 中的 TypeScript 支持
+- `ESLint` - JavaScript/TypeScript 代码规范检查
+- `Prettier - Code formatter` - 代码格式化工具
+
+**通用工具：**
+
+- `GitLens` - Git 可视化增强
+- `Path Intellisense` - 路径自动补全
+- `Auto Rename Tag` - 自动重命名标签
+- `Error Lens` - 行内错误提示
+
+### 在 VS Code 中打开项目
+
+```cmd
+# 克隆项目后，用 VS Code 打开
+cd learning-analytics-system
+code .
+```
+
+### VS Code 集成终端使用
+
+1. 打开 VS Code 后，按 `` Ctrl+` `` 打开集成终端
+2. 推荐同时打开多个终端：
+   - **终端 1**：运行后端（Flask）
+   - **终端 2**：运行前端（Vue）
+3. 在终端右上角点击 `+` 号可以创建新终端
+
+**提示：** 本项目所有的命令行操作都可以在 VS Code 的集成终端中完成，无需切换到其他终端窗口。
+
+---
+
+## 🚀 快速开始
+
+````
 
 ### 步骤一：启动后端服务
 
@@ -33,7 +92,7 @@ psql --version
 cd backend
 python -m venv venv
 venv\Scripts\activate
-```
+````
 
 2. 安装依赖
 

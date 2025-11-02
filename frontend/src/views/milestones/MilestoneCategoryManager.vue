@@ -52,9 +52,10 @@
                     class="btn-outline-secondary"
                     title="编辑"
                   >
-                    <Icon icon="lucide:pencil"
+                    <Icon
+                      icon="lucide:pencil"
                       style="width: 16px; height: 16px"
-                     />
+                    />
                   </el-button>
                   <el-popconfirm
                     title="确定删除此分类?"
@@ -67,9 +68,10 @@
                         class="btn-outline-danger"
                         title="删除"
                       >
-                        <Icon icon="lucide:trash-2"
+                        <Icon
+                          icon="lucide:trash-2"
                           style="width: 16px; height: 16px"
-                         />
+                        />
                       </el-button>
                     </template>
                   </el-popconfirm>
@@ -87,9 +89,10 @@
                     type="success"
                     @click="confirmEdit(cat)"
                   >
-                    <Icon icon="lucide:check"
+                    <Icon
+                      icon="lucide:check"
                       style="width: 16px; height: 16px"
-                     />
+                    />
                   </el-button>
                   <el-button size="small" @click="cancelEdit">
                     <Icon icon="lucide:x" style="width: 16px; height: 16px" />
@@ -120,18 +123,11 @@ const newCategory = ref({ name: "" });
 const editingId = ref(null);
 const editName = ref("");
 
-function refreshIcons() {
-  try {
-    import("lucide").then((m) => m.createIcons());
-  } catch (e) {}
-}
-
 async function fetchCategories() {
   loading.value = true;
   try {
     const res = await milestoneAPI.categories();
     categories.value = res.categories || [];
-    refreshIcons();
   } catch (e) {
     console.error(e);
   } finally {
@@ -152,7 +148,6 @@ async function createCategory() {
     });
     categories.value.push(res.category);
     newCategory.value.name = "";
-    refreshIcons();
   } catch (e) {
     console.error("create category failed", e);
   } finally {
@@ -179,7 +174,6 @@ async function confirmEdit(cat) {
     const idx = categories.value.findIndex((c) => c.id === cat.id);
     if (idx !== -1) categories.value[idx] = res.category;
     cancelEdit();
-    refreshIcons();
   } catch (e) {
     console.error("update category failed", e);
   }
@@ -189,7 +183,6 @@ async function deleteCategory(cat) {
   try {
     await milestoneAPI.deleteCategory(cat.id);
     categories.value = categories.value.filter((c) => c.id !== cat.id);
-    refreshIcons();
   } catch (e) {
     console.error("delete category failed", e);
   }

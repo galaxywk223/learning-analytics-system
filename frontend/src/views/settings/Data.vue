@@ -269,9 +269,6 @@ async function confirmClear() {
     clearing.value = false;
   }
 }
-onMounted(() => {
-  import("lucide").then((m) => m.createIcons()).catch(() => {});
-});
 </script>
 
 <style scoped>

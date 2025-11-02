@@ -159,16 +159,9 @@ async function fetchMilestones() {
     console.error("fetch milestones failed", e);
   } finally {
     loading.value = false;
-    refreshIcons();
   }
 }
-function refreshIcons() {
-  try {
-    import("lucide").then((mod) => mod.createIcons());
-  } catch (e) {
-    /* ignore */
-  }
-}
+
 function selectCategory(id) {
   state.category_id = id;
   state.page = 1;
@@ -199,7 +192,6 @@ function handleAttachmentDeleted({ milestoneId, attachmentId }) {
   const m = items.value.find((i) => i.id === milestoneId);
   if (!m) return;
   m.attachments = (m.attachments || []).filter((a) => a.id !== attachmentId);
-  refreshIcons();
 }
 async function onSaved(payload) {
   await fetchMilestones();
