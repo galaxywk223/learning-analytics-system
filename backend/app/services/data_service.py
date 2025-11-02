@@ -60,7 +60,8 @@ def _clear_user_data(user):
         f"Starting to clear all data for user: {user.username} (ID: {user.id})"
     )
 
-    upload_folder = current_app.config.get("MILESTONE_UPLOADS")
+    # 使用 UPLOAD_FOLDER 而不是 MILESTONE_UPLOADS
+    upload_folder = current_app.config.get("UPLOAD_FOLDER")
     if upload_folder:
         user_upload_folder = os.path.join(upload_folder, str(user.id))
         if os.path.exists(user_upload_folder):
@@ -71,7 +72,11 @@ def _clear_user_data(user):
                     current_app.logger.error(
                         f"Failed to remove attachment file {filename}: {e}"
                     )
-    current_app.logger.info("Cleared physical milestone attachments.")
+        current_app.logger.info("Cleared physical milestone attachments.")
+    else:
+        current_app.logger.warning(
+            "UPLOAD_FOLDER not configured, skipping attachments cleanup."
+        )
 
     MilestoneAttachment.query.filter(
         MilestoneAttachment.milestone.has(user_id=user.id)
@@ -137,14 +142,36 @@ def export_data_for_user(user):
 
             current_app.logger.info("Exported all database tables to JSON.")
 
-            upload_folder = current_app.config.get("MILESTONE_UPLOADS")
-            user_upload_folder = os.path.join(upload_folder, str(user.id))
-            if upload_folder and os.path.exists(user_upload_folder):
-                for filename in os.listdir(user_upload_folder):
-                    file_path = os.path.join(user_upload_folder, filename)
+            # 使用 UPLOAD_FOLDER 而不是 MILESTONE_UPLOADS
+            upload_folder = current_app.config.get("UPLOAD_FOLDER")
+            current_app.logger.info(f"[导出附件] UPLOAD_FOLDER配置: {upload_folder}")
 
-                    zf.write(file_path, arcname=f"attachments/{filename}")
-                current_app.logger.info("Exported all milestone attachments.")
+            if upload_folder:
+                user_upload_folder = os.path.join(upload_folder, str(user.id))
+                current_app.logger.info(
+                    f"[导出附件] 用户附件目录: {user_upload_folder}"
+                )
+                current_app.logger.info(
+                    f"[导出附件] 目录是否存在: {os.path.exists(user_upload_folder)}"
+                )
+
+                if os.path.exists(user_upload_folder):
+                    files = os.listdir(user_upload_folder)
+                    current_app.logger.info(f"[导出附件] 找到 {len(files)} 个文件")
+
+                    for filename in files:
+                        file_path = os.path.join(user_upload_folder, filename)
+                        current_app.logger.info(f"[导出附件] 正在添加文件: {filename}")
+                        zf.write(file_path, arcname=f"attachments/{filename}")
+                    current_app.logger.info("Exported all milestone attachments.")
+                else:
+                    current_app.logger.warning(
+                        f"[导出附件] 用户附件目录不存在: {user_upload_folder}"
+                    )
+            else:
+                current_app.logger.warning(
+                    "UPLOAD_FOLDER not configured, skipping attachments export."
+                )
 
         buffer.seek(0)
         filename = f"learning_logger_backup_{user.username}.zip"
@@ -242,7 +269,8 @@ def import_data_for_user(user, zip_file_stream):
 
             current_app.logger.info("Imported all JSON data to database session.")
 
-            upload_folder = current_app.config.get("MILESTONE_UPLOADS")
+            # 使用 UPLOAD_FOLDER 而不是 MILESTONE_UPLOADS
+            upload_folder = current_app.config.get("UPLOAD_FOLDER")
             if upload_folder:
                 user_upload_folder = os.path.join(upload_folder, str(user.id))
                 os.makedirs(user_upload_folder, exist_ok=True)
@@ -261,6 +289,10 @@ def import_data_for_user(user, zip_file_stream):
                 if os.path.exists(os.path.join(user_upload_folder, "attachments")):
                     os.rmdir(os.path.join(user_upload_folder, "attachments"))
                 current_app.logger.info("Extracted all attachments.")
+            else:
+                current_app.logger.warning(
+                    "UPLOAD_FOLDER not configured, skipping attachments import."
+                )
 
         db.session.commit()
         current_app.logger.info("Data import committed successfully.")

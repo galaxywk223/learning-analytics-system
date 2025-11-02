@@ -12,11 +12,22 @@ import router from "./router";
 
 const app = createApp(App);
 
-app.use(createPinia());
+// 性能优化：使用 Pinia 并启用开发工具（仅开发环境）
+const pinia = createPinia();
+app.use(pinia);
 app.use(router);
+
+// Element Plus 配置优化
 app.use(ElementPlus, {
   locale: zhCn,
+  size: "default",
+  zIndex: 3000,
 });
+
+// 性能优化：设置 Vue 性能追踪（仅开发环境）
+if (import.meta.env.DEV) {
+  app.config.performance = true;
+}
 
 app.mount("#app");
 

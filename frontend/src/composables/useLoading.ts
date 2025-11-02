@@ -5,16 +5,26 @@
 import { ref } from "vue";
 import { ElMessage } from "element-plus";
 
+interface LoadingOptions {
+  successMessage?: string;
+  errorMessage?: string;
+  showSuccess?: boolean;
+  showError?: boolean;
+}
+
 export function useLoading() {
   const loading = ref(false);
-  const error = ref(null);
+  const error = ref<any>(null);
 
   /**
    * 执行异步操作
-   * @param {Function} asyncFn - 异步函数
-   * @param {Object} options - 配置选项
+   * @param asyncFn - 异步函数
+   * @param options - 配置选项
    */
-  const execute = async (asyncFn, options = {}) => {
+  const execute = async <T>(
+    asyncFn: () => Promise<T>,
+    options: LoadingOptions = {}
+  ) => {
     const {
       successMessage = "",
       errorMessage = "操作失败",
@@ -33,11 +43,12 @@ export function useLoading() {
       }
 
       return result;
-    } catch (err) {
+    } catch (err: any) {
       error.value = err;
 
       if (showError) {
-        const msg = err.response?.data?.message || err.message || errorMessage;
+        const msg =
+          err?.response?.data?.message || err?.message || errorMessage;
         ElMessage.error(msg);
       }
 

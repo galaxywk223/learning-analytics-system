@@ -30,9 +30,9 @@ export const useRecordsStore = defineStore("records", {
           // 没有激活阶段则不请求，保持 weeks 不变
           return;
         }
-        const data = await recordAPI.getStructuredRecords({
+        const data = (await recordAPI.getStructuredRecords({
           stage_id: settingsStore.activeStageId,
-        });
+        })) as any;
         this.weeks = data.weeks || [];
         this.lastFetched = Date.now();
       } catch (e) {

@@ -4,7 +4,12 @@
  */
 import { ref, computed } from "vue";
 
-export function useTable(options = {}) {
+interface TableOptions {
+  pageSize?: number;
+  currentPage?: number;
+}
+
+export function useTable(options: TableOptions = {}) {
   const { pageSize = 10, currentPage = 1 } = options;
 
   const loading = ref(false);
@@ -21,17 +26,17 @@ export function useTable(options = {}) {
     return tableData.value.slice(start, end);
   });
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage: number) => {
     page.value = newPage;
   };
 
-  const handleSizeChange = (newSize) => {
+  const handleSizeChange = (newSize: number) => {
     size.value = newSize;
     page.value = 1; // 改变每页数量时回到第一页
   };
 
   // 选择相关
-  const handleSelectionChange = (selection) => {
+  const handleSelectionChange = (selection: any[]) => {
     selectedRows.value = selection;
   };
 
@@ -40,7 +45,7 @@ export function useTable(options = {}) {
   };
 
   // 加载数据
-  const setTableData = (data, totalCount = null) => {
+  const setTableData = (data: any[], totalCount: number | null = null) => {
     tableData.value = data;
     if (totalCount !== null) {
       total.value = totalCount;

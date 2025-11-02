@@ -131,12 +131,28 @@ async function handleSubmit() {
         description: form.description,
         category_id: form.category_id,
       };
-      const res = await milestoneAPI.update(props.editData.id, payload);
+      console.log("[MilestoneForm] 开始更新里程碑:", props.editData.id);
+      await milestoneAPI.update(props.editData.id, payload);
+
       // 上传新增附件
+      console.log(
+        "[MilestoneForm] 准备上传附件，数量:",
+        selectedFiles.value.length
+      );
       for (const f of selectedFiles.value) {
-        await milestoneAPI.uploadAttachment(props.editData.id, f);
+        console.log("[MilestoneForm] 上传附件:", f.name);
+        const uploadRes = await milestoneAPI.uploadAttachment(
+          props.editData.id,
+          f
+        );
+        console.log("[MilestoneForm] 上传结果:", uploadRes);
       }
-      emits("saved", { updated: res.milestone });
+
+      // 重新获取完整数据（包含附件）
+      console.log("[MilestoneForm] 重新获取完整数据");
+      const updatedRes = await milestoneAPI.get(props.editData.id);
+      console.log("[MilestoneForm] 获取到的完整数据:", updatedRes);
+      emits("saved", { updated: updatedRes.milestone });
     } else {
       const payload = {
         title: form.title,
@@ -144,17 +160,35 @@ async function handleSubmit() {
         description: form.description,
         category_id: form.category_id,
       };
+      console.log("[MilestoneForm] 创建新里程碑");
       const res = await milestoneAPI.create(payload);
+      console.log("[MilestoneForm] 创建结果:", res);
+
+      // 上传附件
       if (selectedFiles.value.length) {
+        console.log(
+          "[MilestoneForm] 准备上传附件，数量:",
+          selectedFiles.value.length
+        );
         for (const f of selectedFiles.value) {
-          await milestoneAPI.uploadAttachment(res.milestone.id, f);
+          console.log("[MilestoneForm] 上传附件:", f.name);
+          const uploadRes = await milestoneAPI.uploadAttachment(
+            res.milestone.id,
+            f
+          );
+          console.log("[MilestoneForm] 上传结果:", uploadRes);
         }
       }
-      emits("saved", { created: true });
+
+      // 重新获取完整数据（包含附件）
+      console.log("[MilestoneForm] 重新获取完整数据");
+      const createdRes = await milestoneAPI.get(res.milestone.id);
+      console.log("[MilestoneForm] 获取到的完整数据:", createdRes);
+      emits("saved", { created: createdRes.milestone });
     }
     close();
   } catch (e) {
-    console.error("save milestone failed", e);
+    console.error("[MilestoneForm] 保存里程碑失败:", e);
   } finally {
     submitting.value = false;
   }

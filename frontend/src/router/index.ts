@@ -79,6 +79,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: "倒计时" },
       },
       {
+        path: "focus",
+        name: "Focus",
+        component: () => import("@/views/focus/FocusView.vue"),
+        meta: { title: "专注模式" },
+      },
+      {
         path: "charts",
         name: "Charts",
         component: () => import("@/views/charts/ChartsView.vue"),
@@ -90,12 +96,6 @@ const routes: RouteRecordRaw[] = [
         // 旧项目默认进入账户设置页
         redirect: "/settings/account",
         children: [
-          {
-            path: "appearance",
-            name: "SettingsAppearance",
-            component: () => import("@/views/settings/Appearance.vue"),
-            meta: { title: "外观设置" },
-          },
           {
             path: "account",
             name: "SettingsAccount",
@@ -128,14 +128,6 @@ const routes: RouteRecordRaw[] = [
             name: "SettingsMottos",
             component: () => import("@/views/settings/MottoManagement.vue"),
             meta: { title: "格言管理" },
-          },
-          // 新增：里程碑分类管理（复用已有分类管理组件）
-          {
-            path: "milestone-categories",
-            name: "SettingsMilestoneCategories",
-            component: () =>
-              import("@/views/milestones/MilestoneCategoryManager.vue"),
-            meta: { title: "里程碑分类管理" },
           },
         ],
       },

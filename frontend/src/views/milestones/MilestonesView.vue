@@ -113,6 +113,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
+import { Icon } from "@iconify/vue";
 import MilestoneForm from "@/components/milestones/MilestoneForm.vue";
 import MilestoneItem from "@/components/milestones/MilestoneItem.vue";
 import { milestoneAPI } from "@/api/modules/milestone";

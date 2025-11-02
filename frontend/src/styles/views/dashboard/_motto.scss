@@ -1,6 +1,6 @@
 /* 格言卡片 */
 .motto-section {
-  padding: 0 30px 40px;
+  padding: 0 30px 32px;
   display: flex;
   justify-content: center;
   position: relative;
@@ -9,46 +9,39 @@
 
 .motto-card {
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
-  padding: 28px 32px;
+  border-radius: 12px;
+  padding: 20px 24px;
   max-width: 900px;
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 20px;
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(255, 255, 255, 0.5);
-  animation: fadeInUp 0.6s ease-out 0.15s both;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-  will-change: transform;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  animation: fadeInUp 0.4s ease-out 0.1s both;
+  transition: box-shadow 0.2s ease;
 }
 
 .motto-card:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .motto-icon {
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
+  background: #667eea;
+  border-radius: 8px;
   color: white;
 }
 
 .motto-icon i,
 .motto-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 .motto-content {
@@ -58,35 +51,33 @@
 
 .motto-text {
   font-family: "MaShanZheng", sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   color: #1f2937;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
   text-align: center;
 }
 
 .motto-refresh {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: none;
   background: #f3f4f6;
   color: #6b7280;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition:
     background 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
+    color 0.2s ease;
 }
 
 .motto-refresh:hover:not(:disabled) {
   background: #e5e7eb;
   color: #374151;
-  transform: rotate(90deg);
 }
 
 .motto-refresh:disabled {
@@ -101,6 +92,6 @@
 
 .motto-refresh i,
 .motto-refresh svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }

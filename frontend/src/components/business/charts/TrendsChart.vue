@@ -19,6 +19,9 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { Chart } from "chart.js/auto";
+import ChartDataLabels from "chartjs-plugin-datalabels";
+
+Chart.register(ChartDataLabels);
 
 const props = defineProps({
   weeklyDurationData: { type: Object, required: true },
@@ -81,6 +84,9 @@ function createBaseOptions(yTitle) {
   return {
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+      duration: 500, // 减少动画时长以提升性能
+    },
     interaction: { mode: "index", intersect: false },
     layout: { padding: { bottom: 40 } },
     plugins: {
@@ -109,14 +115,21 @@ function createBaseOptions(yTitle) {
 }
 
 function buildDatasets(durationData, efficiencyData) {
+  // 根据当前视图判断标签
+  const durationLabel =
+    currentView.value === "weekly" ? "平均时长" : "实际时长";
+
   return {
     duration: [
       {
         type: "bar",
-        label: "实际时长",
+        label: durationLabel,
         data: durationData.actuals,
         backgroundColor: "rgba(96, 165, 250, 0.5)",
         order: 2,
+        datalabels: {
+          display: false,
+        },
       },
       {
         type: "line",
@@ -128,6 +141,9 @@ function buildDatasets(durationData, efficiencyData) {
         pointRadius: 0,
         borderWidth: 2.5,
         order: 1,
+        datalabels: {
+          display: false,
+        },
       },
     ],
     efficiency: [
@@ -137,6 +153,9 @@ function buildDatasets(durationData, efficiencyData) {
         data: efficiencyData.actuals,
         backgroundColor: "rgba(248, 113, 113, 0.5)",
         order: 2,
+        datalabels: {
+          display: false,
+        },
       },
       {
         type: "line",
@@ -149,6 +168,9 @@ function buildDatasets(durationData, efficiencyData) {
         borderWidth: 2.5,
         order: 1,
         spanGaps: true,
+        datalabels: {
+          display: false,
+        },
       },
     ],
   };
@@ -169,6 +191,10 @@ function renderCharts() {
       : props.dailyEfficiencyData;
   const datasets = buildDatasets(durationData, efficiencyData);
 
+  // 根据视图类型设置Y轴标题
+  const durationYTitle =
+    viewPrefix === "weekly" ? "平均时长 (小时/天)" : "学习时长 (小时)";
+
   // 销毁旧实例
   if (durationChart) durationChart.destroy();
   if (efficiencyChart) efficiencyChart.destroy();
@@ -176,7 +202,7 @@ function renderCharts() {
   durationChart = new Chart(durationCtx, {
     type: "bar",
     data: { labels: durationData.labels, datasets: datasets.duration },
-    options: createBaseOptions("学习时长 (小时)"),
+    options: createBaseOptions(durationYTitle),
     plugins: [stageAnnotationsPlugin],
   });
   efficiencyChart = new Chart(efficiencyCtx, {

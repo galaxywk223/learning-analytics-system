@@ -3,6 +3,36 @@
  * 按照加载顺序组织：base -> themes -> layouts -> components -> views
  */
 
+/* 性能优化：全局设置 */
+* {
+  /* 减少重绘和回流 */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 优化滚动性能 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(102, 126, 234, 0.5) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(102, 126, 234, 0.5);
+  border-radius: 4px;
+
+  &:hover {
+    background: rgba(102, 126, 234, 0.7);
+  }
+}
+
 /* 基础样式 */
 @import "./base/base.scss";
 @import "./base/fonts.scss";

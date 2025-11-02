@@ -143,6 +143,15 @@ onMounted(async () => {
 
 const cards = computed(() => [
   {
+    key: "focus",
+    to: "/focus",
+    class: "card-focus",
+    icon: "lucide:timer",
+    iconClass: "icon-focus",
+    title: "开始专注",
+    summary: "进入专注模式，记录学习时光",
+  },
+  {
     key: "records",
     to: "/records",
     class: "card-record",

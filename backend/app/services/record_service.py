@@ -182,7 +182,7 @@ def get_structured_logs_for_stage(stage, sort_order="desc"):
                 {
                     "date": day_date,
                     "efficiency": day_data.efficiency if day_data else 0,
-                    "logs": list(day_logs),
+                    "logs": [log.to_dict() for log in list(day_logs)],  # 序列化为字典
                 }
             )
         week_data = week_data_map.get((year, week_num))

@@ -13,10 +13,6 @@
               <Icon icon="lucide:user-circle" />
               <span>账户设置</span>
             </router-link>
-            <router-link to="/settings/appearance" class="settings-nav-item">
-              <Icon icon="lucide:palette" />
-              <span>外观设置</span>
-            </router-link>
             <router-link to="/settings/data" class="settings-nav-item">
               <Icon icon="lucide:database" />
               <span>数据管理</span>
@@ -32,13 +28,6 @@
             <router-link to="/settings/mottos" class="settings-nav-item">
               <Icon icon="lucide:message-square-quote" />
               <span>格言管理</span>
-            </router-link>
-            <router-link
-              to="/settings/milestone-categories"
-              class="settings-nav-item"
-            >
-              <Icon icon="lucide:trophy" />
-              <span>里程碑分类</span>
             </router-link>
           </nav>
         </aside>

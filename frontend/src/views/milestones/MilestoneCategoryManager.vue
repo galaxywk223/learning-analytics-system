@@ -113,6 +113,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { Icon } from "@iconify/vue";
 import { milestoneAPI } from "@/api/modules/milestone";
 
 const router = useRouter();

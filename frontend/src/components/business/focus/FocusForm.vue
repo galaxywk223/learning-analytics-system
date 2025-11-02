@@ -1,0 +1,238 @@
+<!-- 专注表单组件 -->
+<template>
+  <div class="focus-form">
+    <el-form
+      :model="formData"
+      :rules="rules"
+      ref="formRef"
+      label-position="top"
+    >
+      <el-form-item label="记录名称" prop="name">
+        <el-input
+          v-model="formData.name"
+          placeholder="请输入本次专注的内容"
+          :maxlength="50"
+          show-word-limit
+          size="large"
+        />
+      </el-form-item>
+
+      <div class="category-row">
+        <el-form-item label="分类" prop="categoryId" class="category-item">
+          <el-select
+            v-model="formData.categoryId"
+            placeholder="请选择分类"
+            style="width: 100%"
+            size="large"
+            filterable
+            @change="onCategoryChange"
+          >
+            <el-option
+              v-for="cat in categories"
+              :key="cat.id"
+              :label="cat.name"
+              :value="cat.id"
+            >
+              <span :style="{ color: cat.color }">● </span>
+              <span>{{ cat.name }}</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="子分类" prop="subcategoryId" class="category-item">
+          <el-select
+            v-model="formData.subcategoryId"
+            placeholder="请选择子分类"
+            style="width: 100%"
+            size="large"
+            filterable
+            :disabled="!formData.categoryId || !availableSubcategories.length"
+          >
+            <el-option
+              v-for="subcat in availableSubcategories"
+              :key="subcat.id"
+              :label="subcat.name"
+              :value="subcat.id"
+            />
+          </el-select>
+          <div
+            class="el-form-item__tip"
+            v-if="formData.categoryId && !availableSubcategories.length"
+          >
+            该分类下暂无子分类
+          </div>
+        </el-form-item>
+      </div>
+    </el-form>
+  </div>
+</template>
+
+<script setup>
+import { computed, watch, ref } from "vue";
+
+// Refs
+const formRef = ref(null);
+
+// Props
+const props = defineProps({
+  formData: {
+    type: Object,
+    required: true,
+  },
+  categories: {
+    type: Array,
+    default: () => [],
+  },
+  subcategories: {
+    type: Array,
+    default: () => [],
+  },
+});
+
+// Emits
+const emit = defineEmits(["update:formData", "category-change"]);
+
+// 表单验证规则
+const rules = {
+  name: [
+    { required: true, message: "请输入记录名称", trigger: "blur" },
+    { min: 1, max: 50, message: "长度在 1 到 50 个字符", trigger: "blur" },
+  ],
+  categoryId: [{ required: true, message: "请选择分类", trigger: "change" }],
+};
+
+// 可用的子分类
+const availableSubcategories = computed(() => {
+  if (!props.formData.categoryId) return [];
+  return props.subcategories.filter(
+    (sub) => sub.category_id === props.formData.categoryId
+  );
+});
+
+// 分类变化时的处理
+const onCategoryChange = () => {
+  // 清空子分类选择
+  const updatedForm = { ...props.formData };
+  updatedForm.subcategoryId = null;
+  emit("update:formData", updatedForm);
+  emit("category-change", props.formData.categoryId);
+};
+
+// 监听表单数据变化
+watch(
+  () => props.formData,
+  (newData) => {
+    emit("update:formData", newData);
+  },
+  { deep: true }
+);
+
+// 暴露验证方法给父组件
+defineExpose({
+  validate: () => formRef.value?.validate(),
+});
+</script>
+
+<style scoped lang="scss">
+.focus-form {
+  max-width: 100%;
+  margin: 1rem 0;
+  padding: 0;
+  background: transparent;
+
+  .category-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .category-item {
+    margin-bottom: 0;
+  }
+
+  :deep(.el-form-item) {
+    margin-bottom: 1rem;
+  }
+
+  :deep(.el-form-item__label) {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding-bottom: 0.375rem;
+    line-height: 1.2;
+  }
+
+  :deep(.el-input__wrapper) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: none !important;
+    transition: all 0.2s;
+    padding: 6px 10px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    &.is-focus {
+      background: rgba(255, 255, 255, 0.15) !important;
+      border-color: rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+    }
+  }
+
+  :deep(.el-input__inner) {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 0.95rem;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+  }
+
+  :deep(.el-input__count) {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+  }
+
+  :deep(.el-select) {
+    width: 100%;
+  }
+
+  // 修复下拉框背景
+  :deep(.el-select__wrapper) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: none !important;
+    padding: 6px 10px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+    }
+
+    &.is-focus {
+      background: rgba(255, 255, 255, 0.15) !important;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+  }
+
+  :deep(.el-select__placeholder) {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  :deep(.el-select__selected-item) {
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  .el-form-item__tip {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+  }
+}
+</style>

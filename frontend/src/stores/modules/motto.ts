@@ -16,7 +16,7 @@ export const useMottoStore = defineStore("motto", {
       if (this.loading) return;
       this.loading = true;
       try {
-        const resp = await listMottos();
+        const resp = (await listMottos()) as any;
         // 后端返回 { success, mottos: [] }
         this.items = Array.isArray(resp?.mottos) ? resp.mottos : [];
       } catch (e) {
@@ -27,16 +27,16 @@ export const useMottoStore = defineStore("motto", {
         this.loading = false;
       }
     },
-    async add(payload) {
-      const resp = await createMotto(payload); // { success, motto: {...} }
+    async add(payload: any) {
+      const resp = (await createMotto(payload)) as any; // { success, motto: {...} }
       if (!resp?.success || !resp?.motto) {
         throw new Error("create motto failed");
       }
       this.items.push(resp.motto);
       return resp.motto;
     },
-    async save(id, payload) {
-      const resp = await updateMotto(id, payload); // { success, motto: {...} }
+    async save(id: number, payload: any) {
+      const resp = (await updateMotto(id, payload)) as any; // { success, motto: {...} }
       if (!resp?.success || !resp?.motto) {
         throw new Error("update motto failed");
       }
@@ -44,8 +44,8 @@ export const useMottoStore = defineStore("motto", {
       if (idx !== -1) this.items[idx] = resp.motto;
       return resp.motto;
     },
-    async remove(id) {
-      const resp = await deleteMotto(id); // { success }
+    async remove(id: number) {
+      const resp = (await deleteMotto(id)) as any; // { success }
       if (!resp?.success) {
         throw new Error("delete motto failed");
       }

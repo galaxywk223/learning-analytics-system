@@ -1,241 +1,33 @@
 <template>
   <div class="records-view">
     <!-- 页面头部 -->
-    <div class="page-header-records">
-      <div>
-        <h1>📚 学习记录</h1>
-        <p class="text-secondary mb-0">
-          在这里回顾每一次努力，见证成长的每一步。
-        </p>
-      </div>
-      <div class="d-flex align-items-center gap-2">
-        <!-- 排序按钮 -->
-        <el-button-group>
-          <el-button
-            :type="currentSort === 'desc' ? 'primary' : ''"
-            size="small"
-            @click="changeSort('desc')"
-          >
-            降序
-          </el-button>
-          <el-button
-            :type="currentSort === 'asc' ? 'primary' : ''"
-            size="small"
-            @click="changeSort('asc')"
-          >
-            升序
-          </el-button>
-        </el-button-group>
-        <!-- 添加记录按钮 -->
-        <el-tooltip
-          :disabled="canAddRecord"
-          content="请先创建或选择一个阶段"
-          placement="top"
-        >
-          <el-button
-            type="primary"
-            :disabled="!canAddRecord"
-            @click="openAddDialog()"
-          >
-            <Icon
-              icon="lucide:plus"
-              style="width: 1.2rem; height: 1.2rem; margin-right: 0.25rem"
-            />
-            添加新记录
-          </el-button>
-        </el-tooltip>
-      </div>
-    </div>
+    <RecordHeader
+      :current-sort="currentSort"
+      :can-add-record="canAddRecord"
+      @sort-change="changeSort"
+      @add-record="openAddDialog"
+    />
 
     <!-- 加载状态 -->
     <el-skeleton v-if="loading" :rows="4" animated />
 
     <!-- 空状态 -->
-    <div v-else-if="!structuredLogs.length" class="text-center p-5 empty-state">
-      <div class="empty-icon">📝</div>
-      <h3>还没有任何记录</h3>
-      <p class="text-muted">
-        点击右上角的"添加新记录"按钮，开始你的第一条学习日志吧！
-      </p>
-      <el-button
-        type="primary"
-        size="large"
-        @click="openAddDialog"
-        class="mt-3"
-      >
-        <Icon
-          icon="lucide:plus"
-          style="width: 1.3rem; height: 1.3rem; margin-right: 0.25rem"
-        />
-        创建第一条记录
-      </el-button>
-    </div>
+    <EmptyState
+      v-else-if="!structuredLogs.length"
+      @add-record="openAddDialog"
+    />
 
     <!-- 周折叠面板 -->
-    <el-collapse v-else v-model="activeWeeks" class="weeks-accordion">
-      <el-collapse-item
-        v-for="week in structuredLogs"
-        :key="`${week.year}-${week.week_num}`"
-        :name="`${week.year}-${week.week_num}`"
-      >
-        <!-- 周标题 -->
-        <template #title>
-          <div class="week-header">
-            <span class="week-icon">📅</span>
-            <span class="week-title">
-              {{ week.year }} 年 - 第 {{ week.week_num }} 周
-            </span>
-            <el-tag type="info" size="small">
-              周平均效率: {{ week.efficiency }}
-            </el-tag>
-          </div>
-        </template>
-
-        <!-- 每周的每一天 -->
-        <div class="week-days">
-          <el-card
-            v-for="day in week.days"
-            :key="day.date"
-            class="day-card"
-            shadow="hover"
-          >
-            <!-- 日期卡片头部 -->
-            <template #header>
-              <div class="day-card-header">
-                <span class="date-badge">
-                  <span class="weekday-icon">{{
-                    getWeekdayIcon(day.date)
-                  }}</span>
-                  {{ formatDate(day.date) }} (周{{ getWeekday(day.date) }})
-                </span>
-
-                <!-- 进度条 -->
-                <div
-                  class="daily-progress-container"
-                  :title="`今日总时长: ${day.total_duration} 分钟`"
-                >
-                  <el-progress
-                    :percentage="
-                      Math.min(100, (day.total_duration / 840) * 100)
-                    "
-                    :show-text="false"
-                    :stroke-width="8"
-                    :color="getProgressColor(day.total_duration)"
-                  />
-                </div>
-
-                <span class="total-duration-text">
-                  <Icon icon="lucide:clock" class="clock-icon" />
-                  {{ (day.total_duration / 60).toFixed(1) }}h
-                </span>
-
-                <el-tag type="success" size="small">
-                  日效率: {{ day.efficiency }}
-                </el-tag>
-
-                <!-- 快速添加按钮 -->
-                <el-button
-                  circle
-                  size="small"
-                  @click.stop="openAddDialog(day.date)"
-                  title="为今天添加记录"
-                >
-                  <Icon icon="lucide:plus" />
-                </el-button>
-              </div>
-            </template>
-
-            <!-- 日志表格 -->
-            <el-table
-              :data="day.logs"
-              class="log-table"
-              size="small"
-              :show-header="true"
-            >
-              <el-table-column label="任务" min-width="200">
-                <template #default="{ row }">
-                  <div class="task-cell">
-                    <span
-                      v-if="row.subcategory"
-                      class="category-tag"
-                      :class="`category-color-${(row.subcategory.category_id || 0) % 6}`"
-                      :title="row.subcategory.category?.name || ''"
-                    >
-                      {{ row.subcategory.name }}
-                    </span>
-                    <strong>{{ row.task }}</strong>
-                  </div>
-                </template>
-              </el-table-column>
-              <el-table-column label="时间段" width="100">
-                <template #default="{ row }">
-                  {{ row.time_slot || "N/A" }}
-                </template>
-              </el-table-column>
-              <el-table-column label="时长" width="90">
-                <template #default="{ row }">
-                  {{ row.actual_duration }} 分钟
-                </template>
-              </el-table-column>
-              <el-table-column label="心情" width="70" align="center">
-                <template #default="{ row }">
-                  <span class="mood-emoji">{{ moodEmoji(row.mood) }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="200" align="right">
-                <template #default="{ row }">
-                  <el-button
-                    v-if="row.notes"
-                    link
-                    size="small"
-                    @click="toggleNotes(row.id)"
-                    title="查看笔记"
-                    class="action-btn"
-                  >
-                    <Icon icon="lucide:message-square" />
-                  </el-button>
-                  <el-button
-                    link
-                    size="small"
-                    @click="openEditDialog(row)"
-                    title="编辑"
-                    class="action-btn"
-                  >
-                    <Icon icon="lucide:pencil" />
-                  </el-button>
-                  <el-button
-                    link
-                    size="small"
-                    type="danger"
-                    @click="handleDelete(row)"
-                    title="删除"
-                    class="action-btn"
-                  >
-                    <Icon icon="lucide:trash-2" />
-                  </el-button>
-                </template>
-              </el-table-column>
-              <!-- 展开行：笔记 -->
-              <template #expand="{ row }">
-                <div v-if="row.notes" class="log-notes-content">
-                  {{ row.notes }}
-                </div>
-              </template>
-            </el-table>
-
-            <!-- 笔记展开区域（使用独立的div） -->
-            <div v-for="log in day.logs" :key="`notes-${log.id}`">
-              <div
-                v-if="log.notes && expandedNotes.includes(log.id)"
-                class="log-notes-row"
-              >
-                <div class="log-notes-cell">{{ log.notes }}</div>
-              </div>
-            </div>
-          </el-card>
-        </div>
-      </el-collapse-item>
-    </el-collapse>
+    <WeekAccordion
+      v-else
+      :weeks="structuredLogs"
+      :active-weeks="activeWeeks"
+      :expanded-notes="expandedNotes"
+      @add-record="openAddDialog"
+      @toggle-notes="toggleNotes"
+      @edit-record="openEditDialog"
+      @delete-record="handleDelete"
+    />
 
     <!-- 添加/编辑对话框 -->
     <el-dialog
@@ -264,6 +56,9 @@ import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Icon } from "@iconify/vue";
 import RecordForm from "@/components/business/records/RecordForm.vue";
+import RecordHeader from "@/components/business/records/RecordHeader.vue";
+import EmptyState from "@/components/business/records/EmptyState.vue";
+import WeekAccordion from "@/components/business/records/WeekAccordion.vue";
 import { useStageStore } from "@/stores/modules/stage";
 import request from "@/utils/request";
 
@@ -305,7 +100,7 @@ const loadRecords = async () => {
     });
 
     if (response.success) {
-      structuredLogs.value = response.structured_logs || [];
+      structuredLogs.value = response.data || [];
       // 默认展开第一周
       if (structuredLogs.value.length > 0) {
         const firstWeek = structuredLogs.value[0];
@@ -427,51 +222,6 @@ const toggleNotes = (logId) => {
   }
 };
 
-// 心情表情
-const moodEmoji = (mood) => {
-  const moods = {
-    5: "😃",
-    4: "😊",
-    3: "😐",
-    2: "😟",
-    1: "😠",
-  };
-  return moods[mood] || "⚪️";
-};
-
-// 格式化日期
-const formatDate = (dateStr) => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-};
-
-// 获取星期几
-const getWeekday = (dateStr) => {
-  const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
-  const date = new Date(dateStr);
-  return weekdays[date.getDay()];
-};
-
-// 获取星期几的图标
-const getWeekdayIcon = (dateStr) => {
-  const icons = ["🌞", "🌙", "🔥", "⚡", "🌟", "💫", "🎯"];
-  const date = new Date(dateStr);
-  return icons[date.getDay()];
-};
-
-// 获取进度条颜色
-const getProgressColor = (duration) => {
-  const percentage = (duration / 840) * 100;
-  if (percentage >= 80) return "#10b981"; // green
-  if (percentage >= 50) return "#667eea"; // purple
-  if (percentage >= 30) return "#fbbf24"; // yellow
-  return "#ef4444"; // red
-};
-
 onMounted(() => {
   stagesStore.fetchStages().then(() => {
     loadRecords();
@@ -482,11 +232,39 @@ onMounted(() => {
 <style scoped lang="scss">
 @use "@/styles/views/records/RecordsView.module.scss";
 
-/* 分类颜色 */
-@for $i from 0 through 5 {
-  .category-color-#{$i} {
-    background-color: var(--category-color-#{$i}, #eee);
-    color: var(--category-text-color-#{$i}, #333);
+.records-view {
+  padding: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: calc(100vh - 60px);
+}
+
+.record-dialog {
+  :deep(.el-dialog) {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  :deep(.el-dialog__header) {
+    padding: 20px 24px;
+    margin: 0;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  }
+
+  :deep(.el-dialog__title) {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  :deep(.el-dialog__body) {
+    padding: 20px 24px;
+  }
+
+  :deep(.el-dialog__footer) {
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
   }
 }
 </style>

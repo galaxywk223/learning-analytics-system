@@ -1,41 +1,38 @@
 /* 设置页面布局样式 */
 .settings-view {
   min-height: calc(100vh - 80px);
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
-  padding: 2rem 0;
+  background: transparent;
+  padding: 1.5rem 0;
 }
 
 .settings-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 1.5rem;
 }
 
 /* 页面头部 */
 .settings-page-header {
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
   text-align: center;
 }
 
 .settings-page-header h1 {
   font-family:
-    "Poppins",
+    "MaShanZheng",
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  font-size: 2.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0 0 0.75rem 0;
-  letter-spacing: -0.02em;
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: 0;
 }
 
 .settings-page-header .lead {
-  font-size: 1.125rem;
+  font-size: 1rem;
   color: #64748b;
   margin: 0;
   font-weight: 400;
@@ -44,8 +41,8 @@
 /* 主体布局 */
 .settings-main-content {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 2rem;
+  grid-template-columns: 260px 1fr;
+  gap: 1.5rem;
   align-items: start;
 }
 
@@ -54,12 +51,10 @@
   position: sticky;
   top: 100px;
   background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
 }
 
 .settings-nav {
@@ -71,13 +66,13 @@
 .settings-nav-item {
   display: flex;
   align-items: center;
-  padding: 0.875rem 1rem;
-  border-radius: 10px;
+  padding: 0.75rem 0.875rem;
+  border-radius: 8px;
   text-decoration: none;
   color: #475569;
   font-weight: 500;
-  font-size: 0.9375rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
 }
@@ -89,37 +84,26 @@
   top: 0;
   height: 100%;
   width: 3px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #667eea;
   transform: scaleY(0);
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s ease;
 }
 
-.settings-nav-item .el-icon {
-  margin-right: 0.875rem;
-  font-size: 1.25rem;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+.settings-nav-item .el-icon,
+.settings-nav-item svg {
+  margin-right: 0.75rem;
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 .settings-nav-item:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(102, 126, 234, 0.08) 0%,
-    rgba(118, 75, 162, 0.08) 100%
-  );
+  background: rgba(102, 126, 234, 0.08);
   color: #667eea;
-  transform: translateX(2px);
-}
-
-.settings-nav-item:hover .el-icon {
-  transform: scale(1.1);
 }
 
 .settings-nav-item.router-link-exact-active {
-  background: linear-gradient(
-    135deg,
-    rgba(102, 126, 234, 0.12) 0%,
-    rgba(118, 75, 162, 0.12) 100%
-  );
+  background: rgba(102, 126, 234, 0.1);
   color: #667eea;
   font-weight: 600;
 }
@@ -131,12 +115,10 @@
 /* 内容区域 */
 .settings-content {
   background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 12px;
+  padding: 1.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
   min-height: 500px;
 }
 
@@ -150,23 +132,23 @@
 
 .fade-enter-from {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(8px);
 }
 
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-8px);
 }
 
 /* 响应式设计 */
 @media (max-width: 1024px) {
   .settings-main-content {
-    grid-template-columns: 240px 1fr;
-    gap: 1.5rem;
+    grid-template-columns: 220px 1fr;
+    gap: 1.25rem;
   }
 
   .settings-sidebar {
-    padding: 1.25rem;
+    padding: 1rem;
   }
 
   .settings-content {
@@ -180,21 +162,21 @@
   }
 
   .settings-page-header h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
 
   .settings-page-header .lead {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 
   .settings-main-content {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
 
   .settings-sidebar {
     position: static;
-    padding: 1rem;
+    padding: 0.875rem;
   }
 
   .settings-nav {

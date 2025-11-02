@@ -4,7 +4,7 @@
 import request from "@/utils/request";
 
 export const milestoneAPI = {
-  list(params) {
+  list(params: any = {}) {
     return request({ url: "/api/milestones", method: "get", params });
   },
   get(id) {

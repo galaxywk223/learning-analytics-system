@@ -139,10 +139,13 @@ def _prepare_trend_data(user_id, all_stages, all_logs):
     }
     daily_efficiencies = [daily_efficiency_map.get(d) for d in date_range]
 
-    weekly_data = collections.defaultdict(lambda: {"duration": 0, "efficiency": None})
+    weekly_data = collections.defaultdict(
+        lambda: {"duration": 0, "efficiency": None, "days": 0}
+    )
     for d in date_range:
         year, week_num = get_custom_week_info(d, global_start_date)
         weekly_data[(year, week_num)]["duration"] += daily_duration_map.get(d, 0)
+        weekly_data[(year, week_num)]["days"] += 1
 
     weekly_efficiency_from_db = (
         WeeklyData.query.join(Stage).filter(Stage.user_id == user_id).all()
@@ -159,8 +162,10 @@ def _prepare_trend_data(user_id, all_stages, all_logs):
 
     sorted_week_keys = sorted(weekly_data.keys())
     weekly_labels = [f"{k[0]}-W{k[1]:02}" for k in sorted_week_keys]
+    # 计算周平均时长：总时长除以该周包含的天数
     weekly_durations = [
-        round(weekly_data[k]["duration"] / 60, 2) for k in sorted_week_keys
+        round(weekly_data[k]["duration"] / 60 / max(weekly_data[k]["days"], 1), 2)
+        for k in sorted_week_keys
     ]
     weekly_efficiencies = [weekly_data[k]["efficiency"] for k in sorted_week_keys]
 

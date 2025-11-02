@@ -67,7 +67,12 @@ const option = computed(() => ({
     },
   ],
   toolbox: { feature: { saveAsImage: {} } },
-  animation: props.loading ? false : true,
+  animation: props.loading
+    ? false
+    : {
+        duration: 500, // 减少动画时长
+        easing: "cubicOut",
+      },
 }));
 
 function onChartClick(event) {

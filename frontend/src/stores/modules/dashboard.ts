@@ -20,7 +20,7 @@ export const useDashboardStore = defineStore("dashboard", {
       if (!force && Date.now() - this.lastFetched < 30_000) return;
       this.loading = true;
       try {
-        const response = await getDashboardSummary();
+        const response = (await getDashboardSummary()) as any;
         // 后端返回格式: { success: true, data: { ... } }
         if (response && response.success && response.data) {
           this.summary = response.data;

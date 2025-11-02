@@ -174,3 +174,77 @@ export interface Settings {
   timezone?: string;
   [key: string]: any;
 }
+
+// 专注表单数据类型
+export interface FocusFormData {
+  name: string;
+  categoryId: number | null;
+  subcategoryId: number | null;
+  notes: string;
+}
+
+// 认证相关API响应类型
+export interface LoginResponse extends ApiResponse {
+  success: boolean;
+  access_token: string;
+  refresh_token: string;
+  user: User;
+  message?: string;
+}
+
+export interface RegisterResponse extends ApiResponse {
+  success: boolean;
+  message?: string;
+}
+
+export interface UserProfileResponse extends ApiResponse {
+  success: boolean;
+  user: User;
+}
+
+export interface RefreshTokenResponse extends ApiResponse {
+  success: boolean;
+  access_token: string;
+}
+
+// 分类相关API响应类型
+export interface CategoriesResponse extends ApiResponse {
+  success: boolean;
+  categories: Category[];
+  items?: Category[];
+}
+
+// 座右铭相关API响应类型
+export interface MottosResponse extends ApiResponse {
+  mottos: Motto[];
+}
+
+export interface MottoResponse extends ApiResponse {
+  success: boolean;
+  motto: Motto;
+}
+
+// 阶段相关API响应类型
+export interface StagesResponse extends ApiResponse {
+  success: boolean;
+  stages: Stage[];
+  message?: string;
+}
+
+export interface StageResponse extends ApiResponse {
+  success: boolean;
+  stage: Stage;
+  message?: string;
+}
+
+// 记录相关API响应类型
+export interface RecordsResponse extends ApiResponse {
+  weeks: any[];
+}
+
+// 设置相关API响应类型
+export interface SettingsResponse extends ApiResponse {
+  theme?: string;
+  background_image?: string;
+  active_stage_id?: number;
+}

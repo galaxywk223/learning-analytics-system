@@ -1,6 +1,10 @@
 <template>
   <div id="app" :data-theme="currentTheme">
-    <router-view />
+    <router-view v-slot="{ Component }">
+      <keep-alive :max="5">
+        <component :is="Component" :key="$route.fullPath" />
+      </keep-alive>
+    </router-view>
   </div>
 </template>
 
@@ -37,14 +41,20 @@ body {
   font-family:
     "Inter", "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",
     "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  /* 性能优化：启用硬件加速 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app {
   min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-attachment: fixed;
+  /* 性能优化：使用 GPU 加速 */
+  will-change: auto;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* 当用户上传了自定义背景时，通过settings store动态设置 */
@@ -53,5 +63,16 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+/* 性能优化：减少动画计算 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

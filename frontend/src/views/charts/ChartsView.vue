@@ -52,12 +52,6 @@
           </option>
         </select>
       </div>
-      <div class="toolbar-right">
-        <button class="export-btn" @click="handleExport" :disabled="exporting">
-          <span v-if="!exporting">📥 导出全部图表</span>
-          <span v-else>⏳ 导出中...</span>
-        </button>
-      </div>
     </div>
     <div class="tab-panels">
       <div v-show="charts.activeTab === 'trends'" class="panel">
@@ -150,36 +144,9 @@ import { chartsAPI } from "@/api/modules/charts";
 import TrendsChart from "@/components/business/charts/TrendsChart.vue";
 import CategoryComposite from "@/components/business/charts/CategoryComposite.vue";
 import KpiCard from "@/components/business/charts/KpiCard.vue";
-import { ElMessage } from "element-plus";
 
 const charts = useChartsStore();
 const stageSelected = ref("all");
-const exporting = ref(false);
-
-async function handleExport() {
-  exporting.value = true;
-  try {
-    const response = await chartsAPI.exportCharts();
-    const dispo = response.headers?.["content-disposition"];
-    let filename = "charts_export.zip";
-    if (dispo) {
-      const match = /filename=([^;]+)/i.exec(dispo);
-      if (match) filename = match[1].replace(/"/g, "");
-    }
-    const blob = response.data instanceof Blob ? response.data : response;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-    ElMessage.success(`已下载：${filename}`);
-  } catch (e) {
-    ElMessage.error("导出失败");
-  } finally {
-    exporting.value = false;
-  }
-}
 
 function onCategorySlice(cat) {
   if (!cat) return;

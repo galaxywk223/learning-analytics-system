@@ -51,7 +51,7 @@ export const todoAPI = {
 };
 
 // 导出独立函数以兼容旧代码
-export const listTodos = (params) => todoAPI.getAll(params);
+export const listTodos = (params: any = {}) => todoAPI.getAll(params);
 export const createTodo = (data) => todoAPI.create(data);
 export const updateTodo = (id, data) => todoAPI.update(id, data);
 export const deleteTodo = (id) => todoAPI.delete(id);

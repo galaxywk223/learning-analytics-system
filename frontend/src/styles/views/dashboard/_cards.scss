@@ -1,9 +1,9 @@
 /* 功能卡片网格 */
 .cards-grid {
-  padding: 0 30px 60px;
+  padding: 0 30px 48px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
+  gap: 20px;
   max-width: 1400px;
   margin: 0 auto;
   position: relative;
@@ -13,32 +13,31 @@
 .feature-card {
   position: relative;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
-  padding: 32px;
+  border-radius: 12px;
+  padding: 28px;
   text-decoration: none;
   color: inherit;
   overflow: hidden;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.06),
-    0 0 0 1px rgba(255, 255, 255, 0.5);
-  animation: fadeInUp 0.6s ease-out both;
-  will-change: transform;
+  transition: box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  animation: fadeInUp 0.4s ease-out both;
 }
 
 .feature-card:nth-child(1) {
-  animation-delay: 0.2s;
+  animation-delay: 0.15s;
 }
 .feature-card:nth-child(2) {
-  animation-delay: 0.3s;
+  animation-delay: 0.2s;
 }
 .feature-card:nth-child(3) {
-  animation-delay: 0.4s;
+  animation-delay: 0.25s;
 }
 .feature-card:nth-child(4) {
-  animation-delay: 0.5s;
+  animation-delay: 0.3s;
+}
+.feature-card:nth-child(5) {
+  animation-delay: 0.35s;
 }
 
 .card-background {
@@ -46,8 +45,8 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 6px;
-  background: linear-gradient(90deg, transparent, currentColor, transparent);
+  height: 4px;
+  background: currentColor;
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -57,10 +56,7 @@
 }
 
 .feature-card:hover {
-  transform: translateY(-8px) scale(1.01);
-  box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .card-content {
@@ -69,54 +65,56 @@
 }
 
 .card-icon {
-  width: 70px;
-  height: 70px;
-  border-radius: 18px;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 0 20px 0;
-  transition: transform 0.3s ease;
+  margin: 0 0 18px 0;
+  transition: transform 0.2s ease;
 }
 
 .card-icon i,
 .card-icon svg {
-  width: 36px;
-  height: 36px;
-  transition: transform 0.3s ease;
+  width: 32px;
+  height: 32px;
 }
 
 .feature-card:hover .card-icon {
-  transform: scale(1.08) rotate(3deg);
+  transform: scale(1.05);
 }
 
-.feature-card:hover .card-icon i,
-.feature-card:hover .card-icon svg {
-  transform: scale(1.1);
+/* 图标配色 - 扁平化纯色 */
+.icon-focus {
+  background: #fa709a;
+  color: white;
 }
 
-/* 图标配色 */
 .icon-record {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #667eea;
   color: white;
 }
 
 .icon-chart {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: #f5576c;
   color: white;
 }
 
 .icon-countdown {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: #00f2fe;
   color: white;
 }
 
 .icon-milestone {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  background: #43e97b;
   color: white;
 }
 
 /* 卡片主题色 */
+.card-focus {
+  color: #fa709a;
+}
 .card-record {
   color: #667eea;
 }
@@ -131,34 +129,34 @@
 }
 
 .card-title {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #111827;
-  margin: 0 0 12px 0;
+  margin: 0 0 10px 0;
   font-family: "MaShanZheng", cursive;
 }
 
 .card-description {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: #6b7280;
-  line-height: 1.6;
+  line-height: 1.5;
   margin: 0;
-  min-height: 48px;
+  min-height: 44px;
 }
 
 .card-arrow {
   position: absolute;
-  bottom: 24px;
-  right: 24px;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  bottom: 20px;
+  right: 20px;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
   background: #f3f4f6;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transform: translateX(-10px);
+  transform: translateX(-8px);
   transition:
     opacity 0.2s ease,
     transform 0.2s ease,
@@ -167,8 +165,8 @@
 
 .card-arrow i,
 .card-arrow svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   color: #6b7280;
   transition: color 0.2s ease;
 }

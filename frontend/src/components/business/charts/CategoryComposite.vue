@@ -1,57 +1,74 @@
 <template>
   <div class="category-wrapper" v-if="hasData">
     <div class="main-grid">
-      <div class="doughnut-card">
-        <h5 class="chart-title" id="categoryChartTitle">{{ currentTitle }}</h5>
-        <div class="doughnut-container">
-          <canvas ref="doughnutCanvas"></canvas>
-          <div class="center-text" v-if="totalHours">
-            {{ totalHours.toFixed(1) }}h<br /><small>总时长</small>
-          </div>
-        </div>
+      <DoughnutChart
+        :data="doughnutData"
+        :title="currentTitle"
+        :total-hours="totalHours"
+        :colors="chartColors"
+        @slice-click="handleSliceClick"
+      />
+
+      <div class="right-panel">
+        <BarChart
+          :data="barData"
+          :title="barTitle"
+          :top-n="TOP_N"
+          :colors="chartColors"
+        />
+
+        <DataTable
+          :data="tableData"
+          :total-hours="totalHours"
+          :drilldown-data="drilldown"
+          :show-navigation="view === 'drilldown'"
+          :is-main-view="view === 'main'"
+          @drill-down="handleDrillDown"
+          @back="goBack"
+        />
       </div>
-      <div class="bar-card">
-        <h5 class="chart-title">{{ barTitle }}</h5>
-        <canvas ref="barCanvas" class="bar-canvas"></canvas>
-        <hr />
-        <div class="table-container" ref="tableContainer"></div>
-      </div>
-    </div>
-    <div class="actions" v-if="view === 'drilldown'">
-      <button class="btn btn-sm" @click="backToMain">
-        <span>返回上级</span>
-      </button>
     </div>
   </div>
-  <div v-else class="alert alert-info text-center">
-    当前筛选范围内没有找到任何带分类的学习记录。
+  <div v-else class="empty-state">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      class="empty-icon"
+    >
+      <path
+        d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM11 7H13V9H11V7ZM11 11H13V17H11V11Z"
+      />
+    </svg>
+    <p class="empty-text">当前筛选范围内没有找到任何带分类的学习记录</p>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
-import { Chart } from "chart.js/auto";
-import ChartDataLabels from "chartjs-plugin-datalabels";
-
-Chart.register(ChartDataLabels);
+import { ref, computed, onMounted, watch } from "vue";
+import DoughnutChart from "./components/DoughnutChart.vue";
+import BarChart from "./components/BarChart.vue";
+import DataTable from "./components/DataTable.vue";
+import {
+  buildColors,
+  transformDataForChart,
+  calculateTotalHours,
+  formatTableData,
+} from "@/utils/charts";
 
 const props = defineProps({
-  main: { type: Object, required: true }, // {labels:[], data:[]}
-  drilldown: { type: Object, required: true }, // {category: {labels:[], data:[]}}
-  loading: { type: Boolean, default: false },
+  main: { type: Object, default: () => ({}) },
+  drilldown: { type: Object, default: () => ({}) },
 });
 
-const emit = defineEmits(["sliceClick", "back"]);
+const emit = defineEmits(["sliceClick"]);
 
-const doughnutCanvas = ref(null);
-const barCanvas = ref(null);
-let doughnutChart = null;
-let barChart = null;
+// 响应式数据
 const view = ref("main");
 const currentCategory = ref("");
-const totalHours = ref(0);
+const TOP_N = 10;
 
-// 改为计算属性，实时检查是否有数据
+// 计算属性
 const hasData = computed(() => {
   if (view.value === "main") {
     return props.main && props.main.labels && props.main.labels.length > 0;
@@ -61,285 +78,161 @@ const hasData = computed(() => {
   }
 });
 
-const currentTitle = ref("分类时长占比");
-const barTitle = ref("分类时长排行");
-const TOP_N = 10;
-
-function buildColors(count) {
-  const palette = [
-    "#60A5FA",
-    "#F87171",
-    "#FBBF24",
-    "#4ADE80",
-    "#A78BFA",
-    "#2DD4BF",
-    "#F472B6",
-    "#818CF8",
-    "#FB923C",
-    "#34D399",
-  ];
-  if (count <= palette.length) return palette.slice(0, count);
-  while (palette.length < count) {
-    palette.push("#" + Math.random().toString(16).slice(2, 8));
-  }
-  return palette;
-}
-
-function renderCharts() {
-  console.log("[CategoryComposite] renderCharts called");
-  console.log("[CategoryComposite] doughnutCanvas:", doughnutCanvas.value);
-  console.log("[CategoryComposite] barCanvas:", barCanvas.value);
-  console.log("[CategoryComposite] props.main:", props.main);
-  console.log("[CategoryComposite] props.drilldown:", props.drilldown);
-
-  if (!doughnutCanvas.value || !barCanvas.value) {
-    console.log("[CategoryComposite] Canvas not ready, skipping render");
-    return;
-  }
-
-  // 计算数据源
-  let sourceArray = [];
+const currentData = computed(() => {
   if (view.value === "main") {
-    sourceArray = props.main.labels
-      .map((l, i) => ({ label: l, value: props.main.data[i] }))
-      .sort((a, b) => b.value - a.value);
-    currentTitle.value = "分类时长占比";
-    barTitle.value = "分类时长排行";
+    return props.main;
   } else {
-    const dl = props.drilldown[currentCategory.value];
-    sourceArray = dl.labels
-      .map((l, i) => ({ label: l, value: dl.data[i] }))
-      .sort((a, b) => b.value - a.value);
-    currentTitle.value = currentCategory.value + " - 标签详情";
-    barTitle.value = currentCategory.value + " - 标签排行";
+    return props.drilldown[currentCategory.value] || {};
   }
+});
 
-  console.log("[CategoryComposite] sourceArray:", sourceArray);
-  totalHours.value = sourceArray.reduce((s, i) => s + i.value, 0);
-  console.log("[CategoryComposite] totalHours:", totalHours.value);
-  // hasData 现在是计算属性，不需要手动设置
-  const colors = buildColors(sourceArray.length);
+const totalHours = computed(() => calculateTotalHours(currentData.value));
 
-  // 销毁旧图
-  if (doughnutChart) doughnutChart.destroy();
-  if (barChart) barChart.destroy();
-
-  doughnutChart = new Chart(doughnutCanvas.value.getContext("2d"), {
-    type: "doughnut",
-    data: {
-      labels: sourceArray.map((d) => d.label),
-      datasets: [
-        {
-          data: sourceArray.map((d) => d.value),
-          backgroundColor: colors,
-          borderWidth: 2,
-          borderColor: "transparent",
-        },
-      ],
-    },
-    options: {
-      cutout: "70%",
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => {
-              const total = ctx.chart.getDatasetMeta(0).total || 0;
-              const pct = total ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
-              return `${ctx.label}: ${ctx.parsed.toFixed(1)}小时 (${pct}%)`;
-            },
-          },
-        },
-        datalabels: {
-          display: true,
-          formatter: (value, context) => {
-            const ds = context.chart.data.datasets[0];
-            const total = ds.data.reduce((t, v) => t + v, 0);
-            const pct = total ? (value / total) * 100 : 0;
-            return pct > 3
-              ? context.chart.data.labels[context.dataIndex]
-              : null;
-          },
-          color: "#000",
-          font: { weight: "bold" },
-          padding: 4,
-        },
-      },
-    },
-  });
-
-  const barData = sourceArray.slice(0, TOP_N);
-  barChart = new Chart(barCanvas.value.getContext("2d"), {
-    type: "bar",
-    data: {
-      labels: barData.map((d) => d.label),
-      datasets: [
-        {
-          data: barData.map((d) => d.value),
-          backgroundColor: colors.slice(0, barData.length),
-          borderWidth: 2,
-          borderColor: "transparent",
-        },
-      ],
-    },
-    options: {
-      indexAxis: "y",
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => `${ctx.label}: ${ctx.parsed.toFixed(1)}小时`,
-          },
-        },
-      },
-      scales: {
-        x: { display: false, grid: { display: false } },
-        y: { grid: { display: false } },
-      },
-    },
-  });
-
-  // 表格渲染
-  const tableRoot = tableContainer.value;
-  if (tableRoot) {
-    let html =
-      '<table class="table table-hover"><thead><tr><th>名称</th><th>时长(h)</th><th>占比(%)</th></tr></thead><tbody>';
-    sourceArray.forEach((item) => {
-      const pct = totalHours.value
-        ? ((item.value / totalHours.value) * 100).toFixed(1)
-        : "0.0";
-      const drillInfo =
-        view.value === "main" &&
-        props.drilldown[item.label] &&
-        props.drilldown[item.label].labels.length > 0
-          ? ` data-drill="${item.label}" style="cursor:pointer"`
-          : "";
-      html += `<tr${drillInfo}><td>${item.label}</td><td>${item.value.toFixed(1)}</td><td>${pct}</td></tr>`;
-    });
-    html += "</tbody></table>";
-    tableRoot.innerHTML = html;
-    tableRoot.querySelectorAll("tr[data-drill]").forEach((row) => {
-      row.addEventListener("click", () => {
-        currentCategory.value = row.getAttribute("data-drill");
-        view.value = "drilldown";
-        renderCharts();
-        emit("sliceClick", currentCategory.value);
-      });
-    });
+const currentTitle = computed(() => {
+  if (view.value === "main") {
+    return "分类时长占比";
+  } else {
+    return `${currentCategory.value} - 子分类占比`;
   }
+});
 
-  // 绑定 doughnut 点击
-  doughnutCanvas.value.onclick = (evt) => {
-    const points = doughnutChart.getElementsAtEventForMode(
-      evt,
-      "nearest",
-      { intersect: true },
-      true
-    );
-    if (points.length && view.value === "main") {
-      const idx = points[0].index;
-      const label = doughnutChart.data.labels[idx];
-      if (props.drilldown[label] && props.drilldown[label].labels.length > 0) {
-        currentCategory.value = label;
-        view.value = "drilldown";
-        renderCharts();
-        emit("sliceClick", label);
-      }
-    }
-  };
+const barTitle = computed(() => {
+  if (view.value === "main") {
+    return "分类时长排行";
+  } else {
+    return `${currentCategory.value} - 子分类排行`;
+  }
+});
+
+const chartColors = computed(() => {
+  const dataLength = currentData.value?.labels?.length || 0;
+  return buildColors(dataLength);
+});
+
+const doughnutData = computed(() => currentData.value);
+
+const barData = computed(() => transformDataForChart(currentData.value, TOP_N));
+
+const tableData = computed(() => formatTableData(currentData.value));
+
+// 事件处理
+function handleSliceClick(label) {
+  if (view.value === "main" && props.drilldown[label]?.labels?.length > 0) {
+    handleDrillDown(label);
+  }
 }
 
-function backToMain() {
+function handleDrillDown(category) {
+  currentCategory.value = category;
+  view.value = "drilldown";
+  emit("sliceClick", category);
+}
+
+function goBack() {
   view.value = "main";
   currentCategory.value = "";
-  renderCharts();
-  emit("back");
 }
 
-const tableContainer = ref(null);
-
+// 监听器
 watch(
-  () => [props.main, props.drilldown],
+  () => props.main,
   () => {
-    renderCharts();
+    if (
+      view.value === "drilldown" &&
+      !props.drilldown[currentCategory.value]?.labels?.length
+    ) {
+      goBack();
+    }
   },
   { deep: true }
 );
-
-onMounted(() => {
-  renderCharts();
-});
-onBeforeUnmount(() => {
-  if (doughnutChart) doughnutChart.destroy();
-  if (barChart) barChart.destroy();
-});
 </script>
 
 <style scoped>
 .category-wrapper {
+  width: 100%;
+  padding: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
+
 .main-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 1rem;
+  align-items: stretch;
+  height: 100%;
+  max-height: calc(100vh - 280px);
 }
-.doughnut-card,
-.bar-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-  min-height: 520px;
-  position: relative;
-}
-.chart-title {
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0 0 12px;
-}
-.doughnut-container {
-  position: relative;
-  height: 420px;
+
+.right-panel {
   display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+  min-height: 0;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-.center-text {
-  position: absolute;
+  padding: 60px 20px;
   text-align: center;
-  font-weight: 600;
-  pointer-events: none;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px dashed #d1c4e9;
+  margin: 1rem 0;
 }
-.bar-canvas {
-  height: 250px;
+
+.empty-icon {
+  width: 56px;
+  height: 56px;
+  color: #9ca3af;
+  margin-bottom: 1rem;
 }
-.table-container {
-  max-height: 180px;
-  overflow-y: auto;
-  margin-top: 12px;
+
+.empty-text {
+  font-size: 15px;
+  color: #6b7280;
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.5;
 }
-.actions {
-  display: flex;
+
+@media (max-width: 1200px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
 }
-.btn {
-  background: #fff;
-  border: 1px solid #d1d5db;
-  padding: 4px 10px;
-  cursor: pointer;
-  font-size: 12px;
-  border-radius: 6px;
-}
-.btn:hover {
-  background: #f3f4f6;
-}
-.alert {
-  padding: 16px;
-  border: 1px solid #dbeafe;
-  background: #eff6ff;
-  border-radius: 6px;
+
+@media (max-width: 768px) {
+  .category-wrapper {
+    padding: 0;
+  }
+
+  .main-grid {
+    gap: 1rem;
+  }
+
+  .right-panel {
+    gap: 1rem;
+  }
+
+  .empty-state {
+    padding: 40px 20px;
+  }
+
+  .empty-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .empty-text {
+    font-size: 14px;
+  }
 }
 </style>

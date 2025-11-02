@@ -2,14 +2,19 @@
  * 通用对话框组合式函数
  * 用于管理对话框的显示、隐藏和表单数据
  */
-import { ref, computed } from "vue";
+import { ref, computed, type Ref } from "vue";
 
-export function useDialog(initialFormData = {}) {
+interface DialogFormData {
+  id?: number | string;
+  [key: string]: any;
+}
+
+export function useDialog<T extends DialogFormData>(initialFormData: T) {
   const dialogVisible = ref(false);
   const formData = ref({ ...initialFormData });
-  const isEditMode = computed(() => !!formData.value.id);
+  const isEditMode = computed(() => !!(formData.value as T).id);
 
-  const openDialog = (data = null) => {
+  const openDialog = (data: T | null = null) => {
     if (data) {
       formData.value = { ...data };
     } else {

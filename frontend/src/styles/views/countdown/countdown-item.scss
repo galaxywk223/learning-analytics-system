@@ -1,49 +1,56 @@
-/* 倒计时卡片组件样式 */
+/* 倒计时卡片组件样式 - 扁平化设计 */
 
 /* 活跃状态卡片 */
 .countdown-card {
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(103, 58, 183, 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+  border: 1px solid #d1c4e9;
+  width: 100%;
+  min-height: 420px;
+  max-height: 420px;
 }
 
 .countdown-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 8px rgba(103, 58, 183, 0.12);
 }
 
 /* 卡片头部 */
 .card-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #667eea;
   color: white;
-  padding: 16px 20px;
+  padding: 14px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: 600;
-  min-height: 60px;
+  min-height: 56px;
+  max-height: 56px;
+  flex-shrink: 0;
 }
 
 .status-warning .card-header {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: #ec4899;
 }
 
 .status-urgent .card-header {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  background: #f59e0b;
 }
 
 .event-title {
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.4;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
   flex: 1;
   margin-right: 12px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
 }
 
 .actions {
@@ -52,34 +59,52 @@
   flex-shrink: 0;
 }
 
-.actions .el-button {
+.countdown-card .actions .el-button {
   color: white !important;
   font-weight: 500;
   transition: all 0.2s ease;
 }
 
+.countdown-card .actions .el-button:hover {
+  opacity: 0.85;
+}
+
 .actions .el-button:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.event-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+}
+
+.meta-icon {
+  font-size: 13px;
 }
 
 /* 卡片主体 */
 .card-body {
-  padding: 32px 20px;
+  padding: 20px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+  gap: 12px;
+  background: #fafafa;
+  flex: 1;
+  min-height: 0;
 }
 
 /* 环形进度条 */
 .progress-ring-container {
   position: relative;
-  width: 180px;
-  height: 180px;
-  filter: drop-shadow(0 4px 12px rgba(102, 126, 234, 0.2));
+  width: 160px;
+  height: 160px;
+  flex-shrink: 0;
 }
 
 .progress-ring-svg {
@@ -89,18 +114,17 @@
 }
 
 .progress-ring-circle {
-  stroke: url(#gradient-normal);
-  transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  stroke: #667eea;
+  transition: stroke-dashoffset 0.3s ease;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 8px currentColor);
 }
 
 .status-warning .progress-ring-circle {
-  stroke: url(#gradient-warning);
+  stroke: #ec4899;
 }
 
 .status-urgent .progress-ring-circle {
-  stroke: url(#gradient-urgent);
+  stroke: #f59e0b;
 }
 
 /* 渐变定义 - 需要在 SVG 中定义 */
@@ -118,87 +142,83 @@
 }
 
 .progress-ring-text .days-remaining {
-  font-size: 48px;
-  font-weight: 800;
+  font-size: 42px;
+  font-weight: 700;
   line-height: 1;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #667eea;
 }
 
 .status-warning .progress-ring-text .days-remaining {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ec4899;
 }
 
 .status-urgent .progress-ring-text .days-remaining {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #f59e0b;
 }
 
 .progress-ring-text .days-label {
-  font-size: 14px;
+  font-size: 13px;
   color: #64748b;
-  font-weight: 600;
+  font-weight: 500;
   margin-top: 4px;
-  letter-spacing: 1px;
 }
 
 /* 实时计时器 */
 .live-timer {
   font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace;
-  letter-spacing: 2px;
-  font-size: 20px;
-  font-weight: 700;
+  letter-spacing: 1px;
+  font-size: 18px;
+  font-weight: 600;
   color: #1e293b;
-  background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
-  padding: 12px 24px;
-  border-radius: 12px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  background: #e0e7ff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #c7d2fe;
 }
 
 /* 卡片底部 */
 .card-footer {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  padding: 14px 20px;
-  font-size: 13px;
-  color: #475569;
+  background: #f8fafc;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #64748b;
   text-align: center;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid #e2e8f0;
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 /* 已过期卡片 */
 .expired-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-  border: 2px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 32px 20px;
+  background: white;
+  border: 1px solid #d1c4e9;
+  border-radius: 12px;
+  padding: 24px 16px;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  gap: 10px;
+  transition: box-shadow 0.2s ease;
+  box-shadow: 0 2px 4px rgba(103, 58, 183, 0.08);
+  min-height: 420px;
+  max-height: 420px;
+  justify-content: center;
 }
 
 .expired-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  border-color: #cbd5e0;
+  box-shadow: 0 4px 8px rgba(103, 58, 183, 0.12);
 }
 
 .expired-title {
   margin: 0;
   text-decoration: line-through;
-  font-size: 18px;
+  font-size: 16px;
   color: #64748b;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 8px;
 }
 
 .icon-wrapper {
@@ -209,20 +229,44 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: #10b981;
   color: white;
   border-radius: 50%;
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
 }
 
 .expired-card .text-muted {
-  font-size: 14px;
+  font-size: 13px;
   color: #94a3b8;
 }
 
 .expired-card .actions {
   margin-top: 8px;
   justify-content: center;
+  gap: 10px;
+}
+
+.expired-card .actions .el-button {
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.expired-card .actions .el-button:not(.el-button--danger) {
+  color: #667eea !important;
+
+  &:hover {
+    background: rgba(102, 126, 234, 0.08);
+  }
+}
+
+.expired-card .actions .el-button--danger {
+  color: #ef4444 !important;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.08);
+  }
 }
 
 .status-expired {
@@ -231,32 +275,23 @@
 
 /* 响应式调整 */
 @media (max-width: 768px) {
+  .countdown-card,
+  .expired-card {
+    min-height: 380px;
+    max-height: 380px;
+  }
+
   .progress-ring-container {
-    width: 160px;
-    height: 160px;
+    width: 140px;
+    height: 140px;
   }
 
   .progress-ring-text .days-remaining {
-    font-size: 42px;
+    font-size: 36px;
   }
 
   .live-timer {
     font-size: 16px;
-    padding: 10px 20px;
+    padding: 8px 16px;
   }
-}
-
-/* 动画效果 */
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-.status-urgent .progress-ring-circle {
-  animation: pulse 2s ease-in-out infinite;
 }

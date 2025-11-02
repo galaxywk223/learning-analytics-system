@@ -53,7 +53,7 @@ def get_milestones():
         return jsonify(
             {
                 "success": True,
-                "milestones": [m.to_dict() for m in milestones],
+                "milestones": [m.to_dict(include_attachments=True) for m in milestones],
                 "pagination": None,
             }
         ), 200
@@ -62,7 +62,7 @@ def get_milestones():
     page = page or 1
     per_page = per_page or 10
     pagination_obj = query.paginate(page=page, per_page=per_page, error_out=False)
-    items = [m.to_dict() for m in pagination_obj.items]
+    items = [m.to_dict(include_attachments=True) for m in pagination_obj.items]
 
     return jsonify(
         {
@@ -85,16 +85,26 @@ def get_milestones():
 def get_milestone(milestone_id):
     """获取单个里程碑"""
     current_user_id = get_jwt_identity()
+    current_app.logger.info(
+        f"[获取里程碑] 用户 {current_user_id} 请求获取里程碑 {milestone_id}"
+    )
+
     milestone = Milestone.query.filter_by(
         id=milestone_id, user_id=current_user_id
     ).first()
 
     if not milestone:
+        current_app.logger.warning(
+            f"[获取里程碑] 里程碑 {milestone_id} 不存在或不属于用户 {current_user_id}"
+        )
         return jsonify({"success": False, "message": "里程碑不存在"}), 404
 
-    return jsonify(
-        {"success": True, "milestone": milestone.to_dict(include_attachments=True)}
-    ), 200
+    milestone_data = milestone.to_dict(include_attachments=True)
+    current_app.logger.info(
+        f"[获取里程碑] 返回数据，附件数量: {len(milestone_data.get('attachments', []))}"
+    )
+
+    return jsonify({"success": True, "milestone": milestone_data}), 200
 
 
 @bp.route("", methods=["POST"])
@@ -124,7 +134,7 @@ def create_milestone():
             {
                 "success": True,
                 "message": "里程碑创建成功",
-                "milestone": milestone.to_dict(),
+                "milestone": milestone.to_dict(include_attachments=True),
             }
         ), 201
     except Exception as e:
@@ -163,7 +173,7 @@ def update_milestone(milestone_id):
             {
                 "success": True,
                 "message": "里程碑更新成功",
-                "milestone": milestone.to_dict(),
+                "milestone": milestone.to_dict(include_attachments=True),
             }
         ), 200
     except Exception as e:
@@ -292,23 +302,32 @@ def delete_milestone_category(category_id):
 def upload_attachment(milestone_id):
     """上传里程碑附件"""
     current_user_id = get_jwt_identity()
+    current_app.logger.info(
+        f"[上传附件] 用户 {current_user_id} 请求上传附件到里程碑 {milestone_id}"
+    )
 
     # 验证里程碑所有权
     milestone = Milestone.query.filter_by(
         id=milestone_id, user_id=current_user_id
     ).first()
     if not milestone:
+        current_app.logger.warning(
+            f"[上传附件] 里程碑 {milestone_id} 不存在或不属于用户 {current_user_id}"
+        )
         return jsonify({"success": False, "message": "里程碑不存在"}), 404
 
     if "file" not in request.files:
+        current_app.logger.warning(f"[上传附件] 请求中没有文件")
         return jsonify({"success": False, "message": "没有文件被上传"}), 400
 
     file = request.files["file"]
+    current_app.logger.info(f"[上传附件] 接收到文件: {file.filename}")
 
     if file.filename == "":
         return jsonify({"success": False, "message": "文件名为空"}), 400
 
     if not allowed_file(file.filename, ALLOWED_ATTACHMENT_EXTENSIONS):
+        current_app.logger.warning(f"[上传附件] 不支持的文件格式: {file.filename}")
         return jsonify(
             {
                 "success": False,
@@ -324,17 +343,20 @@ def upload_attachment(milestone_id):
         filename = f"milestone_{milestone_id}_{timestamp}.{ext}"
         filename = secure_filename(filename)
 
-        # 确保上传目录存在
-        upload_folder = current_app.config.get("MILESTONE_UPLOADS")
+        # 确保上传目录存在（使用 UPLOAD_FOLDER）
+        upload_folder = current_app.config.get("UPLOAD_FOLDER")
         if not upload_folder:
+            current_app.logger.error(f"[上传附件] UPLOAD_FOLDER 未配置")
             return jsonify({"success": False, "message": "上传功能未配置"}), 500
 
         user_upload_dir = os.path.join(upload_folder, str(current_user_id))
         os.makedirs(user_upload_dir, exist_ok=True)
+        current_app.logger.info(f"[上传附件] 上传目录: {user_upload_dir}")
 
         # 保存文件
         file_path = os.path.join(user_upload_dir, filename)
         file.save(file_path)
+        current_app.logger.info(f"[上传附件] 文件已保存到: {file_path}")
 
         # 创建附件记录
         relative_path = f"{current_user_id}/{filename}"
@@ -345,6 +367,9 @@ def upload_attachment(milestone_id):
         )
         db.session.add(attachment)
         db.session.commit()
+        current_app.logger.info(
+            f"[上传附件] 附件记录已创建: ID={attachment.id}, 路径={relative_path}"
+        )
 
         return jsonify(
             {
@@ -356,8 +381,8 @@ def upload_attachment(milestone_id):
 
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Attachment upload error: {e}")
-        return jsonify({"success": False, "message": "上传失败"}), 500
+        current_app.logger.error(f"[上传附件] 上传失败: {e}", exc_info=True)
+        return jsonify({"success": False, "message": f"上传失败: {str(e)}"}), 500
 
 
 @bp.route("/<int:milestone_id>/attachments/<int:attachment_id>", methods=["DELETE"])
@@ -381,11 +406,12 @@ def delete_attachment(milestone_id, attachment_id):
         return jsonify({"success": False, "message": "附件不存在"}), 404
 
     try:
-        # 删除文件
-        upload_folder = current_app.config.get("MILESTONE_UPLOADS")
-        file_path = os.path.join(upload_folder, attachment.file_path)
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        # 删除文件（使用 UPLOAD_FOLDER）
+        upload_folder = current_app.config.get("UPLOAD_FOLDER")
+        if upload_folder:
+            file_path = os.path.join(upload_folder, attachment.file_path)
+            if os.path.exists(file_path):
+                os.remove(file_path)
 
         # 删除数据库记录
         db.session.delete(attachment)
@@ -400,27 +426,38 @@ def delete_attachment(milestone_id, attachment_id):
 
 
 @bp.route("/attachments/<path:filepath>", methods=["GET"])
-@jwt_required()
 def download_attachment(filepath):
-    """下载附件：与旧项目行为保持一致，校验所属用户。filepath 形如 'user_id/filename'."""
-    current_user_id = get_jwt_identity()
+    """
+    下载附件：不需要JWT认证，通过验证附件记录是否存在于数据库来确保安全性。
+    filepath 形如 'user_id/filename'
+    """
     # 规范路径分隔符
     normalized = filepath.replace("\\", "/")
     parts = normalized.split("/")
     if len(parts) < 2:
         return jsonify({"success": False, "message": "无效的路径"}), 400
+
     user_part = parts[0]
     filename = parts[-1]
-    if str(current_user_id) != user_part:
-        return jsonify({"success": False, "message": "无权限访问该附件"}), 403
 
-    upload_folder = current_app.config.get("MILESTONE_UPLOADS")
+    # 验证该文件路径是否存在于数据库的附件记录中（安全检查）
+    attachment = MilestoneAttachment.query.filter_by(file_path=filepath).first()
+    if not attachment:
+        current_app.logger.warning(f"[下载附件] 附件记录不存在: {filepath}")
+        return jsonify({"success": False, "message": "附件不存在或已被删除"}), 404
+
+    # 使用 UPLOAD_FOLDER
+    upload_folder = current_app.config.get("UPLOAD_FOLDER")
     if not upload_folder:
         return jsonify({"success": False, "message": "未配置上传目录"}), 500
 
     user_dir = os.path.join(upload_folder, user_part)
-    if not os.path.exists(os.path.join(user_dir, filename)):
+    file_full_path = os.path.join(user_dir, filename)
+
+    if not os.path.exists(file_full_path):
+        current_app.logger.warning(f"[下载附件] 文件不存在: {file_full_path}")
         return jsonify({"success": False, "message": "文件不存在"}), 404
 
-    # 直接发送文件（不强制下载，可在前端使用 target="_blank" 打开）
-    return send_from_directory(user_dir, filename, as_attachment=True)
+    current_app.logger.info(f"[下载附件] 发送文件: {file_full_path}")
+    # 发送文件（as_attachment=False 允许在浏览器中直接查看）
+    return send_from_directory(user_dir, filename, as_attachment=False)

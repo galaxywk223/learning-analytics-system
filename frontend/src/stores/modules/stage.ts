@@ -15,7 +15,7 @@ export const useStageStore = defineStore("stage", () => {
   async function fetchStages() {
     loading.value = true;
     try {
-      const response = await stageAPI.getAll();
+      const response = (await stageAPI.getAll()) as any;
       if (response.success) {
         stages.value = response.stages;
 
@@ -33,9 +33,9 @@ export const useStageStore = defineStore("stage", () => {
   }
 
   // 创建阶段
-  async function createStage(data) {
+  async function createStage(data: any) {
     try {
-      const response = await stageAPI.create(data);
+      const response = (await stageAPI.create(data)) as any;
       if (response.success) {
         stages.value.unshift(response.stage);
         ElMessage.success(response.message || "阶段创建成功");
@@ -49,9 +49,9 @@ export const useStageStore = defineStore("stage", () => {
   }
 
   // 更新阶段
-  async function updateStage(id, data) {
+  async function updateStage(id: number, data: any) {
     try {
-      const response = await stageAPI.update(id, data);
+      const response = (await stageAPI.update(id, data)) as any;
       if (response.success) {
         const index = stages.value.findIndex((s) => s.id === id);
         if (index !== -1) {
@@ -68,9 +68,9 @@ export const useStageStore = defineStore("stage", () => {
   }
 
   // 删除阶段
-  async function deleteStage(id) {
+  async function deleteStage(id: number) {
     try {
-      const response = await stageAPI.delete(id);
+      const response = (await stageAPI.delete(id)) as any;
       if (response.success) {
         stages.value = stages.value.filter((s) => s.id !== id);
         if (activeStage.value?.id === id) {

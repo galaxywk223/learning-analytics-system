@@ -1,9 +1,15 @@
-/* frontend/src/assets/styles/layout.css */
+/* frontend/src/styles/layouts/layout.scss */
 
 /* ===== Page Wrapper ===== */
 .page-wrapper {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  background-color: transparent;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 /* ===== Sidebar & Main Content Layout ===== */
@@ -13,27 +19,160 @@
   position: fixed;
   top: 0;
   left: 0;
-  background-color: rgba(20, 25, 35, 0.7);
+  background-color: var(--color-bg-sidebar);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid var(--color-border-sidebar);
   color: var(--color-text-light);
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem;
   transition:
-    width var(--transition-speed) ease,
-    left 0.3s ease-in-out;
-  z-index: 100;
+    width 0.15s ease-out,
+    padding 0.15s ease-out;
+  z-index: 50;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* 自定义侧边栏滚动条样式 */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 折叠状态：仅保留 Logo 和图标列 */
+.sidebar.sidebar--collapsed {
+  width: var(--sidebar-collapsed-width);
+  padding: 1rem 0.5rem;
+}
+
+/* hover 时展开 */
+.sidebar.sidebar--collapsed:hover {
+  width: var(--sidebar-width);
+  padding: 1.5rem 1rem;
+}
+
+/* hover 展开时，主内容区跟着推到右边 */
+.sidebar.sidebar--collapsed:hover ~ .main-content {
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+}
+
+/* 折叠时隐藏文字 - 不使用过渡动画，直接隐藏 */
+.sidebar.sidebar--collapsed .logo-text,
+.sidebar.sidebar--collapsed .nav-link span,
+.sidebar.sidebar--collapsed .sidebar-footer .user-info span,
+.sidebar.sidebar--collapsed .sidebar-footer .logout-link span,
+.sidebar.sidebar--collapsed .sidebar-footer p {
+  display: none;
+}
+
+/* hover 时显示文字 - 直接显示，无过渡 */
+.sidebar.sidebar--collapsed:hover .logo-text,
+.sidebar.sidebar--collapsed:hover .nav-link span,
+.sidebar.sidebar--collapsed:hover .sidebar-footer .user-info span,
+.sidebar.sidebar--collapsed:hover .sidebar-footer .logout-link span,
+.sidebar.sidebar--collapsed:hover .sidebar-footer p {
+  display: block;
+}
+
+/* 折叠时图标居中 */
+.sidebar.sidebar--collapsed .nav-link {
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+}
+
+.sidebar.sidebar--collapsed:hover .nav-link {
+  justify-content: flex-start;
+  padding: 0.75rem 1rem;
+}
+
+.sidebar.sidebar--collapsed .sidebar-header {
+  justify-content: center;
+  gap: 0;
+}
+
+.sidebar.sidebar--collapsed:hover .sidebar-header {
+  justify-content: flex-start;
+  gap: 0.75rem;
+}
+
+/* 页面内容区域根据侧边栏折叠调整左侧间距 */
+.page-wrapper.sidebar-collapsed .main-content {
+  margin-left: var(--sidebar-collapsed-width);
 }
 
 .main-content {
   flex-grow: 1;
+  /* 默认状态根据侧边栏是否折叠来设置 */
+  margin-left: var(--sidebar-collapsed-width);
+  padding: 0;
+  transition:
+    margin-left 0.15s ease-out,
+    width 0.15s ease-out;
+  height: 100vh;
+  width: calc(100% - var(--sidebar-collapsed-width));
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 主内容区滚动条样式 */
+.main-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.main-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.main-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 侧边栏展开状态下的主内容区 */
+.page-wrapper:not(.sidebar-collapsed) .main-content {
   margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+}
+
+/* ===== 为需要内边距的页面添加容器样式 ===== */
+/* Dashboard、登录页等全屏页面不需要 padding */
+.records-view,
+.charts-view,
+.settings-view,
+.countdown-view,
+.milestones-view,
+.stages-view,
+.categories-view,
+.todos-view,
+.focus-view {
   padding: 2rem;
-  transition: margin-left var(--transition-speed) ease;
-  background-color: transparent;
   min-height: 100vh;
+  background-color: transparent;
+}
+
+/* 全屏页面保持无 padding */
+.dashboard-view {
+  padding: 0;
+  background-color: transparent;
 }
 
 /* ===== Sidebar Components ===== */
@@ -50,7 +189,12 @@
 }
 
 .logo-text {
-  color: #ffffff;
+  color: var(--color-text-logo);
+  white-space: nowrap;
+}
+
+.logo-img {
+  flex-shrink: 0;
 }
 
 .sidebar-nav {
@@ -64,13 +208,13 @@
 .sidebar-footer {
   padding-top: 1.5rem;
   margin-top: auto;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--color-border-sidebar);
 }
 
 .sidebar-footer p {
   text-align: center;
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-muted);
   margin: 0.5rem 0 0;
 }
 
@@ -79,8 +223,13 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text-light);
   margin-bottom: 0.5rem;
+}
+
+.sidebar-footer .user-info span,
+.sidebar-footer .logout-link span {
+  white-space: nowrap;
 }
 
 .sidebar-footer .logout-link {
@@ -88,15 +237,15 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-text-secondary);
   text-decoration: none;
   border-radius: var(--border-radius-sm);
   transition: all 0.2s;
 }
 
 .sidebar-footer .logout-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-light);
 }
 
 /* ===== Page Headers ===== */
@@ -108,15 +257,48 @@
   font-family: "Poppins", sans-serif;
   font-size: 2.25rem;
   font-weight: 700;
-  color: #f8f9fa;
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+  color: var(--color-text-heading);
   margin-bottom: 0.5rem;
 }
 
 .page-header .lead {
   font-size: 1.1rem;
-  color: #e9ecef;
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+  color: var(--color-text-secondary);
+}
+
+/* ===== Navigation Link ===== */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-light);
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    color: #ffffff;
+  }
+
+  &.router-link-exact-active {
+    background-color: var(--color-primary);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
+  }
+
+  .icon,
+  svg {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  span {
+    white-space: nowrap;
+  }
 }
 
 /* ===== Responsive Design ===== */
@@ -130,20 +312,29 @@
     padding: 0.5rem 1rem;
   }
 
+  /* 移动端禁用 hover 效果 */
+  .sidebar.sidebar--collapsed:hover {
+    width: 100%;
+    padding: 0.5rem 1rem;
+  }
+
   .sidebar-header {
     height: auto;
     padding: 0;
+    gap: 0.5rem;
   }
 
   .sidebar-nav {
     flex-direction: row;
     justify-content: flex-end;
+    padding-top: 0;
   }
 
   .nav-link span,
   .sidebar-footer,
-  .logo-text {
-    display: none;
+  .logo-text,
+  .collapse-toggle {
+    display: none !important;
   }
 
   .nav-link {
@@ -155,30 +346,11 @@
     padding: 1.5rem;
   }
 
+  .page-wrapper.sidebar-collapsed .main-content {
+    margin-left: 0;
+  }
+
   .page-header h1 {
     font-size: 1.75rem;
-  }
-}
-
-/* ===== Auto-hiding Sidebar for Desktop ===== */
-@media (min-width: 769px) {
-  .main-content {
-    margin-left: 20px;
-    transition: margin-left 0.3s ease-in-out !important;
-  }
-
-  .sidebar {
-    left: calc(-1 * var(--sidebar-width) + 20px);
-    transition: left 0.3s ease-in-out !important;
-    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05);
-  }
-
-  .page-wrapper:has(.sidebar:hover) .main-content {
-    margin-left: var(--sidebar-width);
-  }
-
-  .page-wrapper:has(.sidebar:hover) .sidebar {
-    left: 0;
-    box-shadow: none;
   }
 }

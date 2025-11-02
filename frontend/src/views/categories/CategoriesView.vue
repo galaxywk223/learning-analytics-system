@@ -1,190 +1,213 @@
 <template>
   <div class="categories-view">
-    <div class="header">
-      <div>
-        <h1>分类管理</h1>
-        <p class="sub">维护学习分类与子分类层级</p>
-      </div>
-      <div class="actions">
-        <el-button type="primary" @click="addRoot">新增顶级分类</el-button>
-        <el-button :loading="store.loading" @click="refresh">刷新</el-button>
-      </div>
+    <CategoryHeader
+      title="分类管理"
+      subtitle="维护学习分类与子分类层级结构"
+      add-button-text="新增分类"
+      :loading="store.loading"
+      @add="addRoot"
+      @refresh="refresh"
+    />
+
+    <div class="content-section" v-loading="store.loading">
+      <CategoryTree
+        ref="treeRef"
+        :tree-data="treeData"
+        :selected-node="selectedNode"
+        @node-click="handleNodeClick"
+        @node-expand="handleNodeExpand"
+        @node-collapse="handleNodeCollapse"
+        @add-child="addChild"
+        @edit="editCategory"
+        @delete="deleteCategory"
+      />
     </div>
-    <div class="content" v-loading="store.loading">
-      <div class="tree-pane">
-        <el-tree
-          v-if="store.tree.length"
-          :data="store.tree"
-          :props="treeProps"
-          node-key="id"
-          highlight-current
-          :expand-on-click-node="false"
-          :default-expanded-keys="store.expandedKeys"
-          @node-click="onNodeClick"
-        >
-          <template #default="{ node, data }">
-            <div class="tree-node-row">
-              <span class="name">{{ data.name }}</span>
-              <span class="toolbar">
-                <el-button text size="small" @click.stop="addChild(data)"
-                  >子</el-button
-                >
-                <el-button text size="small" @click.stop="rename(data)"
-                  >改</el-button
-                >
-                <el-button
-                  text
-                  size="small"
-                  type="danger"
-                  @click.stop="removeNode(data)"
-                  >删</el-button
-                >
-              </span>
-            </div>
-          </template>
-        </el-tree>
-        <el-empty v-else description="暂无分类" />
-      </div>
-      <div class="detail-pane" v-if="current">
-        <h3>详情</h3>
-        <el-descriptions :column="1" size="small" border>
-          <el-descriptions-item label="ID">{{
-            current.id
-          }}</el-descriptions-item>
-          <el-descriptions-item label="名称">{{
-            current.name
-          }}</el-descriptions-item>
-          <el-descriptions-item label="父级">{{
-            current.parent_id || "无"
-          }}</el-descriptions-item>
-          <el-descriptions-item label="子项数">{{
-            current.children?.length || 0
-          }}</el-descriptions-item>
-        </el-descriptions>
-      </div>
-    </div>
+
+    <!-- 分类表单弹窗 -->
+    <CategoryForm
+      :visible="formVisible"
+      :category-data="editingCategory"
+      :parent-category="parentCategory"
+      :loading="submitLoading"
+      @close="closeForm"
+      @submit="handleSubmit"
+    />
   </div>
 </template>
+
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { useCategoryStore } from "@/stores/category";
-import { ElMessageBox, ElMessage } from "element-plus";
+import CategoryHeader from "./components/CategoryHeader.vue";
+import CategoryTree from "./components/CategoryTree.vue";
+import CategoryForm from "./components/CategoryForm.vue";
 
 const store = useCategoryStore();
-const current = ref(null);
+const treeRef = ref(null);
 
-const treeProps = { label: "name", children: "children" };
+// 响应式数据
+const selectedNode = ref(null);
+const formVisible = ref(false);
+const editingCategory = ref(null);
+const parentCategory = ref(null);
+const submitLoading = ref(false);
 
-function refresh() {
-  store.fetchAll();
-}
-function onNodeClick(data) {
-  current.value = data;
-}
+// 计算属性
+const treeData = computed(() => {
+  return store.categoryTree || [];
+});
 
-async function addRoot() {
-  const name = await promptName("输入顶级分类名称");
-  if (name) {
-    await store.createRoot(name);
-    ElMessage.success("已创建");
-  }
-}
-async function addChild(parent) {
-  const name = await promptName(`在「${parent.name}」下添加子分类`);
-  if (name) {
-    await store.createChild(parent.id, name);
-    ElMessage.success("已创建");
-  }
-}
-async function rename(node) {
-  const name = await promptName(`重命名「${node.name}」`, node.name);
-  if (name && name !== node.name) {
-    await store.rename(node, name);
-    ElMessage.success("已更新");
-  }
-}
-async function removeNode(node) {
+// 事件处理方法
+async function refresh() {
   try {
-    await ElMessageBox.confirm(
-      `确定删除分类「${node.name}」及其所有子级?`,
-      "提示",
-      { type: "warning" }
-    );
-    await store.remove(node);
-    if (current.value?.id === node.id) current.value = null;
-    ElMessage.success("已删除");
-  } catch (e) {}
+    await store.fetchCategories();
+    ElMessage.success("数据刷新成功");
+  } catch (error) {
+    ElMessage.error("刷新失败: " + error.message);
+  }
 }
 
-function promptName(title, defaultValue = "") {
-  return new Promise((resolve) => {
-    ElMessageBox.prompt("", title, {
-      inputValue: defaultValue,
-      confirmButtonText: "确定",
+function handleNodeClick(data, node) {
+  selectedNode.value = data;
+  console.log("Selected node:", data);
+  console.log("Selected node category_id:", data.category_id);
+  console.log("Selected node children:", data.children);
+  if (data.children && data.children.length > 0) {
+    console.log("First child:", data.children[0]);
+    console.log("First child category_id:", data.children[0].category_id);
+  }
+}
+
+function handleNodeExpand(data, node) {
+  console.log("Node expanded:", data);
+}
+
+function handleNodeCollapse(data, node) {
+  console.log("Node collapsed:", data);
+}
+
+function addRoot() {
+  editingCategory.value = null;
+  parentCategory.value = null;
+  formVisible.value = true;
+}
+
+function addChild(parentNode) {
+  editingCategory.value = null;
+  parentCategory.value = parentNode;
+  formVisible.value = true;
+}
+
+function editCategory(categoryData) {
+  editingCategory.value = categoryData;
+  parentCategory.value = null; // 编辑时不显示父分类选择
+  formVisible.value = true;
+}
+
+async function deleteCategory(categoryData) {
+  try {
+    const confirmText =
+      categoryData.children && categoryData.children.length > 0
+        ? "该分类包含子分类，删除后子分类也将被删除。是否确认删除？"
+        : "确认删除该分类？";
+
+    await ElMessageBox.confirm(confirmText, "删除确认", {
+      confirmButtonText: "确定删除",
       cancelButtonText: "取消",
-    })
-      .then(({ value }) => resolve(value && value.trim()))
-      .catch(() => resolve(null));
-  });
+      type: "warning",
+      dangerouslyUseHTMLString: false,
+    });
+
+    // 传递完整的节点对象，而不是只传递 id
+    await store.deleteCategory(categoryData);
+    ElMessage.success("删除成功");
+
+    // 清除选中状态
+    selectedNode.value = null;
+  } catch (error) {
+    if (error !== "cancel") {
+      // 改进错误提示
+      const errorMsg =
+        error.response?.data?.message || error.message || "删除失败";
+      if (
+        errorMsg.includes("关联") ||
+        errorMsg.includes("记录") ||
+        error.response?.status === 400
+      ) {
+        ElMessage.error(
+          "该分类下存在学习记录，无法删除。请先删除或转移相关记录。"
+        );
+      } else {
+        ElMessage.error("删除失败: " + errorMsg);
+      }
+    }
+  }
 }
 
-onMounted(() => refresh());
+function closeForm() {
+  formVisible.value = false;
+  editingCategory.value = null;
+  parentCategory.value = null;
+}
+
+async function handleSubmit(formData) {
+  submitLoading.value = true;
+
+  try {
+    if (editingCategory.value) {
+      // 更新分类 - 传递完整对象和数据
+      await store.updateCategory(editingCategory.value, formData);
+      ElMessage.success("更新成功");
+    } else {
+      // 创建分类
+      if (parentCategory.value) {
+        // 创建子分类
+        await store.createSubCategory(parentCategory.value.id, formData);
+        ElMessage.success("子分类创建成功");
+      } else {
+        // 创建主分类
+        await store.createCategory(formData);
+        ElMessage.success("分类创建成功");
+      }
+    }
+
+    closeForm();
+  } catch (error) {
+    ElMessage.error("操作失败: " + error.message);
+  } finally {
+    submitLoading.value = false;
+  }
+}
+
+// 生命周期
+onMounted(async () => {
+  if (!store.categories.length) {
+    await refresh();
+  }
+});
 </script>
+
 <style scoped>
 .categories-view {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: transparent;
 }
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+
+.content-section {
+  margin-top: 24px;
 }
-.header h1 {
-  margin: 0;
-  font-size: 24px;
-}
-.sub {
-  margin: 4px 0 0;
-  color: #666;
-  font-size: 13px;
-}
-.actions {
-  display: flex;
-  gap: 8px;
-}
-.content {
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-}
-.tree-pane {
-  flex: 1;
-  min-width: 320px;
-}
-.detail-pane {
-  width: 320px;
-  position: sticky;
-  top: 80px;
-  align-self: flex-start;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.tree-node-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2px 4px;
-  gap: 8px;
-}
-.tree-node-row .name {
-  flex: 1;
-}
-.tree-node-row .toolbar {
-  display: flex;
-  gap: 4px;
+
+@media (max-width: 768px) {
+  .categories-view {
+    padding: 16px;
+  }
+
+  .content-section {
+    margin-top: 16px;
+  }
 }
 </style>

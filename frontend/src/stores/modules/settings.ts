@@ -9,7 +9,8 @@ export const useSettingsStore = defineStore("settings", {
     backgroundImage: localStorage.getItem("ll_background") || "",
     activeStageId: Number(localStorage.getItem("ll_active_stage_id") || 0),
     layout: {
-      sidebarCollapsed: localStorage.getItem("ll_sidebar_collapsed") === "1",
+      // 默认折叠侧边栏，仅在用户明确设为 "0" 时展开
+      sidebarCollapsed: localStorage.getItem("ll_sidebar_collapsed") !== "0",
     },
   }),
   actions: {
@@ -20,10 +21,10 @@ export const useSettingsStore = defineStore("settings", {
         if (!token) {
           return; // 可选择触发一个默认设置加载逻辑
         }
-        const settings = await request({
+        const settings = (await request({
           url: "/api/users/settings",
           method: "get",
-        });
+        })) as any;
         if (settings) {
           if (settings.theme) {
             this.theme = settings.theme;

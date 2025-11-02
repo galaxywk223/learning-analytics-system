@@ -1,9 +1,23 @@
 <template>
-  <div class="page-wrapper" :data-theme="currentTheme">
+  <div
+    class="page-wrapper"
+    :data-theme="currentTheme"
+    :class="{ 'sidebar-collapsed': settingsStore.layout.sidebarCollapsed }"
+  >
     <!-- 侧边栏 -->
-    <aside class="sidebar">
+    <aside
+      class="sidebar"
+      :class="{ 'sidebar--collapsed': settingsStore.layout.sidebarCollapsed }"
+      @mouseenter="handleMouseEnter"
+      @mouseleave="handleMouseLeave"
+    >
       <div class="sidebar-header">
-        <img src="/logo.svg" alt="萤火集 Logo" class="logo-img" />
+        <img
+          src="/logo.svg"
+          alt="萤火集 Logo"
+          class="logo-img"
+          loading="lazy"
+        />
         <span class="logo-text">萤火集</span>
       </div>
 
@@ -56,9 +70,13 @@
       </div>
     </aside>
 
-    <!-- 主内容区 -->
+    <!-- 主内容区 - 添加 keep-alive 缓存 -->
     <main class="main-content">
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <keep-alive :max="3">
+          <component :is="Component" :key="$route.fullPath" />
+        </keep-alive>
+      </router-view>
     </main>
   </div>
 </template>
@@ -91,6 +109,10 @@ onMounted(async () => {
     document.body.style.backgroundImage = `url(${backgroundImage})`;
   }
 });
+
+// 鼠标悬停事件（保留用于未来扩展）
+const handleMouseEnter = () => {};
+const handleMouseLeave = () => {};
 </script>
 
 <style scoped>
