@@ -114,7 +114,7 @@ import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useCategoryStore } from "@/stores/category";
 import { useStageStore } from "@/stores/modules/stage";
-import { useAuthStore } from "@/stores";
+import { useAuthStore } from "@/stores/modules/auth";
 import { recordApi } from "@/api/modules/records";
 import { useFocusTimer } from "@/composables/useFocusTimer";
 
