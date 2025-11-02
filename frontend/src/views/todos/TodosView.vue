@@ -69,7 +69,7 @@
 </template>
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useTodoStore } from "@/stores/todo";
+import { useTodoStore } from "@/stores/modules/todo";
 import { todoAPI } from "@/api/modules/todo";
 import TodoForm from "@/components/business/todo/TodoForm.vue";
 import { ElMessageBox, ElMessage } from "element-plus";

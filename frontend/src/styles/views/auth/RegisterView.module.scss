@@ -1,3 +1,4 @@
+@use "sass:color";
 @import "./variables";
 @import "./mixins";
 @import "./animations";
@@ -152,8 +153,8 @@
   &:hover {
     background: linear-gradient(
       135deg,
-      darken($auth-secondary, 5%) 0%,
-      darken($auth-accent, 5%) 100%
+      color.adjust($auth-secondary, $lightness: -5%) 0%,
+      color.adjust($auth-accent, $lightness: -5%) 100%
     );
   }
 }
@@ -247,7 +248,7 @@
     color: $auth-secondary;
 
     &:hover {
-      color: darken($auth-secondary, 5%);
+      color: color.adjust($auth-secondary, $lightness: -5%);
     }
   }
 }
