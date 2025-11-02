@@ -15,9 +15,9 @@
         <strong>{{ log.task }}</strong>
       </div>
     </td>
-    <td>{{ log.time_slot || "N/A" }}</td>
-    <td>{{ log.actual_duration }} 分钟</td>
-    <td class="text-center">{{ moodEmoji(log.mood) }}</td>
+    <td class="time-slot-cell">{{ log.time_slot || "N/A" }}</td>
+    <td class="duration-cell">{{ log.actual_duration }} 分钟</td>
+    <td class="text-center mood-cell">{{ moodEmoji(log.mood) }}</td>
     <td class="text-end">
       <!-- 笔记按钮 -->
       <el-button
@@ -108,13 +108,16 @@ const moodEmoji = (mood) => {
 .task-cell strong {
   text-overflow: ellipsis;
   overflow: hidden;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .category-tag {
   display: inline-block;
-  padding: 0.2em 0.6em;
-  font-size: 0.75rem;
-  font-weight: 500;
+  padding: 0.35em 0.8em;
+  font-size: 0.8rem;
+  font-weight: 600;
   line-height: 1;
   text-align: center;
   white-space: nowrap;
@@ -172,5 +175,22 @@ const moodEmoji = (mood) => {
 
 .text-end {
   text-align: right;
+}
+
+.time-slot-cell {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.duration-cell {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.mood-cell {
+  font-size: 1.8rem;
+  line-height: 1;
 }
 </style>

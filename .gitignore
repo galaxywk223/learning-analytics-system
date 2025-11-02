@@ -87,6 +87,10 @@ Thumbs.db
 /frontend/dist/
 /frontend/.vite/
 
+# 防止在根目录误安装 npm 包（如果需要根目录 package.json，请移除下面的规则）
+/node_modules/
+/package-lock.json
+
 # 特定项目文件 (根据您的目录结构)
 # mlogger_0.1.0.tar 是一个构建产物，应该忽略
 mlogger_0.1.0.tar
