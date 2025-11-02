@@ -101,7 +101,7 @@
                     @click="applyStage(stage)"
                     :disabled="stage.id === activeStageId"
                   >
-                    <el-icon><Flag /></el-icon>
+                    <Icon icon="lucide:flag" />
                   </el-button>
                 </el-tooltip>
                 <!-- 编辑阶段名称 -->
@@ -112,7 +112,7 @@
                     circle
                     @click="openEdit(stage)"
                   >
-                    <el-icon><Edit /></el-icon>
+                    <Icon icon="lucide:pencil" />
                   </el-button>
                 </el-tooltip>
                 <!-- 删除阶段 -->
@@ -123,7 +123,7 @@
                     circle
                     @click="confirmDelete(stage)"
                   >
-                    <el-icon><Delete /></el-icon>
+                    <Icon icon="lucide:trash-2" />
                   </el-button>
                 </el-tooltip>
               </div>
@@ -180,7 +180,7 @@ import { ref, computed, onMounted } from "vue";
 import { useStageStore } from "@/stores/modules/stage";
 import { useSettingsStore } from "@/stores/modules/settings";
 import { ElMessageBox, ElMessage } from "element-plus";
-import { Flag, Edit, Delete } from "@element-plus/icons-vue";
+import { Icon } from "@iconify/vue";
 
 const stageStore = useStageStore();
 const settingsStore = useSettingsStore();

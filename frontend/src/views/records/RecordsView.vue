@@ -37,7 +37,10 @@
             :disabled="!canAddRecord"
             @click="openAddDialog()"
           >
-            <el-icon><Plus /></el-icon>
+            <Icon
+              icon="lucide:plus"
+              style="width: 1.2rem; height: 1.2rem; margin-right: 0.25rem"
+            />
             添加新记录
           </el-button>
         </el-tooltip>
@@ -60,7 +63,10 @@
         @click="openAddDialog"
         class="mt-3"
       >
-        <el-icon><Plus /></el-icon>
+        <Icon
+          icon="lucide:plus"
+          style="width: 1.3rem; height: 1.3rem; margin-right: 0.25rem"
+        />
         创建第一条记录
       </el-button>
     </div>
@@ -119,7 +125,7 @@
                 </div>
 
                 <span class="total-duration-text">
-                  <el-icon class="clock-icon"><Clock /></el-icon>
+                  <Icon icon="lucide:clock" class="clock-icon" />
                   {{ (day.total_duration / 60).toFixed(1) }}h
                 </span>
 
@@ -134,7 +140,7 @@
                   @click.stop="openAddDialog(day.date)"
                   title="为今天添加记录"
                 >
-                  <el-icon><Plus /></el-icon>
+                  <Icon icon="lucide:plus" />
                 </el-button>
               </div>
             </template>
@@ -146,7 +152,7 @@
               size="small"
               :show-header="true"
             >
-              <el-table-column label="任务" width="auto">
+              <el-table-column label="任务" min-width="200">
                 <template #default="{ row }">
                   <div class="task-cell">
                     <span
@@ -161,22 +167,22 @@
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column label="时间段" width="120">
+              <el-table-column label="时间段" width="100">
                 <template #default="{ row }">
                   {{ row.time_slot || "N/A" }}
                 </template>
               </el-table-column>
-              <el-table-column label="时长" width="100">
+              <el-table-column label="时长" width="90">
                 <template #default="{ row }">
                   {{ row.actual_duration }} 分钟
                 </template>
               </el-table-column>
-              <el-table-column label="心情" width="80" align="center">
+              <el-table-column label="心情" width="70" align="center">
                 <template #default="{ row }">
                   <span class="mood-emoji">{{ moodEmoji(row.mood) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="150" align="right">
+              <el-table-column label="操作" width="200" align="right">
                 <template #default="{ row }">
                   <el-button
                     v-if="row.notes"
@@ -184,16 +190,18 @@
                     size="small"
                     @click="toggleNotes(row.id)"
                     title="查看笔记"
+                    class="action-btn"
                   >
-                    <el-icon><ChatDotSquare /></el-icon>
+                    <Icon icon="lucide:message-square" />
                   </el-button>
                   <el-button
                     link
                     size="small"
                     @click="openEditDialog(row)"
                     title="编辑"
+                    class="action-btn"
                   >
-                    <el-icon><Edit /></el-icon>
+                    <Icon icon="lucide:pencil" />
                   </el-button>
                   <el-button
                     link
@@ -201,8 +209,9 @@
                     type="danger"
                     @click="handleDelete(row)"
                     title="删除"
+                    class="action-btn"
                   >
-                    <el-icon><Delete /></el-icon>
+                    <Icon icon="lucide:trash-2" />
                   </el-button>
                 </template>
               </el-table-column>
@@ -253,13 +262,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import {
-  Plus,
-  ChatDotSquare,
-  Edit,
-  Delete,
-  Clock,
-} from "@element-plus/icons-vue";
+import { Icon } from "@iconify/vue";
 import RecordForm from "@/components/business/records/RecordForm.vue";
 import { useStageStore } from "@/stores/modules/stage";
 import request from "@/utils/request";
@@ -360,13 +363,16 @@ const handleSubmit = async (formData) => {
   submitting.value = true;
   try {
     console.log("Submitting record data:", formData);
-    
+
     if (isEditing.value) {
       // 更新记录
-      const response = await request.put(`/api/records/${currentRecord.value.id}`, {
-        ...formData,
-        stage_id: currentStage.value.id,
-      });
+      const response = await request.put(
+        `/api/records/${currentRecord.value.id}`,
+        {
+          ...formData,
+          stage_id: currentStage.value.id,
+        }
+      );
       console.log("Update response:", response);
       ElMessage.success("记录更新成功!");
     } else {
@@ -383,7 +389,8 @@ const handleSubmit = async (formData) => {
     loadRecords();
   } catch (error) {
     console.error("提交失败:", error);
-    const errorMsg = error.response?.data?.message || error.message || "操作失败";
+    const errorMsg =
+      error.response?.data?.message || error.message || "操作失败";
     ElMessage.error(errorMsg);
   } finally {
     submitting.value = false;

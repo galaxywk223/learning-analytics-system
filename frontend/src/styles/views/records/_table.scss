@@ -25,19 +25,19 @@
 }
 .log-table :deep(.el-table__row td) {
   border-color: rgba(226, 232, 240, 0.6);
-  padding: 12px;
+  padding: 10px 12px;
   font-size: 1rem;
 }
 .log-table :deep(.el-button--link) {
   transition:
     transform 0.15s ease,
     background 0.15s ease;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   color: inherit;
-  padding: 8px 10px !important;
+  padding: 10px 12px !important;
   border-radius: 8px;
-  min-width: 38px;
-  min-height: 38px;
+  min-width: 42px;
+  min-height: 42px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -45,8 +45,12 @@
   will-change: transform;
 }
 .log-table :deep(.el-button--link .el-icon) {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   color: inherit;
+}
+.log-table :deep(.el-button--link svg) {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 .log-table :deep(.el-button--link):hover {
   transform: scale(1.1);

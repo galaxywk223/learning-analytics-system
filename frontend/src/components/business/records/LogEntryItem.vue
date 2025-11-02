@@ -28,7 +28,7 @@
         title="查看笔记"
         class="action-btn"
       >
-        <el-icon><ChatDotSquare /></el-icon>
+        <Icon icon="lucide:message-square" />
       </el-button>
       <!-- 编辑按钮 -->
       <el-button
@@ -38,7 +38,7 @@
         title="编辑"
         class="action-btn"
       >
-        <el-icon><Edit /></el-icon>
+        <Icon icon="lucide:pencil" />
       </el-button>
       <!-- 删除按钮 -->
       <el-button
@@ -49,7 +49,7 @@
         title="删除"
         class="action-btn delete"
       >
-        <el-icon><Delete /></el-icon>
+        <Icon icon="lucide:trash-2" />
       </el-button>
     </td>
   </tr>
@@ -67,7 +67,7 @@
 
 <script setup>
 import { ref } from "vue";
-import { Edit, Delete, ChatDotSquare } from "@element-plus/icons-vue";
+import { Icon } from "@iconify/vue";
 
 const props = defineProps({
   log: {

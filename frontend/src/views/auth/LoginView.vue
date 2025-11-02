@@ -4,7 +4,7 @@
       <div :class="styles.cardHeader">
         <div :class="styles.logoSection">
           <div :class="styles.logo">
-            <el-icon><Reading /></el-icon>
+            <Icon icon="lucide:book-open" />
           </div>
         </div>
         <h2 :class="styles.title">学习日志管理系统</h2>
@@ -59,19 +59,19 @@
         <div :class="styles.features">
           <div :class="styles.feature">
             <div :class="styles.featureIcon">
-              <el-icon><Document /></el-icon>
+              <Icon icon="lucide:notebook-pen" />
             </div>
             <div :class="styles.featureText">记录学习</div>
           </div>
           <div :class="styles.feature">
             <div :class="styles.featureIcon">
-              <el-icon><TrendCharts /></el-icon>
+              <Icon icon="lucide:trending-up" />
             </div>
             <div :class="styles.featureText">数据分析</div>
           </div>
           <div :class="styles.feature">
             <div :class="styles.featureIcon">
-              <el-icon><Trophy /></el-icon>
+              <Icon icon="lucide:trophy" />
             </div>
             <div :class="styles.featureText">目标达成</div>
           </div>
@@ -96,12 +96,7 @@
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/modules/auth";
-import {
-  Reading,
-  Document,
-  TrendCharts,
-  Trophy,
-} from "@element-plus/icons-vue";
+import { Icon } from "@iconify/vue";
 import styles from "@/styles/views/auth/LoginView.module.scss";
 
 const router = useRouter();

@@ -4,7 +4,7 @@
       <div :class="styles.cardHeader">
         <div :class="styles.logoSection">
           <div :class="styles.logo">
-            <el-icon><EditPen /></el-icon>
+            <Icon icon="lucide:pencil" />
           </div>
         </div>
         <h2 :class="styles.title">学习日志管理系统</h2>
@@ -94,19 +94,19 @@
         <div :class="styles.benefits">
           <div :class="styles.benefit">
             <div :class="styles.benefitIcon">
-              <el-icon><Checked /></el-icon>
+              <Icon icon="lucide:check-circle" />
             </div>
             <div :class="styles.benefitText">完全免费，无需支付任何费用</div>
           </div>
           <div :class="styles.benefit">
             <div :class="styles.benefitIcon">
-              <el-icon><Checked /></el-icon>
+              <Icon icon="lucide:check-circle" />
             </div>
             <div :class="styles.benefitText">数据安全，隐私受到严格保护</div>
           </div>
           <div :class="styles.benefit">
             <div :class="styles.benefitIcon">
-              <el-icon><Checked /></el-icon>
+              <Icon icon="lucide:check-circle" />
             </div>
             <div :class="styles.benefitText">智能分析，助力学习效率提升</div>
           </div>
@@ -127,7 +127,7 @@
 import { ref, reactive, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/modules/auth";
-import { EditPen, Checked } from "@element-plus/icons-vue";
+import { Icon } from "@iconify/vue";
 import styles from "@/styles/views/auth/RegisterView.module.scss";
 
 const router = useRouter();

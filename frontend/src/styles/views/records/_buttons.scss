@@ -46,3 +46,32 @@
   font-size: 1.2rem;
   color: #fff !important;
 }
+
+/* 表格操作按钮 */
+:deep(.action-btn) {
+  padding: 6px !important;
+  min-width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  margin: 0 2px;
+
+  svg {
+    width: 16px !important;
+    height: 16px !important;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    background-color: rgba(102, 126, 234, 0.1);
+
+    svg {
+      transform: scale(1.15);
+    }
+  }
+
+  &.el-button--danger:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+}

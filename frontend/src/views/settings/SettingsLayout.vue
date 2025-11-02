@@ -10,34 +10,34 @@
         <aside class="settings-sidebar">
           <nav class="settings-nav">
             <router-link to="/settings/account" class="settings-nav-item">
-              <el-icon><User /></el-icon>
+              <Icon icon="lucide:user-circle" />
               <span>账户设置</span>
             </router-link>
             <router-link to="/settings/appearance" class="settings-nav-item">
-              <el-icon><MagicStick /></el-icon>
+              <Icon icon="lucide:palette" />
               <span>外观设置</span>
             </router-link>
             <router-link to="/settings/data" class="settings-nav-item">
-              <el-icon><DataLine /></el-icon>
+              <Icon icon="lucide:database" />
               <span>数据管理</span>
             </router-link>
             <router-link to="/settings/stages" class="settings-nav-item">
-              <el-icon><Flag /></el-icon>
+              <Icon icon="lucide:flag" />
               <span>阶段管理</span>
             </router-link>
             <router-link to="/settings/categories" class="settings-nav-item">
-              <el-icon><Folder /></el-icon>
+              <Icon icon="lucide:folder" />
               <span>分类管理</span>
             </router-link>
             <router-link to="/settings/mottos" class="settings-nav-item">
-              <el-icon><ChatLineSquare /></el-icon>
+              <Icon icon="lucide:message-square-quote" />
               <span>格言管理</span>
             </router-link>
             <router-link
               to="/settings/milestone-categories"
               class="settings-nav-item"
             >
-              <el-icon><Trophy /></el-icon>
+              <Icon icon="lucide:trophy" />
               <span>里程碑分类</span>
             </router-link>
           </nav>
@@ -55,15 +55,7 @@
 </template>
 
 <script setup>
-import {
-  User,
-  MagicStick,
-  DataLine,
-  Flag,
-  Folder,
-  ChatLineSquare,
-  Trophy,
-} from "@element-plus/icons-vue";
+import { Icon } from "@iconify/vue";
 </script>
 
 <style scoped>

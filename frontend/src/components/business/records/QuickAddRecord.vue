@@ -55,7 +55,7 @@
 <script setup>
 import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
-import { Plus } from "@element-plus/icons-vue";
+import { Icon } from "@iconify/vue";
 import { useRecordsStore } from "@/stores/records";
 // import { getCategories } from '@/api/categories'; // 假设有获取分类的API
 // import { addRecord } from '@/api/records'; // 假设有添加记录的API
