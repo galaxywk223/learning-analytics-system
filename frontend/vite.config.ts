@@ -10,6 +10,14 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: "modern-compiler", // 使用现代Sass编译器API
+        silenceDeprecations: ["legacy-js-api", "import"], // 暂时静默这些弃用警告
+      },
+    },
+  },
   server: {
     port: 3000,
     proxy: {

@@ -4,7 +4,7 @@ Flask应用工厂
 
 import os
 import logging
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -37,11 +37,41 @@ def create_app(config_name=None):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
+
+    # CORS配置 - 更宽松的设置用于开发环境
     cors.init_app(
         app,
-        origins=app.config["CORS_ORIGINS"],
-        supports_credentials=app.config["CORS_SUPPORTS_CREDENTIALS"],
+        resources={
+            r"/api/*": {
+                "origins": app.config["CORS_ORIGINS"],
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization"],
+                "expose_headers": ["Content-Type", "Authorization"],
+                "supports_credentials": True,
+                "max_age": 3600,
+            }
+        },
     )
+
+    # 添加额外的CORS响应头（确保所有响应都包含）
+    @app.after_request
+    def after_request(response):
+        origin = request.headers.get("Origin")
+        # 开发环境：允许所有localhost和127.0.0.1的请求
+        if origin and (
+            origin.startswith("http://localhost")
+            or origin.startswith("http://127.0.0.1")
+        ):
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = (
+                "GET, POST, PUT, DELETE, OPTIONS"
+            )
+            response.headers["Access-Control-Allow-Headers"] = (
+                "Content-Type, Authorization"
+            )
+            response.headers["Access-Control-Max-Age"] = "3600"
+        return response
 
     # 配置日志
     setup_logging(app)

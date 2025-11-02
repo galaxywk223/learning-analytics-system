@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="milestone-category-manager">
     <div
       class="page-header d-flex justify-content-between align-items-center mb-4 flex-wrap"
@@ -8,7 +8,7 @@
         <p class="lead text-secondary mb-0">管理您的成就时刻分类标签。</p>
       </div>
       <el-button @click="goBack" class="btn-outline-light">
-        <i data-lucide="arrow-left" class="me-2"></i>返回时间线
+        <Icon icon="lucide:arrow-left" class="me-2" />返回时间线
       </el-button>
     </div>
 
@@ -52,10 +52,9 @@
                     class="btn-outline-secondary"
                     title="编辑"
                   >
-                    <i
-                      data-lucide="pencil"
+                    <Icon icon="lucide:pencil"
                       style="width: 16px; height: 16px"
-                    ></i>
+                     />
                   </el-button>
                   <el-popconfirm
                     title="确定删除此分类?"
@@ -68,10 +67,9 @@
                         class="btn-outline-danger"
                         title="删除"
                       >
-                        <i
-                          data-lucide="trash-2"
+                        <Icon icon="lucide:trash-2"
                           style="width: 16px; height: 16px"
-                        ></i>
+                         />
                       </el-button>
                     </template>
                   </el-popconfirm>
@@ -89,13 +87,12 @@
                     type="success"
                     @click="confirmEdit(cat)"
                   >
-                    <i
-                      data-lucide="check"
+                    <Icon icon="lucide:check"
                       style="width: 16px; height: 16px"
-                    ></i>
+                     />
                   </el-button>
                   <el-button size="small" @click="cancelEdit">
-                    <i data-lucide="x" style="width: 16px; height: 16px"></i>
+                    <Icon icon="lucide:x" style="width: 16px; height: 16px" />
                   </el-button>
                 </div>
               </div>

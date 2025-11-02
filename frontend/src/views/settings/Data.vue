@@ -1,9 +1,9 @@
-<template>
+﻿<template>
   <section class="data-settings-wrapper">
     <!-- 导出数据卡片 -->
     <div class="settings-card card mb-4">
       <div class="card-header d-flex align-items-center gap-2">
-        <i data-lucide="archive"></i>
+        <Icon icon="lucide:archive" />
         <h5 class="card-title mb-0">导出全部数据</h5>
       </div>
       <div class="card-body">
@@ -27,7 +27,7 @@
     <!-- 导入数据卡片 -->
     <div class="settings-card card mb-4">
       <div class="card-header d-flex align-items-center gap-2">
-        <i data-lucide="upload"></i>
+        <Icon icon="lucide:upload" />
         <h5 class="card-title mb-0">导入备份数据</h5>
       </div>
       <div class="card-body">
@@ -50,7 +50,7 @@
             class="d-none"
             @change="onInputFile"
           />
-          <i data-lucide="file-archive" class="zone-icon"></i>
+          <Icon icon="lucide:file-archive" class="zone-icon" />
           <p class="mb-1"><strong>点击或拖拽 ZIP 到此</strong></p>
           <small>仅支持单个 .zip 备份文件</small>
         </label>
@@ -84,7 +84,7 @@
     <!-- 危险区域 -->
     <div class="settings-card card danger-zone">
       <div class="card-header d-flex align-items-center gap-2">
-        <i data-lucide="alert-triangle" class="text-danger"></i>
+        <Icon icon="lucide:alert-triangle" class="text-danger" />
         <h5 class="card-title mb-0 text-danger">危险区域</h5>
       </div>
       <div class="card-body">

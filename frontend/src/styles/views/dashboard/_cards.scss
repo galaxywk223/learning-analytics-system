@@ -79,7 +79,8 @@
   transition: transform 0.3s ease;
 }
 
-.card-icon i {
+.card-icon i,
+.card-icon svg {
   width: 36px;
   height: 36px;
   transition: transform 0.3s ease;
@@ -89,7 +90,8 @@
   transform: scale(1.08) rotate(3deg);
 }
 
-.feature-card:hover .card-icon i {
+.feature-card:hover .card-icon i,
+.feature-card:hover .card-icon svg {
   transform: scale(1.1);
 }
 
@@ -163,7 +165,8 @@
     background 0.2s ease;
 }
 
-.card-arrow i {
+.card-arrow i,
+.card-arrow svg {
   width: 18px;
   height: 18px;
   color: #6b7280;
@@ -176,6 +179,7 @@
   background: currentColor;
 }
 
-.feature-card:hover .card-arrow i {
+.feature-card:hover .card-arrow i,
+.feature-card:hover .card-arrow svg {
   color: white;
 }

@@ -45,7 +45,8 @@
   color: white;
 }
 
-.motto-icon i {
+.motto-icon i,
+.motto-icon svg {
   width: 24px;
   height: 24px;
 }
@@ -93,11 +94,13 @@
   opacity: 0.6;
 }
 
-.motto-refresh.spinning i {
+.motto-refresh.spinning i,
+.motto-refresh.spinning svg {
   animation: spin 1s linear infinite;
 }
 
-.motto-refresh i {
+.motto-refresh i,
+.motto-refresh svg {
   width: 20px;
   height: 20px;
 }

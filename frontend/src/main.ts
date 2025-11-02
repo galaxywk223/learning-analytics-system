@@ -9,7 +9,6 @@ import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 import "./styles/index.scss";
 
 import App from "./App.vue";
-import { createIcons } from "lucide";
 import router from "./router";
 
 const app = createApp(App);
@@ -26,22 +25,6 @@ app.use(ElementPlus, {
 });
 
 app.mount("#app");
-
-// 初始化 lucide 图标（替换 Element Plus 图标在仪表盘中的使用）
-try {
-  createIcons();
-} catch (e) {
-  console.error("Lucide init failed", e);
-}
-
-// 每次路由切换后重新渲染图标，避免动态内容未渲染
-router.afterEach(() => {
-  try {
-    createIcons();
-  } catch (e) {
-    console.error("Lucide refresh failed", e);
-  }
-});
 
 // 全局错误日志，辅助排查空白页
 window.addEventListener("error", (ev) => {

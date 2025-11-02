@@ -79,15 +79,14 @@ export interface Stage {
 export interface Countdown {
   id: number;
   title: string;
-  target_date: string;
-  description?: string;
-  icon?: string;
-  color?: string;
+  target_datetime_utc: string; // 后端返回的字段
+  created_at_utc?: string; // 后端返回的字段
   user_id: number;
-  created_at: string;
+  // 后端计算的增强字段
+  remaining_days?: number;
   is_expired?: boolean;
-  days_remaining?: number;
   progress_percentage?: number;
+  card_status?: "normal" | "warning" | "urgent" | "expired";
 }
 
 // 里程碑类型

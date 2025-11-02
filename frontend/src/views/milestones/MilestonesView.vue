@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="milestones-view">
     <div
       class="page-header d-flex justify-content-between align-items-center mb-4 flex-wrap"
@@ -13,10 +13,10 @@
           @click="openCategoryManager"
           class="btn-outline-light"
         >
-          <i data-lucide="folder-cog" class="me-1"></i> 管理分类
+          <Icon icon="lucide:folder-cog" class="me-1" /> 管理分类
         </el-button>
         <el-button type="primary" @click="openCreate" class="btn-primary">
-          <i data-lucide="plus-circle" class="me-2"></i>记录新成就
+          <Icon icon="lucide:plus-circle" class="me-2" />记录新成就
         </el-button>
       </div>
     </div>
@@ -26,7 +26,7 @@
         <div class="card">
           <div class="card-header">
             <h5 class="card-title mb-0">
-              <i data-lucide="filter" class="me-2"></i>筛选
+              <Icon icon="lucide:filter" class="me-2" />筛选
             </h5>
           </div>
           <div class="list-group">

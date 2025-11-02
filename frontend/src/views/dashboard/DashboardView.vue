@@ -12,7 +12,7 @@
     <div class="motto-section">
       <div class="motto-card">
         <div class="motto-icon">
-          <i data-lucide="sparkles"></i>
+          <Icon icon="lucide:sparkles" />
         </div>
         <div class="motto-content">
           <p class="motto-text">{{ mottoText }}</p>
@@ -23,7 +23,7 @@
           :disabled="mottoLoading"
           :class="{ spinning: mottoLoading }"
         >
-          <i data-lucide="refresh-cw"></i>
+          <Icon icon="lucide:refresh-cw" />
         </button>
       </div>
     </div>
@@ -40,13 +40,13 @@
         <div class="card-background"></div>
         <div class="card-content">
           <div class="card-icon" :class="card.iconClass">
-            <i :data-lucide="card.icon"></i>
+            <Icon :icon="card.icon" />
           </div>
           <h3 class="card-title">{{ card.title }}</h3>
           <p class="card-description">{{ card.summary }}</p>
         </div>
         <div class="card-arrow">
-          <i data-lucide="arrow-right"></i>
+          <Icon icon="lucide:arrow-right" />
         </div>
       </router-link>
     </div>
@@ -54,11 +54,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { Icon } from "@iconify/vue";
 import { useDashboardStore } from "@/stores/modules/dashboard";
 import { useAuthStore } from "@/stores/modules/auth";
 import axios from "axios";
-import { createIcons } from "lucide";
 
 const dashboardStore = useDashboardStore();
 const authStore = useAuthStore();
@@ -127,9 +127,6 @@ async function refreshMotto() {
     mottoText.value = "加载失败，请稍后再试";
   } finally {
     mottoLoading.value = false;
-    // 重新渲染图标
-    await nextTick();
-    createIcons();
   }
 }
 
@@ -142,9 +139,6 @@ onMounted(async () => {
   } else {
     await refreshMotto();
   }
-  // 确保图标渲染
-  await nextTick();
-  createIcons();
 });
 
 const cards = computed(() => [
@@ -152,7 +146,7 @@ const cards = computed(() => [
     key: "records",
     to: "/records",
     class: "card-record",
-    icon: "book-open",
+    icon: "lucide:book-open",
     iconClass: "icon-record",
     title: "学习记录",
     summary: recordSummary.value,
@@ -161,7 +155,7 @@ const cards = computed(() => [
     key: "charts",
     to: "/charts",
     class: "card-chart",
-    icon: "trending-up",
+    icon: "lucide:trending-up",
     iconClass: "icon-chart",
     title: "统计分析",
     summary: chartSummary.value,
@@ -170,7 +164,7 @@ const cards = computed(() => [
     key: "countdown",
     to: "/countdown",
     class: "card-countdown",
-    icon: "calendar-clock",
+    icon: "lucide:calendar-clock",
     iconClass: "icon-countdown",
     title: "倒计时",
     summary: countdownSummary.value,
@@ -179,7 +173,7 @@ const cards = computed(() => [
     key: "milestones",
     to: "/milestones",
     class: "card-milestone",
-    icon: "award",
+    icon: "lucide:award",
     iconClass: "icon-milestone",
     title: "成就时刻",
     summary: milestoneSummary.value,

@@ -2,21 +2,37 @@
  * 倒计时事件 API
  */
 import request from "@/utils/request";
+import type { Countdown } from "@/types";
+
+interface CountdownListResponse {
+  success: boolean;
+  countdowns: Countdown[];
+}
+
+interface CountdownResponse {
+  success: boolean;
+  countdown: Countdown;
+}
+
+interface CountdownDeleteResponse {
+  success: boolean;
+  message: string;
+}
 
 export const countdownAPI = {
-  list() {
+  list(): Promise<CountdownListResponse> {
     return request({ url: "/api/countdowns", method: "get" });
   },
-  get(id) {
+  get(id: number): Promise<CountdownResponse> {
     return request({ url: `/api/countdowns/${id}`, method: "get" });
   },
-  create(data) {
+  create(data: any): Promise<CountdownResponse> {
     return request({ url: "/api/countdowns", method: "post", data });
   },
-  update(id, data) {
+  update(id: number, data: any): Promise<CountdownResponse> {
     return request({ url: `/api/countdowns/${id}`, method: "put", data });
   },
-  remove(id) {
+  remove(id: number): Promise<CountdownDeleteResponse> {
     return request({ url: `/api/countdowns/${id}`, method: "delete" });
   },
 };

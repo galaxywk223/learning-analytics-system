@@ -14,7 +14,7 @@
     <!-- 个人资料卡片 -->
     <div class="settings-card">
       <div class="card-header">
-        <i data-lucide="user-circle"></i>
+        <Icon icon="lucide:user-circle" />
         <h5 class="card-title">个人资料</h5>
       </div>
       <div class="card-body">
@@ -57,7 +57,10 @@
 
           <div class="form-actions">
             <button type="submit" class="btn btn-primary" disabled>
-              <i data-lucide="save" style="width: 18px; height: 18px"></i>
+              <Icon
+                icon="lucide:save"
+                :style="{ width: '18px', height: '18px' }"
+              />
               保存更改
             </button>
             <span class="badge badge-warning">功能开发中</span>
@@ -69,7 +72,7 @@
     <!-- 安全设置卡片 -->
     <div class="settings-card">
       <div class="card-header">
-        <i data-lucide="shield-check"></i>
+        <Icon icon="lucide:shield-check" />
         <h5 class="card-title">安全设置</h5>
       </div>
       <div class="card-body">
@@ -126,7 +129,10 @@
 
           <div class="form-actions">
             <button type="submit" class="btn btn-primary" disabled>
-              <i data-lucide="key-round" style="width: 18px; height: 18px"></i>
+              <Icon
+                icon="lucide:key-round"
+                :style="{ width: '18px', height: '18px' }"
+              />
               修改密码
             </button>
             <span class="badge badge-warning">功能开发中</span>
@@ -138,7 +144,7 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { Icon } from "@iconify/vue";
 import { useAuthStore } from "@/stores/modules/auth";
 
 const authStore = useAuthStore();
@@ -152,10 +158,6 @@ const handlePasswordSubmit = () => {
   // TODO: 实现密码修改逻辑
   console.log("修改密码");
 };
-
-onMounted(() => {
-  import("lucide").then((m) => m.createIcons()).catch(() => {});
-});
 </script>
 
 <style scoped>

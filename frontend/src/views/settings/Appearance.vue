@@ -1,10 +1,10 @@
-<template>
+﻿<template>
   <section class="appearance-settings">
     <form @submit.prevent="saveTheme">
       <!-- 主题选择 -->
       <div class="card settings-card mb-4">
         <div class="card-header d-flex align-items-center gap-2">
-          <i data-lucide="palette"></i>
+          <Icon icon="lucide:palette" />
           <h5 class="card-title mb-0">主题选择</h5>
         </div>
         <div class="card-body">
@@ -26,7 +26,7 @@
                 :style="{ backgroundColor: opt.color }"
               ></div>
               <span class="theme-name">{{ opt.label }}</span>
-              <i data-lucide="check-circle-2" class="check-icon"></i>
+              <Icon icon="lucide:check-circle-2" class="check-icon" />
             </label>
           </div>
         </div>
@@ -34,7 +34,7 @@
       <!-- 背景图片 -->
       <div class="card settings-card">
         <div class="card-header d-flex align-items-center gap-2">
-          <i data-lucide="image"></i>
+          <Icon icon="lucide:image" />
           <h5 class="card-title mb-0">背景图片</h5>
         </div>
         <div class="card-body">
@@ -57,7 +57,7 @@
                   class="btn btn-sm btn-outline-danger w-100"
                   @click="removeBackground"
                 >
-                  <i data-lucide="trash-2" class="me-2" style="width: 16px"></i
+                  <Icon icon="lucide:trash-2" class="me-2" style="width: 16px" /></i
                   >移除背景
                 </button>
               </div>
@@ -65,7 +65,7 @@
             <div class="background-upload-col">
               <p class="mb-2 small text-muted">上传新背景</p>
               <label for="background_image" class="custom-file-upload">
-                <i data-lucide="upload-cloud" class="upload-icon"></i>
+                <Icon icon="lucide:upload-cloud" class="upload-icon" />
                 <p class="mb-0 fw-bold">点击或拖拽图片到此</p>
                 <small>支持 JPG, PNG, GIF</small>
               </label>

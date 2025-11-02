@@ -9,39 +9,39 @@
 
       <nav class="sidebar-nav">
         <router-link to="/dashboard" class="nav-link">
-          <i data-lucide="layout-dashboard"></i>
+          <Icon icon="lucide:layout-dashboard" />
           <span>仪表盘</span>
         </router-link>
 
         <router-link to="/records" class="nav-link">
-          <i data-lucide="notebook-pen"></i>
+          <Icon icon="lucide:notebook-pen" />
           <span>学习记录</span>
         </router-link>
 
         <router-link to="/charts" class="nav-link">
-          <i data-lucide="bar-chart-3"></i>
+          <Icon icon="lucide:bar-chart-3" />
           <span>统计分析</span>
         </router-link>
 
         <router-link to="/countdown" class="nav-link">
-          <i data-lucide="timer"></i>
+          <Icon icon="lucide:timer" />
           <span>倒计时</span>
         </router-link>
 
         <router-link to="/milestones" class="nav-link">
-          <i data-lucide="trophy"></i>
+          <Icon icon="lucide:trophy" />
           <span>成就时刻</span>
         </router-link>
 
         <router-link to="/settings" class="nav-link">
-          <i data-lucide="settings"></i>
+          <Icon icon="lucide:settings" />
           <span>设置</span>
         </router-link>
       </nav>
 
       <div class="sidebar-footer">
         <div v-if="authStore.user" class="user-info">
-          <i data-lucide="user-circle-2"></i>
+          <Icon icon="lucide:user-circle-2" />
           <span>你好, {{ authStore.user.username }}</span>
         </div>
         <a
@@ -49,7 +49,7 @@
           @click="handleLogout"
           class="logout-link"
         >
-          <i data-lucide="log-out"></i>
+          <Icon icon="lucide:log-out" />
           <span>登出</span>
         </a>
         <p>&copy; wangk227@ahut.edu.cn</p>
@@ -66,18 +66,7 @@
 <script setup>
 import { computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import {
-  Grid,
-  Edit,
-  DataLine,
-  Timer,
-  Checked,
-  Trophy,
-  List,
-  Setting,
-  User,
-  SwitchButton,
-} from "@element-plus/icons-vue";
+import { Icon } from "@iconify/vue";
 import { useAuthStore } from "@/stores/modules/auth";
 import { useSettingsStore } from "@/stores/modules/settings";
 

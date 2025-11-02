@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="category-management settings-subview">
     <div class="page-header">
       <h1>分类管理</h1>
@@ -7,7 +7,7 @@
 
     <div class="d-flex justify-content-end align-items-center mb-3">
       <button class="btn btn-primary" @click="showAddCategoryModal">
-        <i data-lucide="plus-circle" class="me-2"></i>添加新分类
+        <Icon icon="lucide:plus-circle" class="me-2" />添加新分类
       </button>
     </div>
 
@@ -30,7 +30,7 @@
                 data-bs-toggle="collapse"
                 :data-bs-target="`#collapse-${category.id}`"
               >
-                <i data-lucide="folder" class="me-3"></i>
+                <Icon icon="lucide:folder" class="me-3" />
                 <div class="category-title-wrapper">
                   <h6 class="mb-0 category-name">{{ category.name }}</h6>
                   <span class="badge bg-secondary fw-normal category-badge">
@@ -44,14 +44,14 @@
                   title="编辑"
                   @click="showEditCategoryModal(category)"
                 >
-                  <i data-lucide="pencil"></i>
+                  <Icon icon="lucide:pencil" />
                 </button>
                 <button
                   class="btn btn-sm btn-outline-danger btn-icon"
                   title="删除"
                   @click="deleteCategory(category)"
                 >
-                  <i data-lucide="trash-2"></i>
+                  <Icon icon="lucide:trash-2" />
                 </button>
               </div>
             </div>
@@ -69,7 +69,7 @@
                   class="list-group-item subcategory-item bg-transparent"
                 >
                   <span class="d-flex align-items-center">
-                    <i data-lucide="tag" class="me-2" style="width: 16px"></i>
+                    <Icon icon="lucide:tag" class="me-2" style="width: 16px" />
                     {{ sub.name }}
                   </span>
                   <div class="item-actions">
@@ -78,14 +78,14 @@
                       title="编辑"
                       @click="showEditSubcategoryModal(sub, category)"
                     >
-                      <i data-lucide="pencil"></i>
+                      <Icon icon="lucide:pencil" />
                     </button>
                     <button
                       class="btn btn-sm btn-outline-danger btn-icon"
                       title="删除"
                       @click="deleteSubcategory(sub)"
                     >
-                      <i data-lucide="trash-2"></i>
+                      <Icon icon="lucide:trash-2" />
                     </button>
                   </div>
                 </div>
@@ -113,7 +113,7 @@
                       class="btn btn-outline-success"
                       @click="addSubcategory(category.id)"
                     >
-                      <i data-lucide="plus"></i>
+                      <Icon icon="lucide:plus" />
                     </button>
                   </div>
                 </div>
@@ -291,7 +291,7 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { categoryAPI } from "@/api";
-import * as lucideIcons from "lucide";
+import { Icon } from "@iconify/vue";
 
 const categories = ref([]);
 const newCategoryName = ref("");

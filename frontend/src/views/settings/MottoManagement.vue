@@ -1,9 +1,9 @@
-<template>
+﻿<template>
   <div class="motto-management settings-subview">
     <!-- 添加格言 -->
     <div class="card mb-4 add-card">
       <div class="card-header d-flex align-items-center gap-2">
-        <i data-lucide="plus-circle"></i>
+        <Icon icon="lucide:plus-circle" />
         <h5 class="card-title mb-0">添加新格言</h5>
       </div>
       <div class="card-body">
@@ -37,7 +37,7 @@
     <!-- 格言列表 -->
     <div class="card">
       <div class="card-header d-flex align-items-center gap-2">
-        <i data-lucide="book-quote"></i>
+        <Icon icon="lucide:book-quote" />
         <h5 class="card-title mb-0">我的格言库</h5>
       </div>
       <div class="list-group list-group-flush" id="motto-list-container">
@@ -99,7 +99,7 @@ import { ref, computed, onMounted, nextTick } from "vue";
 import { useMottoStore } from "@/stores";
 import MottoItem from "@/components/motto/MottoItem.vue";
 import { ElMessage } from "element-plus";
-import { createIcons } from "lucide";
+import { Icon } from "@iconify/vue";
 
 const store = useMottoStore();
 const form = ref({ content: "" });

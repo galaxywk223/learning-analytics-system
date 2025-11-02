@@ -12,7 +12,7 @@
         :title="'编辑'"
         @click="onEdit"
       >
-        <i data-lucide="pencil" class="icon-sm" />
+        <Icon icon="lucide:pencil" class="icon-sm" />
       </el-button>
       <el-button
         size="small"
@@ -23,13 +23,14 @@
         @click="onDelete"
         :loading="deleting"
       >
-        <i data-lucide="trash-2" class="icon-sm" />
+        <Icon icon="lucide:trash-2" class="icon-sm" />
       </el-button>
     </div>
   </div>
 </template>
 <script setup>
 import { ref } from "vue";
+import { Icon } from "@iconify/vue";
 import { useMottoStore } from "@/stores";
 import { ElMessageBox, ElMessage } from "element-plus";
 

@@ -1,6 +1,6 @@
 <template>
   <li class="timeline-item">
-    <div class="timeline-icon"><i data-lucide="trophy"></i></div>
+    <div class="timeline-icon"><Icon icon="lucide:trophy" /></div>
     <div class="timeline-content">
       <div class="timeline-content-header">
         <div>
@@ -13,7 +13,7 @@
         <div class="dropdown" v-if="enableActions">
           <el-dropdown trigger="click">
             <span class="el-dropdown-link btn-more" @click.stop>
-              <i data-lucide="more-horizontal"></i>
+              <Icon icon="lucide:more-horizontal" />
             </span>
             <template #dropdown>
               <el-dropdown-menu>
@@ -43,7 +43,10 @@
             :id="`attachment-${att.id}`"
           >
             <a :href="downloadUrl(att)" target="_blank" class="attachment-link">
-              <i data-lucide="image" style="width: 16px; height: 16px"></i>
+              <Icon
+                icon="lucide:image"
+                :style="{ width: '16px', height: '16px' }"
+              />
               <span>{{ att.original_filename }}</span>
             </a>
             <button
@@ -52,7 +55,7 @@
               title="删除此附件"
               @click.stop="deleteAttachment(att)"
             >
-              <i data-lucide="x"></i>
+              <Icon icon="lucide:x" />
             </button>
           </div>
         </div>
@@ -63,6 +66,7 @@
 
 <script setup>
 import { computed } from "vue";
+import { Icon } from "@iconify/vue";
 import { milestoneAPI } from "@/api/modules/milestone";
 
 const props = defineProps({

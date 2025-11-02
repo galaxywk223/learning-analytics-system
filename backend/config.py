@@ -26,7 +26,10 @@ class Config:
     JWT_HEADER_TYPE = "Bearer"
 
     # CORS配置
-    CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")
+    CORS_ORIGINS = os.environ.get(
+        "CORS_ORIGINS",
+        "http://localhost:3000,http://localhost:5173,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:5173,http://127.0.0.1:8080",
+    ).split(",")
     CORS_SUPPORTS_CREDENTIALS = True
 
     # 上传配置
