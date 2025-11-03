@@ -134,7 +134,11 @@ def get_record(record_id):
     """获取单个记录详情"""
     current_user_id = get_jwt_identity()
 
-    record = LogEntry.query.filter_by(id=record_id, user_id=current_user_id).first()
+    record = (
+        LogEntry.query.join(Stage)
+        .filter(Stage.user_id == current_user_id, LogEntry.id == record_id)
+        .first()
+    )
 
     if not record:
         return jsonify({"success": False, "message": "记录不存在"}), 404
@@ -156,7 +160,11 @@ def update_record(record_id):
 
     try:
         # 获取记录
-        record = LogEntry.query.filter_by(id=record_id, user_id=current_user_id).first()
+        record = (
+            LogEntry.query.join(Stage)
+            .filter(Stage.user_id == current_user_id, LogEntry.id == record_id)
+            .first()
+        )
 
         if not record:
             return jsonify({"success": False, "message": "记录不存在"}), 404
@@ -223,7 +231,11 @@ def delete_record(record_id):
     current_user_id = get_jwt_identity()
 
     try:
-        record = LogEntry.query.filter_by(id=record_id, user_id=current_user_id).first()
+        record = (
+            LogEntry.query.join(Stage)
+            .filter(Stage.user_id == current_user_id, LogEntry.id == record_id)
+            .first()
+        )
 
         if not record:
             return jsonify({"success": False, "message": "记录不存在"}), 404

@@ -63,7 +63,7 @@ def list_records():
 
     try:
         # 构建查询
-        query = LogEntry.query.filter_by(user_id=current_user_id)
+        query = LogEntry.query.join(Stage).filter(Stage.user_id == current_user_id)
 
         # 应用筛选条件
         if stage_id:
@@ -134,7 +134,7 @@ def get_record_stats():
 
     try:
         # 构建基础查询
-        query = LogEntry.query.filter_by(user_id=current_user_id)
+        query = LogEntry.query.join(Stage).filter(Stage.user_id == current_user_id)
 
         if stage_id:
             query = query.filter_by(stage_id=stage_id)
@@ -168,7 +168,8 @@ def get_recent_records():
 
     try:
         records = (
-            LogEntry.query.filter_by(user_id=current_user_id)
+            LogEntry.query.join(Stage)
+            .filter(Stage.user_id == current_user_id)
             .order_by(LogEntry.created_at.desc())
             .limit(limit)
             .all()
