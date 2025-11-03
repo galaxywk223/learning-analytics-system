@@ -78,10 +78,20 @@ def create_record():
         if not subcategory:
             return jsonify({"success": False, "message": "标签不存在"}), 404
 
-        # 处理时长 - 转换为小时
-        actual_duration = float(data["actual_duration"]) / 60.0
-        if actual_duration <= 0:
+        # 处理时长 - 以分钟为单位，兼容历史小时制浮点数
+        try:
+            raw_duration = float(data["actual_duration"])
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "message": "时长格式不正确"}), 400
+
+        if raw_duration <= 0:
             return jsonify({"success": False, "message": "时长必须大于0"}), 400
+
+        # 如果传入的是小时制浮点数（例如 1.5），转换为分钟
+        if raw_duration < 10 and not raw_duration.is_integer():
+            actual_duration = int(round(raw_duration * 60))
+        else:
+            actual_duration = int(round(raw_duration))
 
         # 解析日期
         try:
@@ -115,7 +125,7 @@ def create_record():
                 "data": {
                     "id": record.id,
                     "task": record.task,
-                    "actual_duration": float(record.actual_duration),
+                    "actual_duration": int(record.actual_duration or 0),
                     "log_date": record.log_date.isoformat(),
                     "time_slot": record.time_slot,
                 },
