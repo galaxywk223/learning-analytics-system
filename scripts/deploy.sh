@@ -28,6 +28,8 @@ fi
 require_cmd npm
 require_cmd systemctl
 
+ENV_FILE="${BACKEND_DIR}/.env"
+
 if [ ! -d "${UPLOAD_TARGET}" ]; then
   log "creating uploads directory at ${UPLOAD_TARGET}"
   mkdir -p "${UPLOAD_TARGET}"
@@ -52,6 +54,13 @@ log "installing backend dependencies"
 "${VENV_DIR}/bin/pip" install -r "${BACKEND_DIR}/requirements.txt"
 
 log "running database migrations (ignored if they fail)"
+if [ -f "${ENV_FILE}" ]; then
+  log "loading environment from ${ENV_FILE}"
+  set -a
+  # shellcheck disable=SC1090
+  source "${ENV_FILE}"
+  set +a
+fi
 pushd "${BACKEND_DIR}" >/dev/null
 if ! FLASK_APP=run.py FLASK_ENV=production "${VENV_DIR}/bin/flask" db upgrade; then
   log "WARNING: flask db upgrade failed, please check manually"
