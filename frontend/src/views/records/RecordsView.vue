@@ -41,8 +41,8 @@
       :close-on-click-modal="false"
     >
       <RecordForm
-        :record="currentRecord"
-        :default-date="defaultDate"
+        :initial-data="currentRecord"
+        :is-edit="isEditing"
         :loading="submitting"
         @submit="handleSubmit"
         @cancel="dialogVisible = false"

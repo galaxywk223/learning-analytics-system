@@ -123,8 +123,25 @@ export function formatFormDataForSubmit(
  * 从服务器数据格式化到表单数据
  */
 export function formatServerDataToForm(serverData: ServerData): FormData {
+  const base = getDefaultFormData();
+  const actualDurationRaw = Number(serverData.actual_duration ?? base.actual_duration ?? 0);
+  const durationHours = Math.floor(actualDurationRaw / 60);
+  const durationMinutes = actualDurationRaw % 60;
+
+  const subcategoryId =
+    serverData.subcategory_id ?? serverData.subcategory?.id ?? null;
+  const categoryId =
+    serverData.category_id ?? serverData.subcategory?.category_id ?? null;
+
   return {
-    ...getDefaultFormData(),
+    ...base,
     ...serverData,
+    actual_duration: actualDurationRaw,
+    duration_hours: durationHours,
+    duration_minutes: durationMinutes,
+    subcategory_id: subcategoryId,
+    category_id: categoryId,
+    mood: serverData.mood ?? base.mood,
+    notes: serverData.notes ?? base.notes,
   } as FormData;
 }
