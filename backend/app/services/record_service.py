@@ -2,10 +2,84 @@
 import math
 from datetime import date, timedelta
 from itertools import groupby
+from numbers import Number
 from flask import current_app
 from app import db
 from app.models import Stage, LogEntry, WeeklyData, DailyData, Category, SubCategory
 from .helpers import get_custom_week_info
+
+
+def _normalize_duration_minutes(value):
+    """将存储的时长统一转换为分钟，兼容历史小时制浮点数。"""
+    if value is None:
+        return 0
+
+    if isinstance(value, Number):
+        numeric_value = float(value)
+        if not math.isfinite(numeric_value):
+            return 0
+
+        if not math.isclose(numeric_value, round(numeric_value), rel_tol=1e-9):
+            minutes = int(round(numeric_value * 60))
+        else:
+            minutes = int(round(numeric_value))
+
+        return max(minutes, 0)
+
+    try:
+        numeric_value = float(value)
+        return max(int(round(numeric_value)), 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def format_record_for_response(record, stage=None):
+    """序列化单条 LogEntry 记录，供 API / 表单使用。"""
+    total_minutes = _normalize_duration_minutes(record.actual_duration)
+    stage_obj = stage or getattr(record, "stage", None)
+
+    data = {
+        "id": record.id,
+        "task": record.task,
+        "log_date": record.log_date.isoformat() if record.log_date else None,
+        "time_slot": record.time_slot,
+        "actual_duration": total_minutes,
+        "duration_hours": total_minutes // 60,
+        "duration_minutes": total_minutes % 60,
+        "mood": record.mood,
+        "notes": record.notes,
+        "legacy_category": record.legacy_category,
+        "created_at": record.created_at.isoformat() if record.created_at else None,
+        "stage_id": stage_obj.id if stage_obj else record.stage_id,
+        "subcategory_id": record.subcategory_id,
+    }
+
+    if stage_obj:
+        data["stage"] = {
+            "id": stage_obj.id,
+            "name": stage_obj.name,
+            "start_date": stage_obj.start_date.isoformat()
+            if stage_obj.start_date
+            else None,
+        }
+    else:
+        data["stage"] = None
+
+    subcategory = getattr(record, "subcategory", None)
+    if subcategory:
+        category = subcategory.category
+        data["subcategory"] = {
+            "id": subcategory.id,
+            "name": subcategory.name,
+            "category_id": subcategory.category_id,
+            "category": {"id": category.id, "name": category.name} if category else None,
+        }
+        data["category_id"] = subcategory.category_id
+    else:
+        data["subcategory"] = None
+        data["category_id"] = None
+
+    return data
 
 
 def _calculate_daily_efficiency_score(log_date, stage_id):
@@ -182,7 +256,10 @@ def get_structured_logs_for_stage(stage, sort_order="desc"):
                 {
                     "date": day_date,
                     "efficiency": day_data.efficiency if day_data else 0,
-                    "logs": [log.to_dict() for log in list(day_logs)],  # 序列化为字典
+                    "logs": [
+                        format_record_for_response(log, stage=stage)
+                        for log in list(day_logs)
+                    ],
                 }
             )
         week_data = week_data_map.get((year, week_num))

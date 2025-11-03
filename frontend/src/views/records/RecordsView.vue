@@ -141,10 +141,22 @@ const openAddDialog = (date = null) => {
 };
 
 // 打开编辑对话框
-const openEditDialog = (record) => {
-  currentRecord.value = record;
-  defaultDate.value = null;
+const openEditDialog = async (record) => {
   dialogVisible.value = true;
+  defaultDate.value = null;
+  currentRecord.value = null;
+
+  try {
+    const detail = await request.get(`/api/records/${record.id}`);
+    if (detail?.success && detail.data) {
+      currentRecord.value = detail.data;
+    } else {
+      currentRecord.value = { ...record };
+    }
+  } catch (error) {
+    console.error("获取记录详情失败:", error);
+    currentRecord.value = { ...record };
+  }
 };
 
 // 关闭对话框时重置状态
