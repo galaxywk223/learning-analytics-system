@@ -169,8 +169,8 @@ def update_record(record_id):
         if not record:
             return jsonify({"success": False, "message": "记录不存在"}), 404
 
-        # 保存原阶段ID用于效率重算
-        original_stage_id = record.stage_id
+        # 记录原阶段对象用于刷新效率数据
+        original_stage = record.stage
 
         # 更新字段
         updateable_fields = [
@@ -206,9 +206,9 @@ def update_record(record_id):
         db.session.commit()
 
         # 重新计算相关阶段效率
-        record_service.recalculate_efficiency_for_stage(original_stage_id)
-        if record.stage_id != original_stage_id:
-            record_service.recalculate_efficiency_for_stage(record.stage_id)
+        record_service.recalculate_efficiency_for_stage(original_stage)
+        if record.stage_id != original_stage.id:
+            record_service.recalculate_efficiency_for_stage(record.stage)
 
         return jsonify(
             {
@@ -240,13 +240,13 @@ def delete_record(record_id):
         if not record:
             return jsonify({"success": False, "message": "记录不存在"}), 404
 
-        stage_id = record.stage_id
+        stage = record.stage
 
         db.session.delete(record)
         db.session.commit()
 
         # 重新计算阶段效率
-        record_service.recalculate_efficiency_for_stage(stage_id)
+        record_service.recalculate_efficiency_for_stage(stage)
 
         return jsonify({"success": True, "message": "记录删除成功"})
 
