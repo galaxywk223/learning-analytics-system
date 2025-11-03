@@ -118,6 +118,9 @@ def create_record():
         db.session.add(record)
         db.session.commit()
 
+        # 更新对应日期的效率分
+        record_service.update_efficiency_for_date(log_date, stage)
+
         return jsonify(
             {
                 "success": True,
