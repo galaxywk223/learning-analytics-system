@@ -92,13 +92,14 @@ def _calculate_daily_efficiency_score(log_date, stage_id):
     if not logs_for_day:
         return 0.0
 
-    total_duration_minutes = sum(log.actual_duration or 0 for log in logs_for_day)
+    durations = [_normalize_duration_minutes(log.actual_duration) for log in logs_for_day]
+    total_duration_minutes = sum(durations)
 
     if total_duration_minutes == 0:
         return 0.0
 
     weighted_mood_duration_sum = sum(
-        (log.actual_duration or 0) * (log.mood or 3) for log in logs_for_day
+        duration * (log.mood or 3) for duration, log in zip(durations, logs_for_day)
     )
     average_mood = weighted_mood_duration_sum / total_duration_minutes
     total_hours = total_duration_minutes / 60.0
