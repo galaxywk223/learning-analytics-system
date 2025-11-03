@@ -1,7 +1,9 @@
 /* src/assets/css/fonts.css */
 @font-face {
   font-family: "MaShanZheng";
-  src: url("../fonts/MaShanZheng-Regular.ttf") format("truetype");
+  /* 统一使用站点根路径 /fonts，确保在生产环境以及 dev server 下都能正确加载 */
+  src: url("/fonts/MaShanZheng-Regular.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
