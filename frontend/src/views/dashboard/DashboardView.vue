@@ -192,5 +192,4 @@ const cards = computed(() => [
 
 <style scoped lang="scss">
 @use "@/styles/views/dashboard/DashboardView.module.scss";
-@import "@/styles/base/fonts.scss";
 </style>

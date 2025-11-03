@@ -1,19 +1,15 @@
 /* frontend/src/styles/base/base.scss */
 
-/* ===== 1. Google Font Import (优化：异步加载) ===== */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@600;700&display=swap");
-
-/* ===== 2. 马善政字体 ===== */
-@font-face {
-  font-family: "MaShanZheng";
-  src: url("/fonts/MaShanZheng-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap; /* 性能优化：字体加载优化 */
-}
+/* ===== 1. Google Font Import ===== */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 /* ===== 3. CSS Variables (Theme Colors & Properties) ===== */
 :root {
+  /* Typography */
+  --font-family-base: "Inter", "PingFang SC", "Microsoft YaHei", "Helvetica Neue",
+    "Segoe UI", Arial, sans-serif;
+  --font-family-heading: var(--font-family-base);
+
   /* Base Palette */
   --color-primary: #a78bfa; /* 主色 */
   --color-primary-light: #ddd6fe; /* 主色-浅 */
@@ -62,7 +58,7 @@
 *::before,
 *::after {
   box-sizing: border-box;
-  font-family: "MaShanZheng", cursive, sans-serif !important;
+  font-family: var(--font-family-base) !important;
 }
 
 html,
@@ -76,7 +72,7 @@ body {
 }
 
 body {
-  font-family: "MaShanZheng", "Inter", sans-serif;
+  font-family: var(--font-family-base);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: var(--color-text-base);
   line-height: 1.6;
@@ -209,5 +205,5 @@ label,
 .el-dialog,
 .el-message,
 .el-notification {
-  font-family: "MaShanZheng", cursive, sans-serif !important;
+  font-family: var(--font-family-base) !important;
 }

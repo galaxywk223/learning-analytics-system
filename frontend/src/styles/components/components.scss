@@ -27,7 +27,7 @@
 }
 
 .card-title {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-family-heading);
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;
@@ -299,7 +299,7 @@
 }
 
 .card-title-custom {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-family-heading);
   font-size: 1.3rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
