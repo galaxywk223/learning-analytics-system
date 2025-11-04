@@ -19,7 +19,7 @@
         </div>
         <button
           class="motto-refresh"
-          @click="refreshMotto"
+          @click="refreshMotto(true)"
           :disabled="mottoLoading"
           :class="{ spinning: mottoLoading }"
         >
@@ -101,42 +101,47 @@ const mottoText = ref("正在加载今日份的鸡汤...");
 const mottoLoading = ref(false);
 const lastMottoLoadedAt = ref(0);
 
-async function refreshMotto() {
-  if (!authStore.accessToken) {
-    mottoText.value = "未登录，无法获取格言";
-    return;
-  }
-  if (!mottoLoading.value && Date.now() - lastMottoLoadedAt.value < 60_000) {
-    return;
-  }
-
-  mottoLoading.value = true;
-  try {
-    // Pinia auth store 使用 accessToken 属性，而不是 token
-    const resp = await axios.get("/api/mottos/random", {
-      headers: { Authorization: `Bearer ${authStore.accessToken}` },
-    });
-    if (resp.data.success) {
-      // 后端兼容旧格式：存在 content 字段；若无 motto 对象则用 content 作为 fallback
-      if (resp.data.content) {
-        mottoText.value = resp.data.content;
-      } else if (resp.data.motto && resp.data.motto.content) {
-        mottoText.value = resp.data.motto.content;
-      } else {
-        mottoText.value = "没有可用的格言";
-      }
-      lastMottoLoadedAt.value = Date.now();
-    } else {
-      mottoText.value = "没有可用的格言";
-    }
-  } catch (e) {
-    console.error("Failed to load motto:", e);
-    mottoText.value = "加载失败，请稍后再试";
-  } finally {
-    mottoLoading.value = false;
-  }
-}
-
+const MIN_REFRESH_INTERVAL = 5_000;
+
+async function refreshMotto(force = false) {
+  if (!authStore.accessToken) {
+    mottoText.value = "δ��¼���޷���ȡ����";
+    return;
+  }
+  if (mottoLoading.value) {
+    return;
+  }
+  if (!force && Date.now() - lastMottoLoadedAt.value < MIN_REFRESH_INTERVAL) {
+    return;
+  }
+
+  mottoLoading.value = true;
+  try {
+    // Pinia auth store ʹ�� accessToken ���ԣ������� token
+    const resp = await axios.get("/api/mottos/random", {
+      headers: { Authorization: `Bearer ${authStore.accessToken}` },
+    });
+    if (resp.data.success) {
+      // ��˼��ݾɸ�ʽ������ content �ֶΣ����� motto �������� content ��Ϊ fallback
+      if (resp.data.content) {
+        mottoText.value = resp.data.content;
+      } else if (resp.data.motto && resp.data.motto.content) {
+        mottoText.value = resp.data.motto.content;
+      } else {
+        mottoText.value = "û�п��õĸ���";
+      }
+      lastMottoLoadedAt.value = Date.now();
+    } else {
+      mottoText.value = "û�п��õĸ���";
+    }
+  } catch (e) {
+    console.error("Failed to load motto:", e);
+    mottoText.value = "����ʧ�ܣ����Ժ�����";
+  } finally {
+    mottoLoading.value = false;
+  }
+}
+
 onMounted(async () => {
   await dashboardStore.fetchSummary();
   // 若 dashboard summary 已包含 random_motto 则直接展示以减少一次网络请求

@@ -428,40 +428,77 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .ai-assistant {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  min-height: 100%;
+  padding: 24px;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 18% 18%, rgba(129, 140, 248, 0.18), transparent 48%),
+      radial-gradient(circle at 78% 26%, rgba(236, 72, 153, 0.16), transparent 52%),
+      radial-gradient(circle at 70% 86%, rgba(45, 212, 191, 0.14), transparent 58%);
+    pointer-events: none;
+    z-index: -2;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(18px);
+    opacity: 0.35;
+    z-index: -3;
+  }
 
   &__header {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+    padding: 18px 22px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(129, 140, 248, 0.2);
+    box-shadow: 0 18px 40px rgba(79, 70, 229, 0.12);
 
     h1 {
       margin: 0;
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 600;
+      color: #1f1d47;
     }
 
     p {
       margin: 0;
-      color: var(--el-text-color-secondary);
+      color: rgba(79, 70, 229, 0.72);
       font-size: 14px;
     }
   }
 }
 
 .control-card {
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 20px;
+  border: 1px solid rgba(129, 140, 248, 0.18);
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.12);
+  padding: 24px 28px;
+
   .control-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 12px 24px;
-    align-items: flex-end;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px 24px;
+    align-items: center;
 
     &__item {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
 
       &--actions {
         flex-direction: row;
@@ -474,7 +511,9 @@ onMounted(async () => {
 
     .control-label {
       font-size: 13px;
-      color: var(--el-text-color-secondary);
+      color: rgba(79, 70, 229, 0.78);
+      font-weight: 500;
+      letter-spacing: 0.2px;
     }
   }
 }
@@ -482,40 +521,58 @@ onMounted(async () => {
 
 .insight-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
 }
 
 .insight-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  position: relative;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 255, 0.9));
+  border-radius: 22px;
+  padding: 24px 26px;
+  box-shadow: 0 24px 50px rgba(79, 70, 229, 0.14);
+  border: 1px solid rgba(129, 140, 248, 0.2);
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  position: relative;
+  gap: 18px;
   overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 80% 0%, rgba(129, 140, 248, 0.25), transparent 60%);
+    opacity: 0.65;
+    pointer-events: none;
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 28px 60px rgba(79, 70, 229, 0.18);
+  }
 
   &.is-loading {
-    opacity: 0.7;
+    opacity: 0.72;
   }
 }
 
 .insight-card__header {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 16px;
 
   .title {
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 600;
     display: block;
+    color: #1f1d47;
   }
 
   small {
-    color: var(--el-text-color-secondary);
+    color: rgba(79, 70, 229, 0.7);
     font-size: 12px;
   }
 }
@@ -533,6 +590,12 @@ onMounted(async () => {
 }
 
 .history-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 235, 0.26);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.14);
+  padding: 24px;
+
   &__header {
     display: flex;
     align-items: center;
@@ -542,7 +605,7 @@ onMounted(async () => {
   &__controls {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
   }
 }
 
@@ -555,12 +618,13 @@ onMounted(async () => {
 }
 
 .history-item {
-  background: #f9fafb;
-  border-radius: 12px;
-  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(248, 250, 255, 0.96), rgba(237, 233, 254, 0.92));
+  border-radius: 16px;
+  padding: 14px 18px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  border: 1px solid rgba(129, 140, 248, 0.16);
 }
 
 .history-item__header {

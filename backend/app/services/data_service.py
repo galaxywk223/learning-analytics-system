@@ -185,7 +185,7 @@ def export_data_for_user(user):
 
 def import_data_for_user(user, zip_file_stream):
     """
-    从一个ZIP文件流中为指定用户导入数据,此操作会先清空用户现有数据。
+    ��һ��ZIP�ļ�����Ϊָ���û���������,�˲�����������û��������ݡ�
     """
     current_app.logger.info(f"Starting data import for user: {user.username}")
     try:
@@ -193,7 +193,6 @@ def import_data_for_user(user, zip_file_stream):
 
         with zipfile.ZipFile(zip_file_stream, "r") as zf:
             model_map = {model.__tablename__: model for model in MODELS_TO_HANDLE}
-
             import_order = [
                 "setting",
                 "stage",
@@ -211,73 +210,166 @@ def import_data_for_user(user, zip_file_stream):
                 "milestone_attachment",
             ]
 
+            pending_records = {}
+            for table_name in import_order:
+                json_path = f"data/{table_name}.json"
+                if json_path in zf.namelist():
+                    with zf.open(json_path) as json_file:
+                        pending_records[table_name] = json.load(json_file)
+
+            id_maps = {
+                "stage": {},
+                "category": {},
+                "sub_category": {},
+                "milestone_category": {},
+                "milestone": {},
+            }
+
+            def _store_mapping(bucket: str, original_id, new_id):
+                if original_id is None:
+                    return
+                id_maps[bucket][str(original_id)] = new_id
+
+            def _map_id(bucket: str, incoming_id):
+                if incoming_id is None:
+                    return None
+                return id_maps[bucket].get(str(incoming_id))
+
             for table_name in import_order:
                 model = model_map.get(table_name)
                 if not model:
                     continue
 
-                json_path = f"data/{table_name}.json"
-                if json_path in zf.namelist():
-                    with zf.open(json_path) as json_file:
-                        records = json.load(json_file)
-                        for record_data in records:
-                            if "user_id" in model.__table__.columns:
-                                record_data["user_id"] = user.id
+                records = pending_records.get(table_name, [])
+                if not records:
+                    continue
 
-                            # 这些叶子表不保留导入时的主键 id, 避免与现存主键冲突
-                            if model in LEAF_USER_TABLES:
-                                record_data.pop("id", None)
+                for record in records:
+                    record_data = dict(record)
+                    original_id = record_data.pop("id", None)
 
-                            # 修正了日期和时间字符串的解析逻辑
-                            for key, value in list(record_data.items()):
-                                # 只处理非空字符串
-                                if isinstance(value, str) and value:
-                                    # 更稳健地判断是否为日期时间字段
-                                    if (
-                                        "datetime" in key
-                                        or key.endswith("_at")
-                                        or key.endswith("_utc")
-                                    ):
-                                        try:
-                                            # fromisoformat 可以处理带或不带时区信息的ISO格式字符串
-                                            dt_obj = datetime.fromisoformat(
-                                                value.replace("Z", "+00:00")
-                                            )
-                                            # 存储为无时区信息的datetime对象以兼容SQLite
-                                            record_data[key] = dt_obj.replace(
-                                                tzinfo=None
-                                            )
-                                        except ValueError as ve:
-                                            current_app.logger.warning(
-                                                f"Could not parse datetime string '{value}' for key '{key}': {ve}"
-                                            )
-                                    elif "date" in key and not key.endswith("_at"):
-                                        try:
-                                            record_data[key] = date.fromisoformat(value)
-                                        except ValueError as ve:
-                                            current_app.logger.warning(
-                                                f"Could not parse date string '{value}' for key '{key}': {ve}"
-                                            )
+                    if "user_id" in model.__table__.columns:
+                        record_data["user_id"] = user.id
 
-                            if model.__tablename__ == "milestone_attachment":
-                                original_path = record_data.get("file_path")
-                                if original_path:
-                                    filename = os.path.basename(original_path)
-                                    record_data["file_path"] = (
-                                        f"{user.id}/{filename}"
+                    for key, value in list(record_data.items()):
+                        if isinstance(value, str) and value:
+                            if (
+                                "datetime" in key
+                                or key.endswith("_at")
+                                or key.endswith("_utc")
+                            ):
+                                try:
+                                    dt_obj = datetime.fromisoformat(value.replace("Z", "+00:00"))
+                                    record_data[key] = dt_obj.replace(tzinfo=None)
+                                except ValueError as ve:
+                                    current_app.logger.warning(
+                                        f"Could not parse datetime string '{value}' for key '{key}': {ve}"
+                                    )
+                            elif "date" in key and not key.endswith("_at"):
+                                try:
+                                    record_data[key] = date.fromisoformat(value)
+                                except ValueError as ve:
+                                    current_app.logger.warning(
+                                        f"Could not parse date string '{value}' for key '{key}': {ve}"
                                     )
 
-                            try:
-                                db.session.add(model(**record_data))
-                            except Exception as e:
-                                current_app.logger.error(
-                                    f"Failed to add {model.__name__} record: {e}, data: {record_data}"
+                    try:
+                        if table_name == "stage":
+                            new_stage = model(**record_data)
+                            db.session.add(new_stage)
+                            db.session.flush()
+                            _store_mapping("stage", original_id, new_stage.id)
+                            continue
+
+                        if table_name == "category":
+                            new_category = model(**record_data)
+                            db.session.add(new_category)
+                            db.session.flush()
+                            _store_mapping("category", original_id, new_category.id)
+                            continue
+
+                        if table_name == "milestone_category":
+                            new_mc = model(**record_data)
+                            db.session.add(new_mc)
+                            db.session.flush()
+                            _store_mapping("milestone_category", original_id, new_mc.id)
+                            continue
+
+                        if table_name == "sub_category":
+                            parent_id = _map_id("category", record_data.get("category_id"))
+                            if parent_id is None:
+                                current_app.logger.warning(
+                                    "Skipping sub_category %s due to missing category mapping",
+                                    record_data.get("name"),
                                 )
-                                raise
+                                continue
+                            record_data["category_id"] = parent_id
+                            new_sub = model(**record_data)
+                            db.session.add(new_sub)
+                            db.session.flush()
+                            _store_mapping("sub_category", original_id, new_sub.id)
+                            continue
+
+                        if table_name == "milestone":
+                            category_id = record_data.get("category_id")
+                            if category_id is not None:
+                                record_data["category_id"] = _map_id("milestone_category", category_id)
+                            new_milestone = model(**record_data)
+                            db.session.add(new_milestone)
+                            db.session.flush()
+                            _store_mapping("milestone", original_id, new_milestone.id)
+                            continue
+
+                        if table_name == "log_entry":
+                            mapped_stage = _map_id("stage", record_data.get("stage_id"))
+                            if mapped_stage is None:
+                                current_app.logger.warning(
+                                    "Skipping log entry dated %s due to missing stage mapping",
+                                    record_data.get("log_date"),
+                                )
+                                continue
+                            record_data["stage_id"] = mapped_stage
+                            sub_old = record_data.get("subcategory_id")
+                            record_data["subcategory_id"] = _map_id("sub_category", sub_old)
+                            db.session.add(model(**record_data))
+                            continue
+
+                        if table_name in {"daily_data", "weekly_data"}:
+                            mapped_stage = _map_id("stage", record_data.get("stage_id"))
+                            if mapped_stage is None:
+                                current_app.logger.warning(
+                                    "Skipping %s record due to missing stage mapping",
+                                    table_name,
+                                )
+                                continue
+                            record_data["stage_id"] = mapped_stage
+                            db.session.add(model(**record_data))
+                            continue
+
+                        if table_name == "milestone_attachment":
+                            milestone_id = _map_id("milestone", record_data.get("milestone_id"))
+                            if milestone_id is None:
+                                current_app.logger.warning(
+                                    "Skipping milestone attachment because parent milestone was not imported."
+                                )
+                                continue
+                            record_data["milestone_id"] = milestone_id
+                            original_path = record_data.get("file_path")
+                            if original_path:
+                                filename = os.path.basename(original_path)
+                                record_data["file_path"] = f"{user.id}/{filename}"
+                            db.session.add(model(**record_data))
+                            continue
+
+                        db.session.add(model(**record_data))
+                    except Exception as e:
+                        current_app.logger.error(
+                            f"Failed to add {model.__name__} record: {e}, data: {record_data}"
+                        )
+                        raise
 
             current_app.logger.info("Imported all JSON data to database session.")
 
-            # 使用 UPLOAD_FOLDER 而不是 MILESTONE_UPLOADS
             upload_folder = current_app.config.get("UPLOAD_FOLDER")
             if upload_folder:
                 user_upload_folder = os.path.join(upload_folder, str(user.id))
@@ -286,16 +378,30 @@ def import_data_for_user(user, zip_file_stream):
                     if file_info.filename.startswith("attachments/"):
                         zf.extract(file_info, path=user_upload_folder)
 
-                        source_path = os.path.join(
-                            user_upload_folder, file_info.filename
-                        )
-                        dest_path = os.path.join(
-                            user_upload_folder, os.path.basename(file_info.filename)
-                        )
+                        source_path = os.path.join(user_upload_folder, file_info.filename)
+                        target_name = os.path.basename(file_info.filename)
+                        base, ext = os.path.splitext(target_name)
+                        dest_path = os.path.join(user_upload_folder, target_name)
+                        counter = 1
+                        while os.path.exists(dest_path):
+                            dest_path = os.path.join(
+                                user_upload_folder, f"{base}_{counter}{ext}"
+                            )
+                            counter += 1
+                        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
                         os.rename(source_path, dest_path)
 
-                if os.path.exists(os.path.join(user_upload_folder, "attachments")):
-                    os.rmdir(os.path.join(user_upload_folder, "attachments"))
+                attachments_dir = os.path.join(user_upload_folder, "attachments")
+                if os.path.isdir(attachments_dir):
+                    for root, dirs, files in os.walk(attachments_dir, topdown=False):
+                        for name in files:
+                            os.remove(os.path.join(root, name))
+                        for name in dirs:
+                            os.rmdir(os.path.join(root, name))
+                    try:
+                        os.rmdir(attachments_dir)
+                    except OSError:
+                        pass
                 current_app.logger.info("Extracted all attachments.")
             else:
                 current_app.logger.warning(
@@ -304,16 +410,14 @@ def import_data_for_user(user, zip_file_stream):
 
         db.session.commit()
         current_app.logger.info("Data import committed successfully.")
-        return True, "数据导入成功!所有旧数据已被覆盖。"
+        return True, "���ݵ���ɹ�!���о������ѱ����ǡ�"
 
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(
             f"Data import failed for user {user.username}: {e}", exc_info=True
         )
-        return False, f"导入失败,发生严重错误: {e}"
-
-
+        return False, f"����ʧ��,�������ش���: {e}"
 def clear_all_user_data(user):
     """
     清空用户的所有数据(包括附件)

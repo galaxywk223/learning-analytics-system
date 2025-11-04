@@ -1,39 +1,41 @@
 <template>
-  <div class="doughnut-card card-animated">
-    <div class="card-header">
-      <div class="title-with-icon">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          class="title-icon"
-        >
+  <div class="doughnut-card">
+    <header class="doughnut-card__header">
+      <div class="doughnut-card__title">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path
-            d="M11 2.04932V12.9993L18.3611 16.9993C17.1175 19.4376 14.7452 21.1993 12 21.1993C8.13401 21.1993 5 18.0653 5 14.1993C5 11.4544 6.76165 9.08206 9.2 7.83842L11 2.04932ZM13 2.04932L14.8 7.83842C17.2383 9.08206 19 11.4544 19 14.1993C19 15.3126 18.7187 16.3608 18.2217 17.2832L13 14.3017V2.04932ZM12 0.0493164C5.92487 0.0493164 1 4.97419 1 11.0493C1 17.1245 5.92487 22.0493 12 22.0493C18.0751 22.0493 23 17.1245 23 11.0493H21C21 16.0199 16.9706 20.0493 12 20.0493C7.02944 20.0493 3 16.0199 3 11.0493C3 6.07876 7.02944 2.04932 12 2.04932V0.0493164Z"
+            d="M11.5 2.00488C6.255 2.00488 2 6.25988 2 11.5049C2 16.7499 6.255 21.0049 11.5 21.0049C16.745 21.0049 21 16.7499 21 11.5049H11.5V2.00488ZM22.5 10.0049C22.5 5.03488 18.47 1.00488 13.5 1.00488C12.973 1.00488 12.454 1.04888 11.948 1.13488C11.488 1.21288 11.2 1.66588 11.338 2.11188L13.772 10.0179C13.872 10.3369 14.16 10.5549 14.495 10.5549H22.001C22.276 10.5549 22.5 10.3319 22.5 10.0549V10.0049Z"
           />
         </svg>
-        <h5 class="chart-title" id="categoryChartTitle">
-          {{ title }}
-        </h5>
+        <div>
+          <h5>{{ title }}</h5>
+          <p>分门别类地回顾近期的时长投入</p>
+        </div>
       </div>
-      <div class="total-badge" v-if="totalHours">
-        <span class="badge-label">总计</span>
-        <span class="badge-value">{{ totalHours.toFixed(1) }}h</span>
+      <div v-if="computedTotal > 0" class="doughnut-card__summary">
+        <span class="label">累计</span>
+        <strong>{{ computedTotal.toFixed(1) }}h</strong>
       </div>
-    </div>
-    <div class="doughnut-container">
-      <canvas ref="canvas" @click="handleClick"></canvas>
-      <div class="center-text" v-if="totalHours">
-        <div class="center-value">{{ totalHours.toFixed(1) }}h</div>
-        <div class="center-label">总时长</div>
-      </div>
-    </div>
+    </header>
+    <v-chart
+      ref="chartRef"
+      class="doughnut-card__chart"
+      :option="option"
+      autoresize
+      @click="handleSliceClick"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue";
-import Chart from "chart.js/auto";
+import { computed, ref } from "vue";
+import { use } from "echarts/core";
+import { PieChart } from "echarts/charts";
+import { TooltipComponent, LegendComponent } from "echarts/components";
+import { CanvasRenderer } from "echarts/renderers";
+import VChart from "vue-echarts";
+
+use([CanvasRenderer, PieChart, TooltipComponent, LegendComponent]);
 
 const props = defineProps({
   data: {
@@ -42,7 +44,7 @@ const props = defineProps({
   },
   title: {
     type: String,
-    default: "分类时长占比",
+    default: "学习时长占比",
   },
   totalHours: {
     type: Number,
@@ -50,215 +52,245 @@ const props = defineProps({
   },
   colors: {
     type: Array,
-    required: true,
+    default: () => [
+      "#6366f1",
+      "#f97316",
+      "#0ea5e9",
+      "#22c55e",
+      "#facc15",
+      "#ef4444",
+      "#8b5cf6",
+    ],
   },
 });
 
 const emit = defineEmits(["slice-click"]);
 
-const canvas = ref(null);
-let chart = null;
+const chartRef = ref();
 
-function handleClick(evt) {
-  if (!chart) return;
+const seriesData = computed(() => {
+  const labels = Array.isArray(props.data?.labels) ? props.data.labels : [];
+  const values = Array.isArray(props.data?.data) ? props.data.data : [];
 
-  const points = chart.getElementsAtEventForMode(
-    evt,
-    "nearest",
-    { intersect: true },
-    true
-  );
-
-  if (points.length) {
-    const idx = points[0].index;
-    const label = chart.data.labels[idx];
-    emit("slice-click", label);
-  }
-}
-
-function renderChart() {
-  if (!canvas.value || !props.data?.labels?.length) return;
-
-  if (chart) {
-    chart.destroy();
-  }
-
-  chart = new Chart(canvas.value, {
-    type: "doughnut",
-    data: {
-      labels: props.data.labels,
-      datasets: [
-        {
-          data: props.data.data,
-          backgroundColor: props.colors,
-          borderWidth: 0,
-          cutout: "60%",
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => {
-              const label = ctx.label || "";
-              const value = ctx.parsed || 0;
-              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-              const percentage = ((value / total) * 100).toFixed(1);
-              return `${label}: ${value.toFixed(1)}h (${percentage}%)`;
-            },
-          },
-        },
-      },
-    },
-  });
-}
-
-onMounted(() => {
-  nextTick(() => {
-    renderChart();
-  });
+  return labels.map((label, index) => ({
+    name: label,
+    value: Number(values[index] ?? 0),
+  }));
 });
 
-watch(() => props.data, renderChart, { deep: true });
+const computedTotal = computed(() => {
+  if (props.totalHours && props.totalHours > 0) {
+    return Number(props.totalHours);
+  }
+  return seriesData.value.reduce((sum, item) => sum + item.value, 0);
+});
+
+const option = computed(() => {
+  const palette = props.colors.length
+    ? props.colors
+    : [
+        "#6366f1",
+        "#f97316",
+        "#0ea5e9",
+        "#22c55e",
+        "#facc15",
+        "#ef4444",
+        "#8b5cf6",
+      ];
+
+  return {
+    color: palette,
+    tooltip: {
+      trigger: "item",
+      backgroundColor: "rgba(30, 27, 75, 0.92)",
+      borderWidth: 0,
+      textStyle: { color: "#f8fafc" },
+      formatter: ({ name, value, percent }) => {
+        const numeric = Number(value ?? 0).toFixed(2);
+        return `${name}<br/>${numeric} 小时 (${percent}%)`;
+      },
+    },
+    legend: {
+      orient: "vertical",
+      right: 0,
+      top: "middle",
+      icon: "circle",
+      itemWidth: 10,
+      itemHeight: 10,
+      textStyle: {
+        color: "#1f2937",
+        fontSize: 12,
+      },
+    },
+    series: [
+      {
+        name: "学习类别",
+        type: "pie",
+        radius: ["46%", "72%"],
+        center: ["42%", "52%"],
+        avoidLabelOverlap: true,
+        itemStyle: {
+          borderRadius: 8,
+          borderColor: "#fff",
+          borderWidth: 2,
+        },
+        label: {
+          formatter: "{b}\n{d}%",
+          color: "#4b5563",
+          fontSize: 12,
+        },
+        labelLine: {
+          length: 18,
+          length2: 12,
+          smooth: true,
+        },
+        data: seriesData.value.length
+          ? seriesData.value
+          : [{ name: "暂无数据", value: 1 }],
+      },
+    ],
+    graphic:
+      computedTotal.value > 0
+        ? [
+            {
+              type: "text",
+              left: "42%",
+              top: "42%",
+              style: {
+                text: computedTotal.value.toFixed(1),
+                fontSize: 24,
+                fontWeight: 700,
+                fill: "#111827",
+                textAlign: "center",
+              },
+            },
+            {
+              type: "text",
+              left: "42%",
+              top: "60%",
+              style: {
+                text: "总时长 (小时)",
+                fontSize: 12,
+                fill: "#64748b",
+                textAlign: "center",
+              },
+            },
+          ]
+        : [],
+  };
+});
+
+function handleSliceClick(params) {
+  if (!params?.data?.name) return;
+  emit("slice-click", params.data.name);
+}
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .doughnut-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 0.75rem;
-  border: 1px solid #d1c4e9;
-  box-shadow: 0 2px 4px rgba(103, 58, 183, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 20px;
+  padding: 22px 22px 18px;
+  border: 1px solid rgba(148, 163, 235, 0.4);
+  box-shadow: 0 18px 48px rgba(99, 102, 241, 0.18);
   display: flex;
   flex-direction: column;
-  height: 100%;
-  max-height: 100%;
-  overflow: hidden;
-}
-
-.doughnut-card:hover {
-  box-shadow: 0 4px 8px rgba(103, 58, 183, 0.12);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  flex-shrink: 0;
-}
-
-.title-with-icon {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.title-icon {
-  width: 20px;
-  height: 20px;
-  color: #667eea;
-  flex-shrink: 0;
-}
-
-.chart-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  color: #1f2937;
-}
-
-.total-badge {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  background: #667eea;
-  padding: 6px 12px;
-  border-radius: 6px;
-  flex-shrink: 0;
-}
-
-.badge-label {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.9);
-  text-transform: uppercase;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-}
-
-.badge-value {
-  font-size: 16px;
-  font-weight: 700;
-  color: #fff;
-  line-height: 1.2;
-}
-
-.doughnut-container {
+  gap: 12px;
   position: relative;
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  overflow: hidden;
 
-.center-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  pointer-events: none;
-}
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -120px 40% auto -120px;
+    height: 280px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      rgba(129, 140, 248, 0.4) 0%,
+      rgba(255, 255, 255, 0) 60%
+    );
+    filter: blur(90px);
+    pointer-events: none;
+  }
 
-.center-value {
-  font-size: 28px;
-  font-weight: 800;
-  color: #1e293b;
-  line-height: 1;
-  margin-bottom: 4px;
-}
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+  }
 
-.center-label {
-  font-size: 13px;
-  color: #64748b;
-  font-weight: 600;
-  margin: 0;
-  text-align: center;
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    svg {
+      width: 36px;
+      height: 36px;
+      color: #6366f1;
+      padding: 8px;
+      border-radius: 12px;
+      background: rgba(99, 102, 241, 0.12);
+    }
+
+    h5 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #1e1b4b;
+    }
+
+    p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: rgba(79, 70, 229, 0.7);
+    }
+  }
+
+  &__summary {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(79, 70, 229, 0.12));
+    position: relative;
+    z-index: 1;
+
+    .label {
+      font-size: 11px;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    strong {
+      font-size: 18px;
+      color: #312e81;
+      font-weight: 700;
+    }
+  }
+
+  &__chart {
+    width: 100%;
+    height: 280px;
+    position: relative;
+    z-index: 1;
+
+    @media (max-width: 768px) {
+      height: 260px;
+    }
+  }
 }
 
 @media (max-width: 768px) {
   .doughnut-card {
-    padding: 1rem;
-  }
-
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .total-badge {
-    align-self: flex-end;
-  }
-
-  .doughnut-container {
-    height: 300px;
-    max-height: 300px;
-  }
-
-  .center-text .center-value {
-    font-size: 28px;
-  }
-
-  .center-text .center-label {
-    font-size: 12px;
+    padding: 20px 16px;
   }
 }
 </style>
