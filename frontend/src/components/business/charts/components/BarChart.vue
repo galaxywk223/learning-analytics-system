@@ -1,200 +1,248 @@
 <template>
-  <div class="bar-card card-animated">
-    <div class="card-header">
-      <div class="title-with-icon">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          class="title-icon"
-        >
-          <path d="M2 13H8V21H2V13ZM9 3H15V21H9V3ZM16 8H22V21H16V8Z" />
+  <div class="bar-card">
+    <header class="bar-card__header">
+      <div class="bar-card__title">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M3 13h5v8H3v-8Zm6-6h5v14h-5V7Zm6 4h6v10h-6V11Z" />
         </svg>
-        <h5 class="chart-title">{{ title }}</h5>
+        <h5>{{ title }}</h5>
       </div>
-      <div class="top-badge">TOP {{ topN }}</div>
+      <span class="bar-card__badge">{{ badgeText }}</span>
+    </header>
+    <div class="bar-card__chart-wrapper">
+      <v-chart
+        class="bar-card__chart"
+        :option="option"
+        :update-options="chartUpdateOptions"
+        autoresize
+        :style="chartStyle"
+      />
     </div>
-    <canvas ref="canvas" class="bar-canvas"></canvas>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue";
-import Chart from "chart.js/auto";
+import { computed } from "vue";
+import { use } from "echarts/core";
+import { BarChart as EBarChart } from "echarts/charts";
+import { GridComponent, TooltipComponent } from "echarts/components";
+import { CanvasRenderer } from "echarts/renderers";
+import VChart from "vue-echarts";
+
+use([CanvasRenderer, EBarChart, GridComponent, TooltipComponent]);
 
 const props = defineProps({
-  data: {
-    type: Object,
-    required: true,
-  },
-  title: {
-    type: String,
-    default: "分类时长排行",
-  },
-  topN: {
-    type: Number,
-    default: 10,
-  },
-  colors: {
-    type: Array,
-    required: true,
-  },
+  data: { type: Object, required: true },
+  title: { type: String, default: "High Frequency Categories" },
+  colors: { type: Array, default: () => [] },
 });
 
-const canvas = ref(null);
-let chart = null;
+const chartUpdateOptions = { replaceMerge: ["series", "yAxis"] };
 
-function renderChart() {
-  if (!canvas.value || !props.data?.labels?.length) return;
+const normalized = computed(() => {
+  const labels = Array.isArray(props.data?.labels) ? props.data.labels : [];
+  const values = Array.isArray(props.data?.data) ? props.data.data : [];
 
-  if (chart) {
-    chart.destroy();
+  return labels.map((label, idx) => {
+    const hasLabel = typeof label === "string" && label.trim().length > 0;
+    const name = hasLabel ? label.trim() : `Unnamed Category ${idx + 1}`;
+    const rawValue = values[idx];
+    const numeric = Number(rawValue ?? 0);
+    return { name, value: Number.isFinite(numeric) ? numeric : 0 };
+  });
+});
+
+const sortedData = computed(() => {
+  const items = [...normalized.value];
+  return items.sort((a, b) => {
+    if (b.value === a.value) {
+      return a.name.localeCompare(b.name);
+    }
+    return b.value - a.value;
+  });
+});
+
+const displayCount = computed(() => sortedData.value.length);
+
+const badgeText = computed(() => `Total ${displayCount.value} items`);
+
+const chartHeight = computed(() => {
+  const rows = Math.max(1, displayCount.value);
+  return Math.max(340, rows * 42 + 140);
+});
+
+const chartStyle = computed(() => ({
+  height: `${chartHeight.value}px`,
+  minHeight: "320px",
+}));
+
+const barColors = computed(() => {
+  if (props.colors?.length) {
+    return props.colors.slice(0, displayCount.value);
   }
-
-  chart = new Chart(canvas.value, {
-    type: "bar",
-    data: {
-      labels: props.data.labels,
-      datasets: [
-        {
-          data: props.data.data,
-          backgroundColor: props.colors,
-          borderRadius: 8,
-          borderSkipped: false,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      indexAxis: "y",
-      layout: {
-        padding: {
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-        },
-      },
-      interaction: { intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => {
-              const label = ctx.label || "";
-              const value = ctx.parsed.x || 0;
-              return `${label}: ${value.toFixed(1)}h`;
-            },
-          },
-        },
-      },
-      scales: {
-        x: {
-          display: false,
-          grid: { display: false },
-          beginAtZero: true,
-        },
-        y: {
-          grid: { display: false },
-          ticks: {
-            autoSkip: false,
-            maxRotation: 0,
-            minRotation: 0,
-          },
-        },
-      },
-    },
-  });
-}
-
-onMounted(() => {
-  nextTick(() => {
-    renderChart();
-  });
+  return [
+    "#6366f1",
+    "#22d3ee",
+    "#f97316",
+    "#0ea5e9",
+    "#facc15",
+    "#10b981",
+    "#f472b6",
+    "#fb7185",
+    "#14b8a6",
+    "#8b5cf6",
+  ];
 });
 
-watch(() => props.data, renderChart, { deep: true });
+const categoryNames = computed(() => sortedData.value.map((item) => item.name));
+
+const longestLabelLength = computed(() =>
+  categoryNames.value.reduce((max, name) => Math.max(max, name ? name.length : 0), 0)
+);
+
+const gridLeft = computed(() => {
+  const charWidth = 9;
+  const estimated = 60 + longestLabelLength.value * charWidth;
+  return Math.min(220, Math.max(90, estimated));
+});
+
+const seriesData = computed(() =>
+  sortedData.value.map((item, idx) => ({
+    value: Number.parseFloat(Number(item.value ?? 0).toFixed(2)),
+    itemStyle: { color: barColors.value[idx % barColors.value.length] },
+  }))
+);
+
+const option = computed(() => {
+  const categories = categoryNames.value;
+
+  return {
+    color: barColors.value,
+    grid: {
+      left: gridLeft.value,
+      right: 80,
+      top: 24,
+      bottom: 30,
+      containLabel: true,
+    },
+    tooltip: {
+      trigger: "axis",
+      axisPointer: { type: "shadow" },
+      formatter: (params) => {
+        const item = Array.isArray(params) ? params[0] : params;
+        if (!item) return "";
+        const value = Number(item.value ?? 0);
+        return `${item.name}<br/>${value.toFixed(1)} 小时`;
+      },
+    },
+    xAxis: {
+      type: "value",
+      splitLine: { show: false },
+      axisLabel: { color: "#475569" },
+    },
+    yAxis: {
+      type: "category",
+      inverse: true,
+      data: categories,
+      axisTick: { show: false },
+      axisLine: { show: false },
+      axisLabel: {
+        color: "#334155",
+        fontSize: 12,
+        interval: 0,
+        margin: 12,
+      },
+    },
+    series: [
+      {
+        type: "bar",
+        barWidth: 18,
+        barCategoryGap: "32%",
+        itemStyle: { borderRadius: [0, 12, 12, 0] },
+        emphasis: {
+          itemStyle: {
+            opacity: 0.85,
+          },
+        },
+        data: seriesData.value,
+        label: {
+          show: true,
+          position: "right",
+          formatter: ({ value }) => `${Number(value ?? 0).toFixed(1)}h`,
+          color: "#1f2937",
+          fontSize: 12,
+        },
+      },
+    ],
+  };
+});
 </script>
 
 <style scoped>
 .bar-card {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 0.75rem;
-  border: 1px solid #d1c4e9;
-  box-shadow: 0 2px 4px rgba(103, 58, 183, 0.08);
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 235, 0.35);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  gap: 12px;
+  min-height: 280px;
 }
 
-.bar-card:hover {
-  box-shadow: 0 4px 8px rgba(103, 58, 183, 0.12);
-}
-
-.card-header {
+.bar-card__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
-  flex-shrink: 0;
 }
 
-.title-with-icon {
+.bar-card__title {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 10px;
+  color: #1f1d47;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    color: #6366f1;
+  }
+
+  h5 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
 }
 
-.title-icon {
-  width: 20px;
-  height: 20px;
-  color: #667eea;
-  flex-shrink: 0;
-}
-
-.chart-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-  color: #1f2937;
-}
-
-.top-badge {
-  background: #f59e0b;
-  color: #fff;
-  padding: 4px 10px;
-  border-radius: 6px;
+.bar-card__badge {
   font-size: 12px;
+  color: #4f46e5;
+  background: rgba(99, 102, 241, 0.12);
+  border-radius: 999px;
+  padding: 4px 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  flex-shrink: 0;
 }
 
-.bar-canvas {
-  width: 100%;
+.bar-card__chart-wrapper {
   flex: 1;
-  min-height: 0;
-  max-height: 100%;
+  max-height: 420px;
+  overflow-y: auto;
+  margin-right: -6px;
+  padding-right: 6px;
 }
 
-@media (max-width: 768px) {
-  .bar-card {
-    padding: 1rem;
-  }
+.bar-card__chart-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
 
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
+.bar-card__chart-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 999px;
+}
 
-  .top-badge {
-    align-self: flex-end;
-  }
+.bar-card__chart {
+  width: 100%;
 }
 </style>

@@ -15,7 +15,20 @@
           <Icon icon="lucide:sparkles" />
         </div>
         <div class="motto-content">
-          <p class="motto-text">{{ mottoText }}</p>
+          <div
+            class="motto-track"
+            :class="{ 'is-animating': marqueeActive }"
+          >
+            <div class="motto-track__inner">
+              <span
+                v-for="(text, idx) in marqueeItems"
+                :key="idx"
+                class="motto-text"
+              >
+                {{ text }}
+              </span>
+            </div>
+          </div>
         </div>
         <button
           class="motto-refresh"
@@ -101,47 +114,96 @@ const mottoText = ref("正在加载今日份的鸡汤...");
 const mottoLoading = ref(false);
 const lastMottoLoadedAt = ref(0);
 
-const MIN_REFRESH_INTERVAL = 5_000;
-
-async function refreshMotto(force = false) {
-  if (!authStore.accessToken) {
-    mottoText.value = "δ��¼���޷���ȡ����";
-    return;
-  }
-  if (mottoLoading.value) {
-    return;
-  }
-  if (!force && Date.now() - lastMottoLoadedAt.value < MIN_REFRESH_INTERVAL) {
-    return;
-  }
-
-  mottoLoading.value = true;
-  try {
-    // Pinia auth store ʹ�� accessToken ���ԣ������� token
-    const resp = await axios.get("/api/mottos/random", {
-      headers: { Authorization: `Bearer ${authStore.accessToken}` },
-    });
-    if (resp.data.success) {
-      // ��˼��ݾɸ�ʽ������ content �ֶΣ����� motto �������� content ��Ϊ fallback
-      if (resp.data.content) {
-        mottoText.value = resp.data.content;
-      } else if (resp.data.motto && resp.data.motto.content) {
-        mottoText.value = resp.data.motto.content;
-      } else {
-        mottoText.value = "û�п��õĸ���";
-      }
-      lastMottoLoadedAt.value = Date.now();
-    } else {
-      mottoText.value = "û�п��õĸ���";
-    }
-  } catch (e) {
-    console.error("Failed to load motto:", e);
-    mottoText.value = "����ʧ�ܣ����Ժ�����";
-  } finally {
-    mottoLoading.value = false;
-  }
-}
-
+const MIN_REFRESH_INTERVAL = 5_000;
+
+const mottoDisplay = computed(() => mottoText.value || "");
+const marqueeItems = computed(() => {
+  const text = mottoDisplay.value;
+  return text ? [text, text] : ["", ""];
+});
+const marqueeActive = computed(() => marqueeItems.value[0].length > 0);
+
+
+
+
+async function refreshMotto(force = false) {
+
+  if (!authStore.accessToken) {
+
+    mottoText.value = "δ��¼���޷���ȡ����";
+
+    return;
+
+  }
+
+  if (mottoLoading.value) {
+
+    return;
+
+  }
+
+  if (!force && Date.now() - lastMottoLoadedAt.value < MIN_REFRESH_INTERVAL) {
+
+    return;
+
+  }
+
+
+
+  mottoLoading.value = true;
+
+  try {
+
+    // Pinia auth store ʹ�� accessToken ���ԣ������� token
+
+    const resp = await axios.get("/api/mottos/random", {
+
+      headers: { Authorization: `Bearer ${authStore.accessToken}` },
+
+    });
+
+    if (resp.data.success) {
+
+      // ��˼��ݾɸ�ʽ������ content �ֶΣ����� motto �������� content ��Ϊ fallback
+
+      if (resp.data.content) {
+
+        mottoText.value = resp.data.content;
+
+      } else if (resp.data.motto && resp.data.motto.content) {
+
+        mottoText.value = resp.data.motto.content;
+
+      } else {
+
+        mottoText.value = "û�п��õĸ���";
+
+      }
+
+      lastMottoLoadedAt.value = Date.now();
+
+    } else {
+
+      mottoText.value = "û�п��õĸ���";
+
+    }
+
+  } catch (e) {
+
+    console.error("Failed to load motto:", e);
+
+    mottoText.value = "����ʧ�ܣ����Ժ�����";
+
+  } finally {
+
+    mottoLoading.value = false;
+
+  }
+
+}
+
+
+
 onMounted(async () => {
   await dashboardStore.fetchSummary();
   // 若 dashboard summary 已包含 random_motto 则直接展示以减少一次网络请求

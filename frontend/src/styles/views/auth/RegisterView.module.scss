@@ -1,313 +1,150 @@
-@use "sass:color";
-@import "./variables";
-@import "./mixins";
-@import "./animations";
-
 .registerContainer {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  padding: 2rem;
-  overflow: hidden;
-  @include gradient-background;
-
-  // 装饰性背景元素
-  &::before,
-  &::after {
-    content: "";
-    position: absolute;
-    border-radius: 50%;
-    opacity: 0.1;
-  }
-
-  &::before {
-    width: 500px;
-    height: 500px;
-    background: white;
-    top: -150px;
-    left: -100px;
-    animation: float 7s ease-in-out infinite;
-  }
-
-  &::after {
-    width: 700px;
-    height: 700px;
-    background: white;
-    bottom: -350px;
-    right: -250px;
-    animation: float 9s ease-in-out infinite;
-    animation-delay: 2s;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: linear-gradient(135deg, #f5f3ff 0%, #eef2ff 100%);
 }
 
 .registerCard {
-  position: relative;
   width: 100%;
-  max-width: $auth-card-width;
-  @include glass-morphism;
-  border-radius: $auth-border-radius;
-  box-shadow: $auth-box-shadow;
-  overflow: hidden;
-  animation: fadeInUp 0.6s ease-out;
-  z-index: 1;
-
-  @include responsive-card;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 22px;
+  border: 1px solid rgba(99, 102, 241, 0.16);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  padding: 34px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
 }
 
-.cardHeader {
-  padding: $auth-card-padding $auth-card-padding 2rem;
-  text-align: center;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.8) 0%,
-    transparent 100%
-  );
+.header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
-.logoSection {
-  margin-bottom: 1.5rem;
+.logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #22d3ee 0%, #6366f1 100%);
+  color: #ffffff;
+  font-size: 26px;
+}
 
-  .logo {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, $auth-secondary 0%, $auth-accent 100%);
-    border-radius: 16px;
-    box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
-    animation: pulse-glow 2s ease-in-out infinite;
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 
-    :global(.el-icon) {
-      font-size: 32px;
-      color: white;
-    }
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1f1d47;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: #4f46e5;
   }
 }
 
-.title {
-  margin: 0 0 0.5rem;
-  font-size: 28px;
-  font-weight: 700;
-  color: $auth-text-primary;
-  letter-spacing: -0.5px;
-}
-
-.subtitle {
-  margin: 0;
-  font-size: 15px;
-  color: $auth-text-secondary;
-  font-weight: 400;
-}
-
-.cardBody {
-  padding: 0 $auth-card-padding $auth-card-padding;
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .formItem {
-  margin-bottom: 1.5rem;
-
   :global {
     .el-form-item__label {
+      font-size: 13px;
+      color: #1f2937;
       font-weight: 500;
-      color: $auth-text-primary;
-      font-size: 14px;
-      margin-bottom: 0.5rem;
     }
 
     .el-input__wrapper {
-      height: $auth-input-height;
-      border-radius: 8px;
-      box-shadow: $auth-input-shadow;
-      transition: $auth-transition;
-
-      &:hover {
-        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
-      }
+      border-radius: 10px;
+      background: #f9fafb;
+      border: 1px solid rgba(148, 163, 235, 0.4);
+      box-shadow: none;
 
       &.is-focus {
-        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        border-color: #22d3ee;
+        box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.18);
       }
     }
-
-    .el-input__inner {
-      font-size: 15px;
-      color: $auth-text-primary;
-    }
-  }
-}
-
-.submitButton {
-  width: 100%;
-  height: $auth-input-height;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 8px;
-  background: linear-gradient(135deg, $auth-secondary 0%, $auth-accent 100%);
-  border: none;
-  @include button-hover-effect;
-
-  &:hover {
-    background: linear-gradient(
-      135deg,
-      color.adjust($auth-secondary, $lightness: -5%) 0%,
-      color.adjust($auth-accent, $lightness: -5%) 100%
-    );
   }
 }
 
 .passwordStrength {
-  margin-top: 0.5rem;
-
-  .strengthBar {
-    height: 4px;
-    background: $auth-border-color;
-    border-radius: 2px;
-    overflow: hidden;
-    margin-bottom: 0.5rem;
-
-    .strengthFill {
-      height: 100%;
-      transition: $auth-transition;
-      border-radius: 2px;
-
-      &.weak {
-        width: 33%;
-        background: #ef4444;
-      }
-
-      &.medium {
-        width: 66%;
-        background: #f59e0b;
-      }
-
-      &.strong {
-        width: 100%;
-        background: #10b981;
-      }
-    }
-  }
-
-  .strengthText {
-    font-size: 12px;
-    color: $auth-text-light;
-
-    &.weak {
-      color: #ef4444;
-    }
-    &.medium {
-      color: #f59e0b;
-    }
-    &.strong {
-      color: #10b981;
-    }
-  }
-}
-
-.divider {
+  margin-top: 8px;
   display: flex;
   align-items: center;
-  margin: 2rem 0;
-  color: $auth-text-light;
-  font-size: 14px;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
 
-  &::before,
-  &::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: $auth-border-color;
-  }
+.strengthIndicator {
+  width: 52px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 235, 0.4);
+  transition: background 0.2s ease;
+}
 
-  &::before {
-    margin-right: 1rem;
-  }
+.strengthIndicator.weak {
+  background: linear-gradient(90deg, #f87171, rgba(248, 113, 113, 0.3));
+}
 
-  &::after {
-    margin-left: 1rem;
-  }
+.strengthIndicator.medium {
+  background: linear-gradient(90deg, #f59e0b, rgba(245, 158, 11, 0.3));
+}
+
+.strengthIndicator.strong {
+  background: linear-gradient(90deg, #22c55e, rgba(34, 197, 94, 0.3));
+}
+
+.submitButton {
+  width: 100%;
+  height: 46px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #22d3ee 0%, #6366f1 100%);
+  border: none;
 }
 
 .footer {
-  text-align: center;
-  padding-top: 1.5rem;
-  border-top: 1px solid $auth-border-color;
-  margin-top: 1.5rem;
-
-  .footerText {
-    color: $auth-text-secondary;
-    font-size: 14px;
-    margin-right: 0.5rem;
-  }
-
-  .linkButton {
-    font-weight: 600;
-    color: $auth-secondary;
-
-    &:hover {
-      color: color.adjust($auth-secondary, $lightness: -5%);
-    }
-  }
-}
-
-.benefits {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid $auth-border-color;
-}
-
-.benefit {
   display: flex;
+  justify-content: center;
   align-items: center;
-  padding: 0.75rem;
-  border-radius: 8px;
-  background: rgba(139, 92, 246, 0.05);
-  transition: $auth-transition;
-
-  &:hover {
-    background: rgba(139, 92, 246, 0.1);
-    transform: translateX(4px);
-  }
-
-  .benefitIcon {
-    font-size: 20px;
-    color: $auth-secondary;
-    margin-right: 0.75rem;
-    flex-shrink: 0;
-  }
-
-  .benefitText {
-    font-size: 13px;
-    color: $auth-text-secondary;
-    font-weight: 500;
-  }
+  gap: 8px;
+  font-size: 14px;
+  color: #4b5563;
 }
 
-// 响应式设计
-@media (max-width: 640px) {
-  .registerContainer {
-    padding: 0;
+.linkButton {
+  font-weight: 600;
+  color: #6366f1 !important;
+  padding: 0;
+}
+
+@media (max-width: 520px) {
+  .registerCard {
+    padding: 28px 24px;
   }
 
-  .cardHeader {
-    padding: 2rem 1.5rem 1.5rem;
-  }
-
-  .cardBody {
-    padding: 0 1.5rem 2rem;
-  }
-
-  .title {
-    font-size: 24px;
-  }
-
-  .formItem {
-    margin-bottom: 1.25rem;
+  .headerText h2 {
+    font-size: 22px;
   }
 }

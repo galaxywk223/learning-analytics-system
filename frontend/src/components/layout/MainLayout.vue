@@ -21,61 +21,69 @@
         <span class="logo-text">萤火集</span>
       </div>
 
-      <nav class="sidebar-nav">
-        <el-tooltip content="�Ǳ���" placement="right">
-          <router-link to="/dashboard" class="nav-link">
-            <Icon icon="lucide:layout-dashboard" />
-            <span>�Ǳ���</span>
-          </router-link>
-        </el-tooltip>
-        <el-tooltip content="רעģʽ" placement="right">
-          <router-link to="/focus" class="nav-link">
-            <Icon icon="lucide:target" />
-            <span>רעģʽ</span>
-          </router-link>
-        </el-tooltip>
-        <el-tooltip content="ѧϰ��¼" placement="right">
-          <router-link to="/records" class="nav-link">
-            <Icon icon="lucide:notebook-pen" />
-            <span>ѧϰ��¼</span>
-          </router-link>
-        </el-tooltip>
-        <el-tooltip content="ͳ�Ʒ���" placement="right">
-          <router-link to="/charts" class="nav-link">
-            <Icon icon="lucide:bar-chart-3" />
-            <span>ͳ�Ʒ���</span>
-          </router-link>
-        </el-tooltip>
-        <el-tooltip content="���а�" placement="right">
-          <router-link to="/leaderboard" class="nav-link">
-            <Icon icon="lucide:users" />
-            <span>���а�</span>
-          </router-link>
-        </el-tooltip>
-        <el-tooltip content="����ʱ" placement="right">
-          <router-link to="/countdown" class="nav-link">
-            <Icon icon="lucide:timer" />
-            <span>����ʱ</span>
-          </router-link>
-        </el-tooltip>
-        <el-tooltip content="�ɾ�ʱ��" placement="right">
-          <router-link to="/milestones" class="nav-link">
-            <Icon icon="lucide:trophy" />
-            <span>�ɾ�ʱ��</span>
-          </router-link>
-        </el-tooltip>
-        <el-tooltip content="���ܹ滮" placement="right">
-          <router-link to="/ai" class="nav-link">
-            <Icon icon="lucide:sparkles" />
-            <span>���ܹ滮</span>
-          </router-link>
-        </el-tooltip>
-        <el-tooltip content="����" placement="right">
-          <router-link to="/settings" class="nav-link">
-            <Icon icon="lucide:settings" />
-            <span>����</span>
-          </router-link>
-        </el-tooltip>
+      <nav class="sidebar-nav">
+        <el-tooltip content="仪表盘" placement="right">
+          <router-link to="/dashboard" class="nav-link">
+            <Icon icon="lucide:layout-dashboard" />
+            <span>仪表盘</span>
+          </router-link>
+        </el-tooltip>
+
+        <el-tooltip content="专注模式" placement="right">
+          <router-link to="/focus" class="nav-link">
+            <Icon icon="lucide:target" />
+            <span>专注模式</span>
+          </router-link>
+        </el-tooltip>
+
+        <el-tooltip content="学习记录" placement="right">
+          <router-link to="/records" class="nav-link">
+            <Icon icon="lucide:notebook-pen" />
+            <span>学习记录</span>
+          </router-link>
+        </el-tooltip>
+
+        <el-tooltip content="统计分析" placement="right">
+          <router-link to="/charts" class="nav-link">
+            <Icon icon="lucide:bar-chart-3" />
+            <span>统计分析</span>
+          </router-link>
+        </el-tooltip>
+
+        <el-tooltip content="学习排行榜" placement="right">
+          <router-link to="/leaderboard" class="nav-link">
+            <Icon icon="lucide:users" />
+            <span>学习排行榜</span>
+          </router-link>
+        </el-tooltip>
+
+        <el-tooltip content="倒计时" placement="right">
+          <router-link to="/countdown" class="nav-link">
+            <Icon icon="lucide:timer" />
+            <span>倒计时</span>
+          </router-link>
+        </el-tooltip>
+
+        <el-tooltip content="成就时刻" placement="right">
+          <router-link to="/milestones" class="nav-link">
+            <Icon icon="lucide:trophy" />
+            <span>成就时刻</span>
+          </router-link>
+        </el-tooltip>
+
+        <el-tooltip content="智能规划" placement="right">
+          <router-link to="/ai" class="nav-link">
+            <Icon icon="lucide:sparkles" />
+            <span>智能规划</span>
+          </router-link>
+        </el-tooltip>
+
+        <el-tooltip content="系统设置" placement="right">
+          <router-link to="/settings" class="nav-link">
+            <Icon icon="lucide:settings" />
+            <span>系统设置</span>
+          </router-link>
+        </el-tooltip>
       </nav>
 
       <div class="sidebar-footer">

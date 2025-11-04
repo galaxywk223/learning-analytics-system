@@ -20,7 +20,7 @@
         <div class="trend-chart-card__titles">
           <span class="trend-chart-card__badge">{{ viewBadge }}</span>
           <h3>学习趋势洞察</h3>
-          <p>结合学习时长与效率的双轴分析，快速洞悉进步轨迹</p>
+          <p>聚焦学习时长与效率的双轴走势，快速洞悉成长轨迹</p>
         </div>
       </header>
       <v-chart class="trend-chart-card__visual" :option="chartOption" autoresize />
@@ -64,7 +64,7 @@ const props = defineProps({
   stageAnnotations: { type: Array, default: () => [] },
   hasData: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
-  initialView: { type: String, default: "weekly" }, // 'weekly' | 'daily'
+  initialView: { type: String, default: "weekly" },
 });
 
 const currentView = ref(props.initialView === "daily" ? "daily" : "weekly");
@@ -108,20 +108,14 @@ const viewSource = computed(() => {
 
   const labels = Array.isArray(duration?.labels) ? duration.labels : [];
   const durationActual = sanitizeSeries(duration?.actuals, { allowZero: true });
-  const durationTrend = sanitizeSeries(duration?.trends, { allowZero: false });
   const efficiencyActual = sanitizeSeries(efficiency?.actuals, {
     allowZero: true,
-  });
-  const efficiencyTrend = sanitizeSeries(efficiency?.trends, {
-    allowZero: false,
   });
 
   return {
     labels,
     durationActual,
-    durationTrend,
     efficiencyActual,
-    efficiencyTrend,
   };
 });
 
@@ -154,121 +148,26 @@ const showStageHelper = computed(
 );
 
 const chartOption = computed(() => {
-  const {
-    labels,
-    durationActual,
-    durationTrend,
-    efficiencyActual,
-    efficiencyTrend,
-  } = viewSource.value;
-
-  const hasDurationTrend = durationTrend.some((val) => val !== null);
-  const hasEfficiencyTrend = efficiencyTrend.some((val) => val !== null);
+  const { labels, durationActual, efficiencyActual } = viewSource.value;
   const enableZoom = labels.length > 14;
   const sliderWindow = enableZoom
     ? Math.min(100, Math.round((14 / labels.length) * 100))
     : 100;
   const sliderStart = enableZoom ? Math.max(0, 100 - sliderWindow) : 0;
 
-  const series = [
-    {
-      name: durationSeriesLabel.value,
-      type: "line",
-      smooth: true,
-      symbol: "circle",
-      symbolSize: 6,
-      data: durationActual,
-      lineStyle: { width: 3, color: "#6366f1" },
-      areaStyle: {
-        color: "rgba(99, 102, 241, 0.18)",
-      },
-      emphasis: { focus: "series" },
-      markArea: stageMarkArea.value.length
-        ? {
-            silent: true,
-            data: stageMarkArea.value,
-          }
-        : undefined,
-      zlevel: 1,
-    },
-  ];
-
-  if (hasDurationTrend) {
-    series.push({
-      name: "时长趋势",
-      type: "line",
-      smooth: true,
-      symbol: "none",
-      data: durationTrend,
-      lineStyle: {
-        color: "#4338ca",
-        width: 2,
-        type: "dashed",
-      },
-      tooltip: { valueFormatter: (val) => (val == null ? "--" : `${val} h`) },
-      connectNulls: true,
-    });
-  }
-
-  series.push({
-    name: "学习效率",
-    type: "line",
-    smooth: true,
-    symbol: "diamond",
-    symbolSize: 6,
-    data: efficiencyActual,
-    yAxisIndex: 1,
-    lineStyle: { width: 3, color: "#f97316" },
-    areaStyle: {
-      color: "rgba(249, 115, 22, 0.12)",
-    },
-    emphasis: { focus: "series" },
-    zlevel: 1,
-  });
-
-  if (hasEfficiencyTrend) {
-    series.push({
-      name: "效率趋势",
-      type: "line",
-      smooth: true,
-      symbol: "none",
-      data: efficiencyTrend,
-      yAxisIndex: 1,
-      lineStyle: {
-        color: "#ea580c",
-        width: 2,
-        type: "dotted",
-      },
-      connectNulls: true,
-    });
-  }
-
   return {
-    color: ["#6366f1", "#4338ca", "#f97316", "#ea580c"],
+    color: ["#6366f1", "#f97316"],
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "cross" },
       backgroundColor: "rgba(15, 23, 42, 0.9)",
       borderWidth: 0,
       textStyle: { color: "#f8fafc" },
-      formatter: (params) => {
-        const header = `<strong>${params[0]?.axisValueLabel ?? ""}</strong>`;
-        const lines = params
-          .map((item) => {
-            const value =
-              item.value == null || Number.isNaN(item.value)
-                ? "--"
-                : Number(item.value).toFixed(2);
-            const unit = item.seriesName.includes("效率") ? "" : " h";
-            return `<span style="display:inline-block;margin-right:8px;border-radius:50%;width:8px;height:8px;background:${item.color}"></span>${item.seriesName}：${value}${unit}`;
-          })
-          .join("<br/>");
-        return `${header}<br/>${lines}`;
-      },
     },
     legend: {
       top: 12,
       icon: "circle",
+      data: [durationSeriesLabel.value, "学习效率"],
     },
     grid: {
       left: 18,
@@ -321,7 +220,32 @@ const chartOption = computed(() => {
         splitLine: { show: false },
       },
     ],
-    series,
+    series: [
+      {
+        name: durationSeriesLabel.value,
+        type: "line",
+        smooth: true,
+        symbol: "circle",
+        symbolSize: 6,
+        data: durationActual,
+        areaStyle: { opacity: 0.16 },
+        lineStyle: { width: 3 },
+        markArea: stageMarkArea.value.length
+          ? { silent: true, data: stageMarkArea.value }
+          : undefined,
+      },
+      {
+        name: "学习效率",
+        type: "line",
+        smooth: true,
+        symbol: "diamond",
+        symbolSize: 6,
+        yAxisIndex: 1,
+        data: efficiencyActual,
+        lineStyle: { width: 3, color: "#f97316" },
+        areaStyle: { opacity: 0.14 },
+      },
+    ],
   };
 });
 </script>

@@ -108,13 +108,36 @@
   padding: 0 10px;
 }
 
+.motto-track {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.motto-track__inner {
+  display: flex;
+  align-items: center;
+  gap: 56px;
+  width: max-content;
+  transform: translateX(0);
+}
+
+.motto-track.is-animating .motto-track__inner {
+  animation: motto-marquee 18s linear infinite;
+}
+
+.motto-track__inner:hover {
+  animation-play-state: paused;
+}
+
 .motto-text {
+  flex-shrink: 0;
   margin: 0;
-  font-size: 1.8rem;
-  line-height: 1.6;
+  font-size: 1.6rem;
+  line-height: 1.4;
   letter-spacing: 0.04em;
+  white-space: nowrap;
   color: #1f1d47;
-  text-align: center;
   font-family:
     "Long Cang",
     "ZCOOL XiaoWei",
@@ -191,5 +214,21 @@
 
   .motto-text {
     font-size: 1.6rem;
+  }
+}
+
+@keyframes motto-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motto-track.is-animating .motto-track__inner {
+    animation-duration: 1ms;
+    animation-iteration-count: 1;
   }
 }

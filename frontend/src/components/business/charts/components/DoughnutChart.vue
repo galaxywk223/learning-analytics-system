@@ -9,11 +9,11 @@
         </svg>
         <div>
           <h5>{{ title }}</h5>
-          <p>分门别类地回顾近期的时长投入</p>
+          <p>{{ uiText.subtitle }}</p>
         </div>
       </div>
       <div v-if="computedTotal > 0" class="doughnut-card__summary">
-        <span class="label">累计</span>
+        <span class="label">{{ uiText.totalLabel }}</span>
         <strong>{{ computedTotal.toFixed(1) }}h</strong>
       </div>
     </header>
@@ -21,6 +21,7 @@
       ref="chartRef"
       class="doughnut-card__chart"
       :option="option"
+      :update-options="chartUpdateOptions"
       autoresize
       @click="handleSliceClick"
     />
@@ -44,7 +45,7 @@ const props = defineProps({
   },
   title: {
     type: String,
-    default: "学习时长占比",
+    default: "\u5b66\u4e60\u65f6\u957f\u5360\u6bd4",
   },
   totalHours: {
     type: Number,
@@ -68,21 +69,41 @@ const emit = defineEmits(["slice-click"]);
 
 const chartRef = ref();
 
-const seriesData = computed(() => {
+const EMPTY_SLICE_NAME = "\u6682\u65e0\u6570\u636e";
+const LEGEND_LIMIT = 10;
+const chartUpdateOptions = { replaceMerge: ["series", "legend"] };
+const uiText = {
+  subtitle: "\u5206\u7c7b\u65f6\u957f\u5360\u6bd4",
+  totalLabel: "\u7d2f\u8ba1",
+  hoursSuffix: "\u5c0f\u65f6",
+  pieName: "\u5b66\u4e60\u5206\u7c7b",
+};
+const baseSlices = computed(() => {
   const labels = Array.isArray(props.data?.labels) ? props.data.labels : [];
   const values = Array.isArray(props.data?.data) ? props.data.data : [];
-
   return labels.map((label, index) => ({
     name: label,
     value: Number(values[index] ?? 0),
   }));
 });
 
+const seriesData = computed(() => {
+  const cleaned = baseSlices.value.filter((item) => item.value > 0);
+  return cleaned.length ? cleaned : [{ name: EMPTY_SLICE_NAME, value: 1 }];
+});
+
+const legendLabels = computed(() => {
+  const sorted = [...seriesData.value]
+    .filter((item) => item.value > 0 && item.name !== EMPTY_SLICE_NAME)
+    .sort((a, b) => b.value - a.value);
+  return sorted.slice(0, LEGEND_LIMIT).map((item) => item.name);
+});
+
 const computedTotal = computed(() => {
   if (props.totalHours && props.totalHours > 0) {
     return Number(props.totalHours);
   }
-  return seriesData.value.reduce((sum, item) => sum + item.value, 0);
+  return baseSlices.value.reduce((sum, item) => sum + item.value, 0);
 });
 
 const option = computed(() => {
@@ -107,13 +128,15 @@ const option = computed(() => {
       textStyle: { color: "#f8fafc" },
       formatter: ({ name, value, percent }) => {
         const numeric = Number(value ?? 0).toFixed(2);
-        return `${name}<br/>${numeric} 小时 (${percent}%)`;
+        const percentText = Number(percent ?? 0).toFixed(1);
+        return `${name}<br/>${numeric} ${uiText.hoursSuffix} (${percentText}%)`;
       },
     },
     legend: {
       orient: "vertical",
-      right: 0,
+      right: 12,
       top: "middle",
+      data: legendLabels.value,
       icon: "circle",
       itemWidth: 10,
       itemHeight: 10,
@@ -124,10 +147,10 @@ const option = computed(() => {
     },
     series: [
       {
-        name: "学习类别",
+        name: uiText.pieName,
         type: "pie",
-        radius: ["46%", "72%"],
-        center: ["42%", "52%"],
+        radius: ["56%", "84%"],
+        center: ["44%", "50%"],
         avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: 8,
@@ -135,48 +158,14 @@ const option = computed(() => {
           borderWidth: 2,
         },
         label: {
-          formatter: "{b}\n{d}%",
-          color: "#4b5563",
-          fontSize: 12,
+          show: false,
         },
         labelLine: {
-          length: 18,
-          length2: 12,
-          smooth: true,
+          show: false,
         },
-        data: seriesData.value.length
-          ? seriesData.value
-          : [{ name: "暂无数据", value: 1 }],
+        data: seriesData.value,
       },
     ],
-    graphic:
-      computedTotal.value > 0
-        ? [
-            {
-              type: "text",
-              left: "42%",
-              top: "42%",
-              style: {
-                text: computedTotal.value.toFixed(1),
-                fontSize: 24,
-                fontWeight: 700,
-                fill: "#111827",
-                textAlign: "center",
-              },
-            },
-            {
-              type: "text",
-              left: "42%",
-              top: "60%",
-              style: {
-                text: "总时长 (小时)",
-                fontSize: 12,
-                fill: "#64748b",
-                textAlign: "center",
-              },
-            },
-          ]
-        : [],
   };
 });
 
@@ -258,7 +247,11 @@ function handleSliceClick(params) {
     gap: 2px;
     padding: 8px 14px;
     border-radius: 12px;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(79, 70, 229, 0.12));
+    background: linear-gradient(
+      135deg,
+      rgba(99, 102, 241, 0.12),
+      rgba(79, 70, 229, 0.12)
+    );
     position: relative;
     z-index: 1;
 
@@ -294,3 +287,4 @@ function handleSliceClick(params) {
   }
 }
 </style>
+

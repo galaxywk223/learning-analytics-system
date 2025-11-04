@@ -9,23 +9,16 @@
         @slice-click="handleSliceClick"
       />
 
-      <div class="right-panel">
-        <BarChart
-          :data="barData"
-          :title="barTitle"
-          :top-n="TOP_N"
-          :colors="chartColors"
-        />
-
-        <DataTable
-          :data="tableData"
-          :total-hours="totalHours"
-          :drilldown-data="drilldown"
-          :show-navigation="view === 'drilldown'"
-          :is-main-view="view === 'main'"
-          @drill-down="handleDrillDown"
-          @back="goBack"
-        />
+      <div :class="['right-panel', view === 'drilldown' ? 'has-drilldown' : '']">
+        <div v-if="view === 'drilldown'" class="panel-header">
+          <el-button class="panel-back" type="primary" text :icon="ArrowLeft" @click="goBack">
+            {{ TEXT.back }}
+          </el-button>
+          <span class="panel-title">{{ drilldownPanelTitle }}</span>
+        </div>
+        <div class="panel-chart">
+          <BarChart :data="barData" :title="barTitle" :colors="chartColors" />
+        </div>
       </div>
     </div>
   </div>
@@ -37,111 +30,115 @@
       class="empty-icon"
     >
       <path
-        d="M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22ZM12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20ZM11 7H13V9H11V7ZM11 11H13V17H11V11Z"
+        d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10Zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm-.75-11.5h1.5V11h-1.5V8.5Zm0 3h1.5V16h-1.5v-4.5Z"
       />
     </svg>
-    <p class="empty-text">当前筛选范围内没有找到任何带分类的学习记录</p>
+    <p class="empty-text">{{ TEXT.empty }}</p>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, watch } from "vue";
+import { ArrowLeft } from "@element-plus/icons-vue";
+import { ElMessage } from "element-plus";
 import DoughnutChart from "./components/DoughnutChart.vue";
 import BarChart from "./components/BarChart.vue";
-import DataTable from "./components/DataTable.vue";
-import {
-  buildColors,
-  transformDataForChart,
-  calculateTotalHours,
-  formatTableData,
-} from "@/utils/charts";
+import { buildColors, calculateTotalHours } from "@/utils/charts";
 
 const props = defineProps({
   main: { type: Object, default: () => ({}) },
   drilldown: { type: Object, default: () => ({}) },
 });
 
-const emit = defineEmits(["sliceClick"]);
+const emit = defineEmits(["sliceClick", "back"]);
 
-// 响应式数据
 const view = ref("main");
 const currentCategory = ref("");
-const TOP_N = 10;
 
-// 计算属性
+const TEXT = {
+  mainTitle: "\u5b66\u4e60\u65f6\u957f\u5360\u6bd4",
+  drillTitleSuffix: "\u7684\u5b50\u5206\u7c7b\u5360\u6bd4",
+  barMainTitle: "\u5168\u90e8\u5206\u7c7b",
+  barDrillSuffix: "\u7684\u5b50\u5206\u7c7b",
+  panelSuffix: "\u7684\u5b50\u5206\u7c7b\u65f6\u957f",
+  back: "\u8fd4\u56de\u4e0a\u7ea7",
+  empty: "\u5f53\u524d\u7b5b\u9009\u8303\u56f4\u6682\u65e0\u5206\u7c7b\u7edf\u8ba1\u6570\u636e",
+  noChild: "\u8be5\u5206\u7c7b\u6682\u65e0\u5b50\u5206\u7c7b",
+};
+
 const hasData = computed(() => {
   if (view.value === "main") {
-    return props.main && props.main.labels && props.main.labels.length > 0;
-  } else {
-    const dl = props.drilldown[currentCategory.value];
-    return dl && dl.labels && dl.labels.length > 0;
+    return Boolean(props.main?.labels?.length);
   }
+  const target = props.drilldown[currentCategory.value];
+  return Boolean(target?.labels?.length);
 });
 
 const currentData = computed(() => {
   if (view.value === "main") {
-    return props.main;
-  } else {
-    return props.drilldown[currentCategory.value] || {};
+    return props.main || {};
   }
+  return props.drilldown[currentCategory.value] || {};
 });
 
 const totalHours = computed(() => calculateTotalHours(currentData.value));
 
 const currentTitle = computed(() => {
   if (view.value === "main") {
-    return "分类时长占比";
-  } else {
-    return `${currentCategory.value} - 子分类占比`;
+    return TEXT.mainTitle;
   }
+  return `${currentCategory.value} \u00b7 ${TEXT.drillTitleSuffix}`;
 });
 
 const barTitle = computed(() => {
   if (view.value === "main") {
-    return "分类时长排行";
-  } else {
-    return `${currentCategory.value} - 子分类排行`;
+    return TEXT.barMainTitle;
   }
+  return `${currentCategory.value} \u00b7 ${TEXT.barDrillSuffix}`;
 });
 
+const drilldownPanelTitle = computed(() =>
+  `${currentCategory.value} \u00b7 ${TEXT.panelSuffix}`
+);
+
 const chartColors = computed(() => {
-  const dataLength = currentData.value?.labels?.length || 0;
-  return buildColors(dataLength);
+  const length = currentData.value?.labels?.length || 0;
+  return buildColors(Math.max(length, 6));
 });
 
 const doughnutData = computed(() => currentData.value);
+const barData = computed(() => currentData.value);
 
-const barData = computed(() => transformDataForChart(currentData.value, TOP_N));
-
-const tableData = computed(() => formatTableData(currentData.value));
-
-// 事件处理
 function handleSliceClick(label) {
-  if (view.value === "main" && props.drilldown[label]?.labels?.length > 0) {
-    handleDrillDown(label);
+  if (view.value !== "main") return;
+  const target = props.drilldown[label];
+  if (!target || !target.labels?.length) {
+    ElMessage.info(TEXT.noChild);
+    return;
   }
-}
-
-function handleDrillDown(category) {
-  currentCategory.value = category;
+  currentCategory.value = label;
   view.value = "drilldown";
-  emit("sliceClick", category);
+  emit("sliceClick", label);
 }
 
 function goBack() {
   view.value = "main";
   currentCategory.value = "";
+  emit("back");
 }
 
-// 监听器
+defineExpose({ goBack });
+
 watch(
-  () => props.main,
+  () => [props.drilldown, currentCategory.value],
   () => {
     if (
       view.value === "drilldown" &&
       !props.drilldown[currentCategory.value]?.labels?.length
     ) {
-      goBack();
+      view.value = "main";
+      currentCategory.value = "";
+      emit("back");
     }
   },
   { deep: true }
@@ -152,26 +149,71 @@ watch(
 .category-wrapper {
   width: 100%;
   padding: 0;
-  height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .main-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: minmax(320px, 1fr) minmax(0, 1fr);
+  gap: 16px;
   align-items: stretch;
-  height: 100%;
-  max-height: calc(100vh - 280px);
 }
 
 .right-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  height: 100%;
-  min-height: 0;
+  gap: 20px;
+}
+
+.right-panel.has-drilldown {
+  padding-top: 40px;
+}
+
+.panel-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  backdrop-filter: blur(6px);
+}
+
+.panel-header :deep(.panel-back) {
+  padding: 2px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.panel-header :deep(.panel-back .el-icon) {
+  font-size: 14px;
+}
+
+.panel-header :deep(.panel-back.el-button--text) {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4338ca;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panel-chart {
+  flex: 1;
 }
 
 .empty-state {
@@ -182,57 +224,46 @@ watch(
   padding: 60px 20px;
   text-align: center;
   background: #ffffff;
-  border-radius: 12px;
-  border: 1px dashed #d1c4e9;
+  border-radius: 16px;
+  border: 1px dashed rgba(99, 102, 241, 0.3);
   margin: 1rem 0;
 }
 
 .empty-icon {
   width: 56px;
   height: 56px;
-  color: #9ca3af;
+  color: #94a3b8;
   margin-bottom: 1rem;
 }
 
 .empty-text {
   font-size: 15px;
-  color: #6b7280;
+  color: #64748b;
   margin: 0;
-  max-width: 400px;
-  line-height: 1.5;
+  max-width: 420px;
+  line-height: 1.6;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1100px) {
   .main-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
   }
 }
 
 @media (max-width: 768px) {
-  .category-wrapper {
-    padding: 0;
-  }
-
   .main-grid {
-    gap: 1rem;
+    gap: 12px;
   }
 
   .right-panel {
-    gap: 1rem;
+    padding-top: 44px;
   }
 
-  .empty-state {
-    padding: 40px 20px;
-  }
-
-  .empty-icon {
-    width: 48px;
-    height: 48px;
-  }
-
-  .empty-text {
-    font-size: 14px;
+  .panel-header {
+    position: static;
+    display: flex;
+    margin-bottom: 8px;
   }
 }
 </style>
+

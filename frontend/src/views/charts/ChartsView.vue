@@ -40,10 +40,7 @@
           </button>
         </div>
       </div>
-      <div
-        class="category-filters"
-        v-if="charts.activeTab === 'categories'"
-      >
+      <div class="category-filters" v-if="charts.activeTab === 'categories'">
         <div class="btn-group filter-switch">
           <button
             v-for="mode in categoryModes"
@@ -167,11 +164,7 @@
           当前筛选范围内没有找到任何带分类的学习记录。
         </div>
         <div class="category-header" v-if="categoryPath.length">
-          <el-button
-            size="small"
-            text
-            type="primary"
-            @click="charts.backCategory"
+          <el-button size="small" text type="primary" @click="handleBackClick"
             >⬅️ 返回上级</el-button
           >
           <span class="path"
@@ -183,6 +176,7 @@
           </span>
         </div>
         <CategoryComposite
+          ref="categoryCompositeRef"
           :main="charts.categoryData.main"
           :drilldown="charts.categoryData.drilldown"
           :loading="charts.loading"
@@ -224,12 +218,18 @@ const rawChartData = computed<Record<string, any>>(
 );
 
 type CategoryBreadcrumb = { id: string | number; name: string };
-const categoryPath = computed<CategoryBreadcrumb[]>(
-  () =>
-    ((charts as unknown as Record<string, unknown>).categoryPath as
-      | CategoryBreadcrumb[]
-      | undefined) ?? []
-);
+const categoryPath = computed<CategoryBreadcrumb[]>(() => {
+  const rawPath = (charts as unknown as Record<string, unknown>)
+    .categoryPath as CategoryBreadcrumb[] | undefined;
+  if (Array.isArray(rawPath) && rawPath.length) {
+    return rawPath;
+  }
+  if (charts.currentCategoryView === "drilldown" && charts.currentCategory) {
+    const name = String(charts.currentCategory);
+    return [{ id: name, name }];
+  }
+  return [];
+});
 
 const datePoint = computed({
   get: () => charts.categoryDatePoint,
@@ -247,10 +247,17 @@ function onCategorySlice(cat) {
 }
 
 function jumpTo(index) {
-  // 回退到路径中某一层
+  // Jump breadcrumb back to a target level
   if (index < 0) return;
   while (categoryPath.value.length > index + 1) {
-    charts.backCategory();
+    if (
+      categoryCompositeRef.value &&
+      typeof categoryCompositeRef.value.goBack === "function"
+    ) {
+      categoryCompositeRef.value.goBack();
+    } else {
+      charts.backCategory();
+    }
   }
 }
 
@@ -304,6 +311,20 @@ onMounted(async () => {
 onActivated(async () => {
   await charts.refreshAll();
 });
+
+// ref to child composite component to call goBack when user clicks header back
+const categoryCompositeRef = ref(null);
+
+function handleBackClick() {
+  if (
+    categoryCompositeRef.value &&
+    typeof categoryCompositeRef.value.goBack === "function"
+  ) {
+    categoryCompositeRef.value.goBack();
+    return;
+  }
+  charts.backCategory();
+}
 </script>
 
 <style scoped lang="scss">
