@@ -3,7 +3,11 @@ import math
 from datetime import date, timedelta
 from itertools import groupby
 from numbers import Number
+
 from flask import current_app
+from sqlalchemy import tuple_
+from sqlalchemy.orm import joinedload
+
 from app import db
 from app.models import Stage, LogEntry, WeeklyData, DailyData, Category, SubCategory
 from .helpers import get_custom_week_info
@@ -237,21 +241,49 @@ def recalculate_efficiency_for_stage(stage):
 
 def get_structured_logs_for_stage(stage, sort_order="desc"):
     is_reverse = sort_order == "desc"
-    all_logs = stage.log_entries.order_by(
-        LogEntry.log_date.asc(), LogEntry.id.asc()
-    ).all()
-    day_data_map = {d.log_date: d for d in stage.daily_data.all()}
-    week_data_map = {(w.year, w.week_num): w for w in stage.weekly_data.all()}
+
+    log_query = stage.log_entries.options(
+        joinedload(LogEntry.subcategory).joinedload(SubCategory.category)
+    ).order_by(LogEntry.log_date.asc(), LogEntry.id.asc())
+    all_logs = log_query.all()
+
     structured_logs = []
     if not all_logs:
         return structured_logs
+
+    log_dates = {log.log_date for log in all_logs}
+    week_keys = {
+        get_custom_week_info(log.log_date, stage.start_date) for log in all_logs
+    }
+
+    day_data_map = {}
+    if log_dates:
+        daily_rows = (
+            DailyData.query.filter(
+                DailyData.stage_id == stage.id, DailyData.log_date.in_(log_dates)
+            ).all()
+        )
+        day_data_map = {row.log_date: row for row in daily_rows}
+
+    week_data_map = {}
+    if week_keys:
+        weekly_rows = (
+            WeeklyData.query.filter(
+                WeeklyData.stage_id == stage.id,
+                tuple_(WeeklyData.year, WeeklyData.week_num).in_(list(week_keys)),
+            ).all()
+        )
+        week_data_map = {(row.year, row.week_num): row for row in weekly_rows}
+
     logs_by_week_iter = groupby(
         all_logs, key=lambda log: get_custom_week_info(log.log_date, stage.start_date)
     )
     for (year, week_num), week_logs in logs_by_week_iter:
+        week_logs_list = list(week_logs)
         days_in_week = []
-        logs_by_day_iter = groupby(list(week_logs), key=lambda log: log.log_date)
+        logs_by_day_iter = groupby(week_logs_list, key=lambda log: log.log_date)
         for day_date, day_logs in logs_by_day_iter:
+            day_logs_list = list(day_logs)
             day_data = day_data_map.get(day_date)
             days_in_week.append(
                 {
@@ -259,7 +291,7 @@ def get_structured_logs_for_stage(stage, sort_order="desc"):
                     "efficiency": day_data.efficiency if day_data else 0,
                     "logs": [
                         format_record_for_response(log, stage=stage)
-                        for log in list(day_logs)
+                        for log in day_logs_list
                     ],
                 }
             )

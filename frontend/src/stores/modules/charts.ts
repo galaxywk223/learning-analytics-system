@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import dayjs from "dayjs";
 import { chartsAPI } from "@/api/modules/charts";
 import { stageAPI } from "@/api/modules/stage";
 import { ElMessage } from "element-plus";
@@ -51,6 +52,13 @@ export const useChartsStore = defineStore("charts", () => {
 
   // 阶段列表
   const stages = ref([]);
+
+  // Category filter state
+  const categoryRangeMode = ref<
+    "all" | "stage" | "daily" | "weekly" | "monthly" | "custom"
+  >("all");
+  const categoryDatePoint = ref<string | null>(null); // 单点日期：日/周/月选择器
+  const categoryCustomRange = ref<[string, string] | null>(null); // 自定义范围
 
   // ========== 计算属性 ==========
   const hasTrendsData = computed(
@@ -158,17 +166,71 @@ export const useChartsStore = defineStore("charts", () => {
    * 获取分类数据（与旧项目 fetchAndRenderAll 对应）
    */
   async function fetchCategories() {
+    loading.value = true;
     try {
-      console.log(
-        "[Charts Store] Fetching categories with stage_id:",
-        stageId.value
-      );
-      const response = await chartsAPI.getCategories({
-        stage_id: stageId.value,
-      });
+      const mode = categoryRangeMode.value;
+      let start: string | null = null;
+      let end: string | null = null;
+
+      if (mode === "daily" && categoryDatePoint.value) {
+        const base = dayjs(categoryDatePoint.value);
+        if (base.isValid()) {
+          const formatted = base.format("YYYY-MM-DD");
+          start = formatted;
+          end = formatted;
+        }
+      } else if (mode === "weekly" && categoryDatePoint.value) {
+        const base = dayjs(categoryDatePoint.value);
+        if (base.isValid()) {
+          const weekStart = base
+            .startOf("day")
+            .subtract((base.day() + 6) % 7, "day");
+          start = weekStart.format("YYYY-MM-DD");
+          end = weekStart.add(6, "day").format("YYYY-MM-DD");
+        }
+      } else if (mode === "monthly" && categoryDatePoint.value) {
+        const base = dayjs(categoryDatePoint.value);
+        if (base.isValid()) {
+          start = base.startOf("month").format("YYYY-MM-DD");
+          end = base.endOf("month").format("YYYY-MM-DD");
+        }
+      } else if (mode === "custom" && categoryCustomRange.value) {
+        const [rangeStart, rangeEnd] = categoryCustomRange.value;
+        if (rangeStart && rangeEnd) {
+          const startDate = dayjs(rangeStart);
+          const endDate = dayjs(rangeEnd);
+          if (startDate.isValid() && endDate.isValid()) {
+            start = startDate.format("YYYY-MM-DD");
+            end = endDate.format("YYYY-MM-DD");
+          }
+        }
+      }
+
+        const params: Record<string, any> = {
+          stage_id: stageId.value,
+          range_mode: mode,
+        };
+        const requiresRange = ["daily", "weekly", "monthly", "custom"].includes(
+          mode
+        );
+        if (requiresRange && (!start || !end)) {
+          categoryData.value = {
+            main: { labels: [], data: [] },
+            drilldown: {},
+          };
+          currentCategoryView.value = "main";
+          currentCategory.value = "";
+          return;
+        }
+        if (start && end) {
+          params.start_date = start;
+          params.end_date = end;
+        }
+
+      console.log("[Charts Store] Fetching categories with params:", params);
+      const response = await chartsAPI.getCategories(params);
       console.log("[Charts Store] Received category response:", response);
 
-      // 确保我们获取的是数据对象，而不是 Axios Response
       const data = (response as any).data || response;
       console.log("[Charts Store] Extracted category data:", data);
       console.log("[Charts Store] Data main labels:", data?.main?.labels);
@@ -184,13 +246,10 @@ export const useChartsStore = defineStore("charts", () => {
         };
         console.log("[Charts Store] Category data set:", categoryData.value);
         console.log("[Charts Store] hasCategoryData:", hasCategoryData.value);
-        // 重置视图状态
         currentCategoryView.value = "main";
         currentCategory.value = "";
       } else {
-        console.log(
-          "[Charts Store] No valid data received, setting empty structure"
-        );
+        console.log("[Charts Store] No valid data received, setting empty structure");
         categoryData.value = {
           main: { labels: [], data: [] },
           drilldown: {},
@@ -198,9 +257,12 @@ export const useChartsStore = defineStore("charts", () => {
       }
     } catch (error) {
       console.error("Error fetching category data:", error);
-      ElMessage.error("加载分类图表数据失败");
+      ElMessage.error("���ط���ͼ������ʧ��");
+    } finally {
+      loading.value = false;
     }
   }
+
 
   /**
    * 分类下钻
@@ -242,6 +304,44 @@ export const useChartsStore = defineStore("charts", () => {
       console.log(
         "[Charts Store] Active tab is not categories, skipping category fetch"
       );
+    }
+  }
+
+  function setCategoryRangeMode(mode: typeof categoryRangeMode.value) {
+    if (categoryRangeMode.value === mode) {
+      return;
+    }
+    categoryRangeMode.value = mode;
+
+    if (mode !== "custom") {
+      categoryCustomRange.value = null;
+    }
+    categoryDatePoint.value = null;
+
+    if (mode === "all" || mode === "stage") {
+      fetchCategories();
+    }
+  }
+
+  function setCategoryDatePoint(value: string | null) {
+    categoryDatePoint.value = value;
+    if (
+      value &&
+      ["daily", "weekly", "monthly"].includes(categoryRangeMode.value)
+    ) {
+      fetchCategories();
+    }
+  }
+
+  function setCategoryCustomRange(range: [string, string] | null) {
+    categoryCustomRange.value = range;
+    if (
+      categoryRangeMode.value === "custom" &&
+      range &&
+      range[0] &&
+      range[1]
+    ) {
+      fetchCategories();
     }
   }
 
@@ -305,6 +405,9 @@ export const useChartsStore = defineStore("charts", () => {
     categoryData,
     currentCategoryView,
     currentCategory,
+    categoryRangeMode,
+    categoryDatePoint,
+    categoryCustomRange,
     stages,
     // 计算属性
     hasTrendsData,
@@ -316,6 +419,9 @@ export const useChartsStore = defineStore("charts", () => {
     drillCategory,
     backCategory,
     refreshAll,
+    setCategoryRangeMode,
+    setCategoryDatePoint,
+    setCategoryCustomRange,
     setViewType,
     setStage,
     setActiveTab,

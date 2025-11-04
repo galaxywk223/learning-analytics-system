@@ -47,7 +47,7 @@ class Milestone(db.Model):
     attachments = db.relationship(
         "MilestoneAttachment",
         backref="milestone",
-        lazy="dynamic",
+        lazy="selectin",
         cascade="all, delete-orphan",
     )
 

@@ -2,6 +2,7 @@
 图表统计API蓝图
 """
 
+from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app, Response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import Stage
@@ -51,6 +52,24 @@ def get_categories():
     """
     current_user_id = get_jwt_identity()
     stage_id = request.args.get("stage_id")
+    range_mode = request.args.get("range_mode", "all")
+    start_date_raw = request.args.get("start_date")
+    end_date_raw = request.args.get("end_date")
+
+    def _parse_date(value):
+        if not value:
+            return None
+        try:
+            return datetime.strptime(value, "%Y-%m-%d").date()
+        except (TypeError, ValueError):
+            return None
+
+    parsed_start = _parse_date(start_date_raw)
+    parsed_end = _parse_date(end_date_raw)
+
+    if range_mode in {"daily", "weekly", "monthly", "custom"}:
+        if not parsed_start or not parsed_end or parsed_start > parsed_end:
+            return jsonify({"success": False, "message": "无效的时间范围"}), 400
 
     try:
         # 处理stage_id参数
@@ -64,7 +83,12 @@ def get_categories():
             stage_id = None
 
         # 获取分类图表数据
-        category_data = get_category_chart_data(current_user_id, stage_id)
+        category_data = get_category_chart_data(
+            current_user_id,
+            stage_id=stage_id,
+            start_date=parsed_start,
+            end_date=parsed_end,
+        )
 
         if category_data is None:
             # 返回空数据结构，与旧项目一致

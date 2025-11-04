@@ -91,6 +91,18 @@ const routes: RouteRecordRaw[] = [
         meta: { title: "统计分析" },
       },
       {
+        path: "leaderboard",
+        name: "Leaderboard",
+        component: () => import("@/views/leaderboard/LeaderboardView.vue"),
+        meta: { title: "排行榜" },
+      },
+      {
+        path: "ai",
+        name: "AIAssistant",
+        component: () => import("@/views/ai/AIAssistantView.vue"),
+        meta: { title: "智能规划" },
+      },
+      {
         path: "settings",
         component: () => import("@/views/settings/SettingsLayout.vue"),
         // 旧项目默认进入账户设置页

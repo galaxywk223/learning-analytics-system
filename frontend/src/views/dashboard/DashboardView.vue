@@ -54,7 +54,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onActivated } from "vue";
 import { Icon } from "@iconify/vue";
 import { useDashboardStore } from "@/stores/modules/dashboard";
 import { useAuthStore } from "@/stores/modules/auth";
@@ -83,6 +83,7 @@ const recordSummary = computed(() => {
 });
 
 const chartSummary = computed(() => "查看学习统计与趋势分析");
+const leaderboardSummary = computed(() => "实时查看全站学习排行榜");
 
 const countdownSummary = computed(() => {
   const count = dashboardStore.summary?.countdown_count ?? 0;
@@ -98,15 +99,20 @@ const milestoneSummary = computed(() => {
 /* Motto logic */
 const mottoText = ref("正在加载今日份的鸡汤...");
 const mottoLoading = ref(false);
+const lastMottoLoadedAt = ref(0);
 
 async function refreshMotto() {
+  if (!authStore.accessToken) {
+    mottoText.value = "未登录，无法获取格言";
+    return;
+  }
+  if (!mottoLoading.value && Date.now() - lastMottoLoadedAt.value < 60_000) {
+    return;
+  }
+
   mottoLoading.value = true;
   try {
     // Pinia auth store 使用 accessToken 属性，而不是 token
-    if (!authStore.accessToken) {
-      mottoText.value = "未登录，无法获取格言";
-      return;
-    }
     const resp = await axios.get("/api/mottos/random", {
       headers: { Authorization: `Bearer ${authStore.accessToken}` },
     });
@@ -119,6 +125,7 @@ async function refreshMotto() {
       } else {
         mottoText.value = "没有可用的格言";
       }
+      lastMottoLoadedAt.value = Date.now();
     } else {
       mottoText.value = "没有可用的格言";
     }
@@ -136,6 +143,18 @@ onMounted(async () => {
   const summaryMotto = dashboardStore.summary?.random_motto;
   if (summaryMotto && summaryMotto.content) {
     mottoText.value = summaryMotto.content;
+    lastMottoLoadedAt.value = Date.now();
+  } else {
+    await refreshMotto();
+  }
+});
+
+onActivated(async () => {
+  await dashboardStore.fetchSummary();
+  const summaryMotto = dashboardStore.summary?.random_motto;
+  if (summaryMotto?.content) {
+    mottoText.value = summaryMotto.content;
+    lastMottoLoadedAt.value = Date.now();
   } else {
     await refreshMotto();
   }
@@ -149,7 +168,7 @@ const cards = computed(() => [
     icon: "lucide:timer",
     iconClass: "icon-focus",
     title: "开始专注",
-    summary: "进入专注模式，记录学习时光",
+    summary: "进入专注模式并记录学习时长",
   },
   {
     key: "records",
@@ -170,6 +189,15 @@ const cards = computed(() => [
     summary: chartSummary.value,
   },
   {
+    key: "leaderboard",
+    to: "/leaderboard",
+    class: "card-leaderboard",
+    icon: "lucide:users",
+    iconClass: "icon-leaderboard",
+    title: "排行榜",
+    summary: leaderboardSummary.value,
+  },
+  {
     key: "countdown",
     to: "/countdown",
     class: "card-countdown",
@@ -184,10 +212,29 @@ const cards = computed(() => [
     class: "card-milestone",
     icon: "lucide:award",
     iconClass: "icon-milestone",
-    title: "成就时刻",
+    title: "里程碑",
     summary: milestoneSummary.value,
   },
+  {
+    key: "ai",
+    to: "/ai",
+    class: "card-ai",
+    icon: "lucide:sparkles",
+    iconClass: "icon-ai",
+    title: "智能规划",
+    summary: "生成分析与规划建议",
+  },
+  {
+    key: "settings",
+    to: "/settings",
+    class: "card-settings",
+    icon: "lucide:settings",
+    iconClass: "icon-settings",
+    title: "系统设置",
+    summary: "配置账户与系统偏好",
+  },
 ]);
+
 </script>
 
 <style scoped lang="scss">

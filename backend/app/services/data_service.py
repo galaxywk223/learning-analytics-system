@@ -259,6 +259,14 @@ def import_data_for_user(user, zip_file_stream):
                                                 f"Could not parse date string '{value}' for key '{key}': {ve}"
                                             )
 
+                            if model.__tablename__ == "milestone_attachment":
+                                original_path = record_data.get("file_path")
+                                if original_path:
+                                    filename = os.path.basename(original_path)
+                                    record_data["file_path"] = (
+                                        f"{user.id}/{filename}"
+                                    )
+
                             try:
                                 db.session.add(model(**record_data))
                             except Exception as e:

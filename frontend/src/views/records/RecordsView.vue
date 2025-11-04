@@ -52,9 +52,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onActivated, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { Icon } from "@iconify/vue";
 import RecordForm from "@/components/business/records/RecordForm.vue";
 import RecordHeader from "@/components/business/records/RecordHeader.vue";
 import EmptyState from "@/components/business/records/EmptyState.vue";
@@ -84,9 +83,20 @@ const canAddRecord = computed(() => {
 const currentStage = computed(() => stagesStore.activeStage);
 
 // 加载结构化记录
-const loadRecords = async () => {
+const stageWarningShown = ref(false);
+const lastLoadedAt = ref(0);
+const initialized = ref(false);
+
+const loadRecords = async (force = false) => {
   if (!currentStage.value?.id) {
-    ElMessage.warning("请先创建一个学习阶段");
+    if (!stageWarningShown.value) {
+      ElMessage.warning("请先创建一个学习阶段");
+      stageWarningShown.value = true;
+    }
+    return;
+  }
+
+  if (!force && Date.now() - lastLoadedAt.value < 10_000) {
     return;
   }
 
@@ -101,11 +111,13 @@ const loadRecords = async () => {
 
     if (response.success) {
       structuredLogs.value = response.data || [];
-      // 默认展开第一周
       if (structuredLogs.value.length > 0) {
         const firstWeek = structuredLogs.value[0];
         activeWeeks.value = [`${firstWeek.year}-${firstWeek.week_num}`];
+      } else {
+        activeWeeks.value = [];
       }
+      lastLoadedAt.value = Date.now();
     }
   } catch (error) {
     console.error("加载记录失败:", error);
@@ -118,7 +130,7 @@ const loadRecords = async () => {
 // 改变排序
 const changeSort = (sort) => {
   currentSort.value = sort;
-  loadRecords();
+  loadRecords(true);
 };
 
 // 归一化日期（过滤事件对象）
@@ -193,7 +205,7 @@ const handleSubmit = async (formData) => {
     }
 
     dialogVisible.value = false;
-    loadRecords();
+    await loadRecords(true);
   } catch (error) {
     console.error("提交失败:", error);
     const errorMsg =
@@ -215,7 +227,7 @@ const handleDelete = async (record) => {
 
     await request.delete(`/api/records/${record.id}`);
     ElMessage.success("记录已删除。");
-    loadRecords();
+    loadRecords(true);
   } catch (error) {
     if (error !== "cancel") {
       console.error("删除失败:", error);
@@ -234,11 +246,28 @@ const toggleNotes = (logId) => {
   }
 };
 
-onMounted(() => {
-  stagesStore.fetchStages().then(() => {
-    loadRecords();
-  });
+onMounted(async () => {
+  await stagesStore.ensureStages();
+  initialized.value = true;
+  await loadRecords(true);
 });
+
+onActivated(() => {
+  if (initialized.value) {
+    loadRecords();
+  }
+});
+
+watch(
+  () => currentStage.value?.id,
+  (id, previous) => {
+    if (!id || !initialized.value) return;
+    if (id !== previous) {
+      stageWarningShown.value = false;
+      loadRecords(true);
+    }
+  }
+);
 </script>
 
 <style scoped lang="scss">

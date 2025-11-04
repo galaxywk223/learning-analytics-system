@@ -20,16 +20,15 @@
   top: 0;
   left: 0;
   background-color: var(--color-bg-sidebar);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border-right: 1px solid var(--color-border-sidebar);
   color: var(--color-text-light);
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem;
   transition:
-    width 0.15s ease-out,
-    padding 0.15s ease-out;
+    width 0.2s ease,
+    padding 0.2s ease;
+  will-change: width, padding;
   z-index: 50;
   overflow-x: hidden;
   overflow-y: auto;
@@ -59,19 +58,7 @@
   padding: 1rem 0.5rem;
 }
 
-/* hover 时展开 */
-.sidebar.sidebar--collapsed:hover {
-  width: var(--sidebar-width);
-  padding: 1.5rem 1rem;
-}
-
-/* hover 展开时，主内容区跟着推到右边 */
-.sidebar.sidebar--collapsed:hover ~ .main-content {
-  margin-left: var(--sidebar-width);
-  width: calc(100% - var(--sidebar-width));
-}
-
-/* 折叠时隐藏文字 - 不使用过渡动画，直接隐藏 */
+/* 折叠状态下隐藏文字，仅显示图标 */
 .sidebar.sidebar--collapsed .logo-text,
 .sidebar.sidebar--collapsed .nav-link span,
 .sidebar.sidebar--collapsed .sidebar-footer .user-info span,
@@ -80,37 +67,11 @@
   display: none;
 }
 
-/* hover 时显示文字 - 直接显示，无过渡 */
-.sidebar.sidebar--collapsed:hover .logo-text,
-.sidebar.sidebar--collapsed:hover .nav-link span,
-.sidebar.sidebar--collapsed:hover .sidebar-footer .user-info span,
-.sidebar.sidebar--collapsed:hover .sidebar-footer .logout-link span,
-.sidebar.sidebar--collapsed:hover .sidebar-footer p {
-  display: block;
-}
-
-/* 折叠时图标居中 */
 .sidebar.sidebar--collapsed .nav-link {
   justify-content: center;
   padding: 0.75rem 0.5rem;
 }
 
-.sidebar.sidebar--collapsed:hover .nav-link {
-  justify-content: flex-start;
-  padding: 0.75rem 1rem;
-}
-
-.sidebar.sidebar--collapsed .sidebar-header {
-  justify-content: center;
-  gap: 0;
-}
-
-.sidebar.sidebar--collapsed:hover .sidebar-header {
-  justify-content: flex-start;
-  gap: 0.75rem;
-}
-
-/* 页面内容区域根据侧边栏折叠调整左侧间距 */
 .page-wrapper.sidebar-collapsed .main-content {
   margin-left: var(--sidebar-collapsed-width);
 }
@@ -121,8 +82,9 @@
   margin-left: var(--sidebar-collapsed-width);
   padding: 0;
   transition:
-    margin-left 0.15s ease-out,
-    width 0.15s ease-out;
+    margin-left 0.2s ease,
+    width 0.2s ease;
+  will-change: margin-left, width;
   height: 100vh;
   width: calc(100% - var(--sidebar-collapsed-width));
   overflow-y: auto;
@@ -176,9 +138,11 @@
 }
 
 /* ===== Sidebar Components ===== */
+
 .sidebar-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
   padding: 1rem 0.5rem;
   height: 80px;
@@ -186,6 +150,11 @@
   font-size: 1.25rem;
   font-weight: 700;
   font-family: var(--font-family-heading);
+}
+
+.sidebar.sidebar--collapsed .sidebar-header {
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .logo-text {
@@ -204,6 +173,15 @@
   flex-grow: 1;
   padding-top: 1rem;
 }
+
+.sidebar-nav .el-tooltip {
+  display: block;
+}
+
+.sidebar-nav .el-tooltip .nav-link {
+  width: 100%;
+}
+
 
 .sidebar-footer {
   padding-top: 1.5rem;
@@ -302,6 +280,7 @@
 }
 
 /* ===== Responsive Design ===== */
+
 @media (max-width: 768px) {
   .sidebar {
     width: 100%;
@@ -312,18 +291,7 @@
     padding: 0.5rem 1rem;
   }
 
-  /* 移动端禁用 hover 效果 */
-  .sidebar.sidebar--collapsed:hover {
-    width: 100%;
-    padding: 0.5rem 1rem;
-  }
-
-  .sidebar-header {
-    height: auto;
-    padding: 0;
-    gap: 0.5rem;
-  }
-
+  
   .sidebar-nav {
     flex-direction: row;
     justify-content: flex-end;

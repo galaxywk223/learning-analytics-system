@@ -103,6 +103,8 @@ def create_app(config_name=None):
                     "categories": "/api/categories",
                     "records": "/api/records",
                     "charts": "/api/charts",
+                    "leaderboard": "/api/leaderboard",
+                    "ai": "/api/ai",
                     "todos": "/api/todos",
                     "milestones": "/api/milestones",
                     # "daily-plans": "/api/daily-plans",  # 屏蔽
@@ -152,7 +154,7 @@ def setup_logging(app):
 def register_blueprints(app):
     """注册所有蓝图"""
     from app.api import auth, users, stages, categories, records, charts
-    from app.api import todos, milestones, countdowns, mottos
+    from app.api import todos, milestones, countdowns, mottos, leaderboard, ai
 
     # 注册API蓝图
     app.register_blueprint(auth.bp, url_prefix="/api/auth")
@@ -166,6 +168,8 @@ def register_blueprints(app):
     # app.register_blueprint(daily_plans.bp, url_prefix="/api/daily-plans")  # 屏蔽每日计划
     app.register_blueprint(countdowns.bp, url_prefix="/api/countdowns")
     app.register_blueprint(mottos.bp, url_prefix="/api/mottos")  # 恢复座右铭
+    app.register_blueprint(leaderboard.bp, url_prefix="/api/leaderboard")
+    app.register_blueprint(ai.bp, url_prefix="/api/ai")
 
 
 def register_error_handlers(app):

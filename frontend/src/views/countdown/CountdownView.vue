@@ -100,6 +100,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import dayjs from "dayjs";
 import { useCountdownStore } from "@/stores";
 import CountdownItem from "@/components/business/countdown/CountdownItem.vue";
 
@@ -166,7 +167,7 @@ function confirmDelete(ev) {
 }
 
 function today() {
-  return new Date().toISOString().split("T")[0];
+  return dayjs().format("YYYY-MM-DD");
 }
 
 function submit() {

@@ -20,6 +20,7 @@ from .milestones import MilestoneCategory, Milestone, MilestoneAttachment
 
 # 导入日程计划模型
 from .planning import DailyPlanItem
+from .ai import AIInsight
 
 # 导出所有模型，保持向后兼容性
 __all__ = [
@@ -44,4 +45,6 @@ __all__ = [
     "MilestoneAttachment",
     # 日程计划模型
     "DailyPlanItem",
+    # AI
+    "AIInsight",
 ]

@@ -2,7 +2,7 @@
   <div
     class="page-wrapper"
     :data-theme="currentTheme"
-    :class="{ 'sidebar-collapsed': settingsStore.layout.sidebarCollapsed }"
+    :class="{ 'sidebar-collapsed': true }"
   >
     <!-- 侧边栏 -->
     <aside
@@ -22,35 +22,68 @@
       </div>
 
       <nav class="sidebar-nav">
-        <router-link to="/dashboard" class="nav-link">
-          <Icon icon="lucide:layout-dashboard" />
-          <span>仪表盘</span>
-        </router-link>
+        <el-tooltip content="仪表盘" placement="right">
+          <router-link to="/dashboard" class="nav-link">
+            <Icon icon="lucide:layout-dashboard" />
+            <span>仪表盘</span>
+          </router-link>
+        </el-tooltip>
 
-        <router-link to="/records" class="nav-link">
-          <Icon icon="lucide:notebook-pen" />
-          <span>学习记录</span>
-        </router-link>
+        <el-tooltip content="学习记录" placement="right">
+          <router-link to="/records" class="nav-link">
+            <Icon icon="lucide:notebook-pen" />
+            <span>学习记录</span>
+          </router-link>
+        </el-tooltip>
 
-        <router-link to="/charts" class="nav-link">
-          <Icon icon="lucide:bar-chart-3" />
-          <span>统计分析</span>
-        </router-link>
+        <el-tooltip content="统计分析" placement="right">
+          <router-link to="/charts" class="nav-link">
+            <Icon icon="lucide:bar-chart-3" />
+            <span>统计分析</span>
+          </router-link>
+        </el-tooltip>
 
-        <router-link to="/countdown" class="nav-link">
-          <Icon icon="lucide:timer" />
-          <span>倒计时</span>
-        </router-link>
+        <el-tooltip content="排行榜" placement="right">
+          <router-link to="/leaderboard" class="nav-link">
+            <Icon icon="lucide:users" />
+            <span>排行榜</span>
+          </router-link>
+        </el-tooltip>
 
-        <router-link to="/milestones" class="nav-link">
-          <Icon icon="lucide:trophy" />
-          <span>成就时刻</span>
-        </router-link>
+        <el-tooltip content="智能规划" placement="right">
+          <router-link to="/ai" class="nav-link">
+            <Icon icon="lucide:sparkles" />
+            <span>智能规划</span>
+          </router-link>
+        </el-tooltip>
 
-        <router-link to="/settings" class="nav-link">
-          <Icon icon="lucide:settings" />
-          <span>设置</span>
-        </router-link>
+        <el-tooltip content="倒计时" placement="right">
+          <router-link to="/countdown" class="nav-link">
+            <Icon icon="lucide:timer" />
+            <span>倒计时</span>
+          </router-link>
+        </el-tooltip>
+
+        <el-tooltip content="专注模式" placement="right">
+          <router-link to="/focus" class="nav-link">
+            <Icon icon="lucide:target" />
+            <span>专注模式</span>
+          </router-link>
+        </el-tooltip>
+
+        <el-tooltip content="成就时刻" placement="right">
+          <router-link to="/milestones" class="nav-link">
+            <Icon icon="lucide:trophy" />
+            <span>成就时刻</span>
+          </router-link>
+        </el-tooltip>
+
+        <el-tooltip content="设置" placement="right">
+          <router-link to="/settings" class="nav-link">
+            <Icon icon="lucide:settings" />
+            <span>设置</span>
+          </router-link>
+        </el-tooltip>
       </nav>
 
       <div class="sidebar-footer">
@@ -104,11 +137,18 @@ const handleLogout = async () => {
 // 应用背景图片
 onMounted(async () => {
   await settingsStore.fetchSettings();
+  if (!settingsStore.layout.sidebarCollapsed) {
+    settingsStore.setSidebarCollapsed(true);
+  }
   const backgroundImage = settingsStore.backgroundImage;
   if (backgroundImage) {
     document.body.style.backgroundImage = `url(${backgroundImage})`;
   }
 });
+
+const toggleSidebar = () => {
+  settingsStore.setSidebarCollapsed(!settingsStore.layout.sidebarCollapsed);
+};
 
 // 鼠标悬停事件（保留用于未来扩展）
 const handleMouseEnter = () => {};

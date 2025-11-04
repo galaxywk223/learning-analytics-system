@@ -1,4 +1,5 @@
 import type { FormRules } from "element-plus";
+import dayjs from "dayjs";
 
 /**
  * 表单数据接口
@@ -59,7 +60,7 @@ export const formRules: FormRules = {
 export function getDefaultFormData(): FormData {
   return {
     task: "",
-    log_date: new Date().toISOString().split("T")[0],
+    log_date: dayjs().format("YYYY-MM-DD"),
     time_slot: "",
     actual_duration: 0,
     duration_hours: 0,

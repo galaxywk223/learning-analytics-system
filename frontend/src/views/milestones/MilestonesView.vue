@@ -51,9 +51,9 @@
         </div>
       </aside>
       <main class="timeline-wrapper">
-        <ul v-if="items.length" class="timeline">
+        <ul v-if="displayedItems.length" class="timeline">
           <MilestoneItem
-            v-for="m in items"
+            v-for="m in displayedItems"
             :key="m.id"
             :item="m"
             :categories="categories"
@@ -111,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from "vue";
+import { ref, reactive, onMounted, onBeforeUnmount, computed } from "vue";
 import { useRouter } from "vue-router";
 import { Icon } from "@iconify/vue";
 import MilestoneForm from "@/components/milestones/MilestoneForm.vue";
@@ -120,7 +120,8 @@ import { milestoneAPI } from "@/api/modules/milestone";
 
 const router = useRouter();
 const state = reactive({ page: 1, per_page: 10, category_id: null });
-const items = ref([]);
+const allItems = ref([]);
+const displayedItems = ref([]);
 const categories = ref([]);
 const pagination = reactive({
   page: 1,
@@ -140,6 +141,48 @@ async function fetchCategories() {
     console.error(e);
   }
 }
+const RENDER_CHUNK = 12;
+let renderHandle = null;
+
+const requestFrame = (cb) =>
+  typeof window !== "undefined" ? window.requestAnimationFrame(cb) : setTimeout(cb, 16);
+const cancelFrame = (handle) => {
+  if (handle === null) return;
+  if (typeof window !== "undefined") {
+    window.cancelAnimationFrame(handle);
+  } else {
+    clearTimeout(handle);
+  }
+};
+
+function cancelRender() {
+  if (renderHandle !== null) {
+    cancelFrame(renderHandle);
+    renderHandle = null;
+  }
+}
+
+function scheduleRender() {
+  cancelRender();
+  displayedItems.value = [];
+  let index = 0;
+
+  const renderChunk = () => {
+    const slice = allItems.value.slice(index, index + RENDER_CHUNK);
+    if (slice.length) {
+      displayedItems.value = [...displayedItems.value, ...slice];
+      index += RENDER_CHUNK;
+    }
+    if (index < allItems.value.length) {
+      renderHandle = requestFrame(renderChunk);
+    } else {
+      renderHandle = null;
+    }
+  };
+
+  renderChunk();
+}
+
 async function fetchMilestones() {
   if (loading.value) return;
   loading.value = true;
@@ -147,7 +190,8 @@ async function fetchMilestones() {
     const params = { page: state.page, per_page: state.per_page };
     if (state.category_id) params.category_id = state.category_id;
     const res = await milestoneAPI.list(params);
-    items.value = (res.milestones || []).map((m) => ({ ...m }));
+    allItems.value = (res.milestones || []).map((m) => ({ ...m }));
+    scheduleRender();
     if (res.pagination) {
       Object.assign(pagination, res.pagination);
     } else {
@@ -187,12 +231,19 @@ function editMilestone(m) {
   formVisible.value = true;
 }
 function removeMilestone(id) {
-  items.value = items.value.filter((i) => i.id !== id);
+  allItems.value = allItems.value.filter((i) => i.id !== id);
+  displayedItems.value = displayedItems.value.filter((i) => i.id !== id);
 }
 function handleAttachmentDeleted({ milestoneId, attachmentId }) {
-  const m = items.value.find((i) => i.id === milestoneId);
+  const m = allItems.value.find((i) => i.id === milestoneId);
   if (!m) return;
   m.attachments = (m.attachments || []).filter((a) => a.id !== attachmentId);
+  const displayTarget = displayedItems.value.find((i) => i.id === milestoneId);
+  if (displayTarget && displayTarget !== m) {
+    displayTarget.attachments = (displayTarget.attachments || []).filter(
+      (a) => a.id !== attachmentId
+    );
+  }
 }
 async function onSaved(payload) {
   await fetchMilestones();
@@ -204,6 +255,10 @@ function openCategoryManager() {
 onMounted(async () => {
   await fetchCategories();
   await fetchMilestones();
+});
+
+onBeforeUnmount(() => {
+  cancelRender();
 });
 </script>
 

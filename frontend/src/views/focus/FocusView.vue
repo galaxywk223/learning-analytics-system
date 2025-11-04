@@ -117,6 +117,7 @@ import { useStageStore } from "@/stores/modules/stage";
 import { useAuthStore } from "@/stores/modules/auth";
 import { recordApi } from "@/api/modules/records";
 import { useFocusTimer } from "@/composables/useFocusTimer";
+import dayjs from "dayjs";
 
 // 组件导入
 import FocusTimer from "@/components/business/focus/FocusTimer.vue";
@@ -134,6 +135,7 @@ const {
   isTimerRunning,
   isPaused,
   elapsedSeconds,
+  startTime: focusStartTime,
   startTimer: timerStart,
   pauseTimer: timerPause,
   resumeTimer: timerResume,
@@ -141,7 +143,6 @@ const {
   cancelSession: timerCancel,
   restoreState,
   clearState,
-  saveState,
 } = useFocusTimer();
 
 // 表单数据
@@ -158,7 +159,6 @@ const stopForm = ref({
   notes: "",
 });
 
-const startTime = ref(null);
 const endTime = ref(null);
 
 const formRef = ref(null);
@@ -170,8 +170,8 @@ const allSubcategories = ref([]); // 存储所有子分类
 
 // 格式化时间显示
 const startTimeDisplay = computed(() => {
-  if (!startTime.value) return "--";
-  return new Date(startTime.value).toLocaleTimeString("zh-CN", {
+  if (!focusStartTime.value) return "--";
+  return new Date(focusStartTime.value).toLocaleTimeString("zh-CN", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -300,7 +300,6 @@ const onCategoryChange = () => {
 const startTimer = async () => {
   try {
     await formRef.value?.validate();
-    startTime.value = new Date();
     timerStart(focusForm.value);
     ElMessage.success("开始专注！保持专注，加油！");
   } catch (error) {
@@ -351,7 +350,7 @@ const saveRecord = async () => {
       task: focusForm.value.name,
       subcategory_id: focusForm.value.subcategoryId,
       actual_duration: durationMinutes,
-      log_date: new Date().toISOString().split("T")[0],
+      log_date: dayjs().format("YYYY-MM-DD"),
       time_slot: timeSlot,
       mood: stopForm.value.mood,
       notes: stopForm.value.notes || "",
@@ -368,7 +367,7 @@ const saveRecord = async () => {
       mood: 3,
       notes: "",
     };
-    startTime.value = null;
+    focusStartTime.value = null;
     endTime.value = null;
     clearState();
 

@@ -275,16 +275,17 @@ def get_chart_data_for_user(user_id):
     return final_data
 
 
-def get_category_chart_data(user_id, stage_id=None):
-    """
-    获取并构建用于分类和子分类分析的数据
+def get_category_chart_data(user_id, stage_id=None, start_date=None, end_date=None):
+    """Build category chart dataset for the given user.
 
-    参数:
-        user_id: 用户ID
-        stage_id: 可选的阶段ID,用于过滤特定阶段的数据
+    Args:
+        user_id: ID of the user requesting the data.
+        stage_id: Optional stage ID for filtering results.
+        start_date: Optional start date filter (inclusive).
+        end_date: Optional end date filter (inclusive).
 
-    返回:
-        dict: 包含主分类和子分类钻取数据的字典
+    Returns:
+        dict: Aggregated totals for categories and their subcategories.
     """
     # 首先尝试使用新的分类系统（Category + SubCategory）
     query = (
@@ -299,6 +300,14 @@ def get_category_chart_data(user_id, stage_id=None):
 
     if stage_id:
         query = query.filter(LogEntry.stage_id == stage_id)
+
+    if start_date:
+        query = query.filter(LogEntry.log_date >= start_date)
+
+    if end_date:
+        query = query.filter(LogEntry.log_date <= end_date)
+
+
 
     results = query.all()
 
@@ -320,6 +329,14 @@ def get_category_chart_data(user_id, stage_id=None):
 
         if stage_id:
             legacy_query = legacy_query.filter(LogEntry.stage_id == stage_id)
+
+        if start_date:
+            legacy_query = legacy_query.filter(LogEntry.log_date >= start_date)
+
+        if end_date:
+            legacy_query = legacy_query.filter(LogEntry.log_date <= end_date)
+
+
 
         legacy_results = legacy_query.all()
 

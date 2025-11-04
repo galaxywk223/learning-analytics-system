@@ -101,6 +101,11 @@
   color: white;
 }
 
+.icon-leaderboard {
+  background: #a855f7;
+  color: white;
+}
+
 .icon-countdown {
   background: #00f2fe;
   color: white;
@@ -120,6 +125,9 @@
 }
 .card-chart {
   color: #f5576c;
+}
+.card-leaderboard {
+  color: #a855f7;
 }
 .card-countdown {
   color: #00f2fe;
@@ -181,3 +189,13 @@
 .feature-card:hover .card-arrow svg {
   color: white;
 }
+
+.icon-ai {
+  background: #ffb347;
+  color: white;
+}
+
+.card-ai {
+  color: #ffb347;
+}
+

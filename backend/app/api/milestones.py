@@ -3,13 +3,16 @@
 """
 
 import os
-from flask import Blueprint, request, jsonify, current_app
-from flask import send_from_directory
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
+
+from flask import Blueprint, current_app, jsonify, request
+from flask import send_from_directory
+from flask_jwt_extended import get_jwt_identity, jwt_required
+from sqlalchemy.orm import selectinload
 from werkzeug.utils import secure_filename
+
 from app import db
-from app.models import Milestone, MilestoneCategory, MilestoneAttachment
+from app.models import Milestone, MilestoneAttachment, MilestoneCategory
 
 bp = Blueprint("milestones", __name__)
 
@@ -40,7 +43,10 @@ def get_milestones():
     page = request.args.get("page", type=int)
     per_page = request.args.get("per_page", type=int)
 
-    query = Milestone.query.filter_by(user_id=current_user_id)
+    query = (
+        Milestone.query.options(selectinload(Milestone.attachments))
+        .filter_by(user_id=current_user_id)
+    )
     if category_id:
         query = query.filter_by(category_id=category_id)
 
@@ -89,9 +95,11 @@ def get_milestone(milestone_id):
         f"[获取里程碑] 用户 {current_user_id} 请求获取里程碑 {milestone_id}"
     )
 
-    milestone = Milestone.query.filter_by(
-        id=milestone_id, user_id=current_user_id
-    ).first()
+    milestone = (
+        Milestone.query.options(selectinload(Milestone.attachments))
+        .filter_by(id=milestone_id, user_id=current_user_id)
+        .first()
+    )
 
     if not milestone:
         current_app.logger.warning(
@@ -148,9 +156,11 @@ def create_milestone():
 def update_milestone(milestone_id):
     """更新里程碑"""
     current_user_id = get_jwt_identity()
-    milestone = Milestone.query.filter_by(
-        id=milestone_id, user_id=current_user_id
-    ).first()
+    milestone = (
+        Milestone.query.options(selectinload(Milestone.attachments))
+        .filter_by(id=milestone_id, user_id=current_user_id)
+        .first()
+    )
 
     if not milestone:
         return jsonify({"success": False, "message": "里程碑不存在"}), 404
@@ -187,9 +197,11 @@ def update_milestone(milestone_id):
 def delete_milestone(milestone_id):
     """删除里程碑"""
     current_user_id = get_jwt_identity()
-    milestone = Milestone.query.filter_by(
-        id=milestone_id, user_id=current_user_id
-    ).first()
+    milestone = (
+        Milestone.query.options(selectinload(Milestone.attachments))
+        .filter_by(id=milestone_id, user_id=current_user_id)
+        .first()
+    )
 
     if not milestone:
         return jsonify({"success": False, "message": "里程碑不存在"}), 404
@@ -307,9 +319,11 @@ def upload_attachment(milestone_id):
     )
 
     # 验证里程碑所有权
-    milestone = Milestone.query.filter_by(
-        id=milestone_id, user_id=current_user_id
-    ).first()
+    milestone = (
+        Milestone.query.options(selectinload(Milestone.attachments))
+        .filter_by(id=milestone_id, user_id=current_user_id)
+        .first()
+    )
     if not milestone:
         current_app.logger.warning(
             f"[上传附件] 里程碑 {milestone_id} 不存在或不属于用户 {current_user_id}"

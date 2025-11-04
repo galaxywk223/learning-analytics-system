@@ -95,6 +95,54 @@
   }
 }
 
+.category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+
+  .filter-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  :deep(.el-date-editor) {
+    width: 200px;
+    .el-input__wrapper {
+      padding: 0 12px;
+      height: 38px;
+      border-radius: 8px;
+    }
+  }
+
+  :deep(.el-date-editor.el-date-editor--daterange) {
+    width: auto;
+    min-width: 280px;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+
+    .filter-inputs {
+      width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    :deep(.el-date-editor) {
+      width: 100%;
+    }
+
+    .stage-select {
+      width: 100%;
+    }
+  }
+}
+
 // 按钮组样式 - 扁平化
 .btn-group {
   display: inline-flex;

@@ -8,10 +8,25 @@ from datetime import timedelta
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
+def resolve_upload_folder(default_path: str) -> str:
+    """Resolve upload folder from environment with sensible defaults."""
+    env_path = os.environ.get("UPLOAD_FOLDER")
+    if env_path:
+        if not os.path.isabs(env_path):
+            env_path = os.path.join(basedir, env_path)
+        return os.path.abspath(env_path)
+    return os.path.abspath(default_path)
+
+
 class Config:
     """基础配置"""
 
     SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-secret-key-change-in-production"
+
+    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or os.environ.get(
+        "GOOGLE_API_KEY"
+    )
+    GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
     # 数据库配置
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -33,7 +48,7 @@ class Config:
     CORS_SUPPORTS_CREDENTIALS = True
 
     # 上传配置
-    UPLOAD_FOLDER = os.path.join(basedir, "uploads")
+    UPLOAD_FOLDER = resolve_upload_folder(os.path.join(basedir, "uploads"))
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
@@ -76,7 +91,7 @@ class ProductionConfig(Config):
     ) or "sqlite:///" + os.path.join(basedir, "instance", "prod.db")
 
     # 生产环境上传目录
-    UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER") or "/var/www/uploads"
+    UPLOAD_FOLDER = resolve_upload_folder("/var/www/uploads")
 
     @staticmethod
     def init_app(app):

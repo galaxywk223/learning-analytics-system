@@ -39,18 +39,78 @@
             📆 日视图
           </button>
         </div>
-        <!-- 阶段下拉，仅在分类占比显示 -->
-        <select
-          v-if="charts.activeTab === 'categories'"
-          class="stage-select"
-          v-model="stageSelected"
-          @change="charts.setStage(stageSelected)"
-        >
-          <option value="all">全部历史</option>
-          <option v-for="s in charts.stages" :key="s.id" :value="s.id">
-            {{ s.name }}
-          </option>
-        </select>
+      </div>
+      <div
+        class="category-filters"
+        v-if="charts.activeTab === 'categories'"
+      >
+        <div class="btn-group filter-switch">
+          <button
+            v-for="mode in categoryModes"
+            :key="mode.value"
+            :class="['btn', rangeMode === mode.value && 'active']"
+            @click="onRangeModeChange(mode.value)"
+          >
+            {{ mode.label }}
+          </button>
+        </div>
+        <div class="filter-inputs">
+          <select
+            v-if="rangeMode === 'stage'"
+            class="stage-select"
+            v-model="stageSelected"
+            @change="onStageChange"
+          >
+            <option value="all">全部历史</option>
+            <option v-for="s in charts.stages" :key="s.id" :value="s.id">
+              {{ s.name }}
+            </option>
+          </select>
+          <el-date-picker
+            v-else-if="rangeMode === 'daily'"
+            v-model="datePoint"
+            type="date"
+            value-format="YYYY-MM-DD"
+            placeholder="选择日期"
+            clearable
+            @clear="onFilterCleared"
+            :disabled="charts.loading"
+          />
+          <el-date-picker
+            v-else-if="rangeMode === 'weekly'"
+            v-model="datePoint"
+            type="date"
+            value-format="YYYY-MM-DD"
+            placeholder="选择一周中的任意一天"
+            :first-day-of-week="1"
+            clearable
+            @clear="onFilterCleared"
+            :disabled="charts.loading"
+          />
+          <el-date-picker
+            v-else-if="rangeMode === 'monthly'"
+            v-model="datePoint"
+            type="month"
+            value-format="YYYY-MM"
+            placeholder="选择月份"
+            clearable
+            @clear="onFilterCleared"
+            :disabled="charts.loading"
+          />
+          <el-date-picker
+            v-else-if="rangeMode === 'custom'"
+            v-model="customRange"
+            type="daterange"
+            value-format="YYYY-MM-DD"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            unlink-panels
+            clearable
+            @clear="onFilterCleared"
+            :disabled="charts.loading"
+          />
+        </div>
       </div>
     </div>
     <div class="tab-panels">
@@ -81,10 +141,7 @@
         </div>
         <!-- 无数据/初始化提示 -->
         <div v-if="!charts.loading && !charts.hasTrendsData" class="alert-box">
-          <div
-            v-if="charts.rawChartData?.setup_needed"
-            class="alert alert-info"
-          >
+          <div v-if="rawChartData?.setup_needed" class="alert alert-info">
             尚未创建阶段或学习记录，暂时无法生成趋势图表。请先添加学习日志。
           </div>
           <div v-else class="alert alert-info">
@@ -109,7 +166,7 @@
         >
           当前筛选范围内没有找到任何带分类的学习记录。
         </div>
-        <div class="category-header" v-if="charts.categoryPath?.length">
+        <div class="category-header" v-if="categoryPath.length">
           <el-button
             size="small"
             text
@@ -119,9 +176,9 @@
           >
           <span class="path"
             >当前层级：
-            <span v-for="(p, idx) in charts.categoryPath" :key="p.id">
+            <span v-for="(p, idx) in categoryPath" :key="p.id">
               <span class="crumb" @click="jumpTo(idx)">{{ p.name }}</span>
-              <span v-if="idx < charts.categoryPath.length - 1"> / </span>
+              <span v-if="idx < categoryPath.length - 1"> / </span>
             </span>
           </span>
         </div>
@@ -137,16 +194,52 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
+<script setup lang="ts">
+import { ref, onMounted, onActivated, computed, watch } from "vue";
 import { useChartsStore } from "@/stores/modules/charts";
-import { chartsAPI } from "@/api/modules/charts";
 import TrendsChart from "@/components/business/charts/TrendsChart.vue";
 import CategoryComposite from "@/components/business/charts/CategoryComposite.vue";
 import KpiCard from "@/components/business/charts/KpiCard.vue";
 
 const charts = useChartsStore();
-const stageSelected = ref("all");
+const stageSelected = ref<string | number>("all");
+const categoryModes = [
+  { value: "all", label: "全部历史" },
+  { value: "stage", label: "按阶段" },
+  { value: "weekly", label: "按周" },
+  { value: "daily", label: "按日" },
+  { value: "monthly", label: "按月" },
+  { value: "custom", label: "自定义" },
+] as const;
+
+type CategoryRangeMode = (typeof categoryModes)[number]["value"];
+
+const rangeMode = computed<CategoryRangeMode>({
+  get: () => charts.categoryRangeMode as CategoryRangeMode,
+  set: (value) => charts.setCategoryRangeMode(value),
+});
+
+const rawChartData = computed<Record<string, any>>(
+  () => charts.rawChartData as Record<string, any>
+);
+
+type CategoryBreadcrumb = { id: string | number; name: string };
+const categoryPath = computed<CategoryBreadcrumb[]>(
+  () =>
+    ((charts as unknown as Record<string, unknown>).categoryPath as
+      | CategoryBreadcrumb[]
+      | undefined) ?? []
+);
+
+const datePoint = computed({
+  get: () => charts.categoryDatePoint,
+  set: (value) => charts.setCategoryDatePoint(value),
+});
+
+const customRange = computed({
+  get: () => charts.categoryCustomRange,
+  set: (value) => charts.setCategoryCustomRange(value),
+});
 
 function onCategorySlice(cat) {
   if (!cat) return;
@@ -156,13 +249,59 @@ function onCategorySlice(cat) {
 function jumpTo(index) {
   // 回退到路径中某一层
   if (index < 0) return;
-  while (charts.categoryPath.length > index + 1) {
+  while (categoryPath.value.length > index + 1) {
     charts.backCategory();
   }
 }
 
+function onRangeModeChange(mode: CategoryRangeMode) {
+  if (rangeMode.value !== mode) {
+    rangeMode.value = mode;
+  }
+}
+
+function onStageChange() {
+  charts.setStage(stageSelected.value);
+}
+
+function onFilterCleared() {
+  if (rangeMode.value !== "all") {
+    rangeMode.value = "all";
+  }
+}
+
+watch(
+  () => charts.stageId,
+  (value) => {
+    if (rangeMode.value === "stage") {
+      stageSelected.value = value as string | number;
+    }
+  }
+);
+
+watch(
+  () => rangeMode.value,
+  (mode, previous) => {
+    if (previous === "stage" && mode !== "stage") {
+      if (stageSelected.value !== "all") {
+        stageSelected.value = "all";
+      }
+      if (charts.stageId !== "all") {
+        charts.setStage("all");
+      }
+    }
+    if (mode === "stage") {
+      stageSelected.value = charts.stageId as string | number;
+    }
+  }
+);
+
 onMounted(async () => {
   await charts.initStages();
+  await charts.refreshAll();
+});
+
+onActivated(async () => {
   await charts.refreshAll();
 });
 </script>
