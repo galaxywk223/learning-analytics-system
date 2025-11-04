@@ -100,11 +100,13 @@ const longestLabelLength = computed(() =>
   categoryNames.value.reduce((max, name) => Math.max(max, name ? name.length : 0), 0)
 );
 
-const gridLeft = computed(() => {
-  const charWidth = 9;
-  const estimated = 60 + longestLabelLength.value * charWidth;
-  return Math.min(220, Math.max(90, estimated));
+const axisLabelWidth = computed(() => {
+  const charWidth = 6.25;
+  const estimated = longestLabelLength.value * charWidth;
+  return Math.min(110, Math.max(68, Math.round(estimated)));
 });
+
+const gridLeft = computed(() => axisLabelWidth.value + 22);
 
 const seriesData = computed(() =>
   sortedData.value.map((item, idx) => ({
@@ -120,9 +122,9 @@ const option = computed(() => {
     color: barColors.value,
     grid: {
       left: gridLeft.value,
-      right: 80,
+      right: 48,
       top: 24,
-      bottom: 30,
+      bottom: 24,
       containLabel: true,
     },
     tooltip: {
@@ -151,13 +153,17 @@ const option = computed(() => {
         fontSize: 12,
         interval: 0,
         margin: 12,
+        align: "right",
+        width: axisLabelWidth.value,
+        overflow: "break",
+        lineHeight: 16,
       },
     },
     series: [
       {
         type: "bar",
         barWidth: 18,
-        barCategoryGap: "32%",
+        barCategoryGap: "26%",
         itemStyle: { borderRadius: [0, 12, 12, 0] },
         emphasis: {
           itemStyle: {

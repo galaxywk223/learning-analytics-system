@@ -164,14 +164,25 @@
           当前筛选范围内没有找到任何带分类的学习记录。
         </div>
         <div class="category-header" v-if="categoryPath.length">
-          <el-button size="small" text type="primary" @click="handleBackClick"
-            >⬅️ 返回上级</el-button
+          <el-button
+            class="category-back"
+            size="small"
+            type="primary"
+            plain
+            :icon="ArrowLeft"
+            @click="handleBackClick"
           >
-          <span class="path"
-            >当前层级：
-            <span v-for="(p, idx) in categoryPath" :key="p.id">
-              <span class="crumb" @click="jumpTo(idx)">{{ p.name }}</span>
-              <span v-if="idx < categoryPath.length - 1"> / </span>
+            返回父分类
+          </el-button>
+          <span class="path">
+            <span class="path-label">当前层级：</span>
+            <span class="breadcrumbs">
+              <span v-for="(p, idx) in categoryPath" :key="p.id">
+                <span class="crumb" @click="jumpTo(idx)">{{ p.name }}</span>
+                <span v-if="idx < categoryPath.length - 1" class="separator">
+                  /
+                </span>
+              </span>
             </span>
           </span>
         </div>
@@ -190,6 +201,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onActivated, computed, watch } from "vue";
+import { ArrowLeft } from "@element-plus/icons-vue";
 import { useChartsStore } from "@/stores/modules/charts";
 import TrendsChart from "@/components/business/charts/TrendsChart.vue";
 import CategoryComposite from "@/components/business/charts/CategoryComposite.vue";
