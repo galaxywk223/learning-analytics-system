@@ -485,6 +485,18 @@ onMounted(async () => {
       font-size: 24px;
       font-weight: 700;
       color: #1f1d47;
+      display: flex;
+      align-items: center;
+    }
+
+    h1::before {
+      content: "";
+      width: 8px;
+      height: 22px;
+      border-radius: 4px;
+      margin-right: 10px;
+      background: linear-gradient(180deg, var(--color-primary), #8b5cf6);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     }
 
     p {
@@ -498,7 +510,7 @@ onMounted(async () => {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    margin-top: 4px;
+    margin-top: 6px;
 
     .chip {
       display: inline-flex;
@@ -506,8 +518,8 @@ onMounted(async () => {
       gap: 6px;
       padding: 4px 10px;
       border: 1px solid var(--stroke-soft);
-      background: var(--surface-card);
-      color: #334155;
+      background: var(--surface-card-muted);
+      color: var(--color-text-secondary);
       border-radius: 999px;
       font-size: 12px;
       line-height: 1;
@@ -518,7 +530,7 @@ onMounted(async () => {
       height: 6px;
       border-radius: 50%;
       background: var(--color-primary);
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
     }
   }
 }
