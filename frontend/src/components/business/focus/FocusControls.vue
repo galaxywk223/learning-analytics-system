@@ -83,89 +83,81 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
 <style scoped lang="scss">
 .focus-controls {
   display: flex;
-  justify-content: center;
-  gap: 0.875rem;
-  margin: 1.5rem 0 0.5rem;
+  justify-content: flex-start;
   flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 0.75rem;
 
   :deep(.el-button) {
-    min-width: 130px;
-    height: 44px;
+    min-width: 136px;
+    height: 46px;
     font-size: 0.95rem;
-    font-weight: 500;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    transition: all 0.2s;
+    font-weight: 600;
+    border-radius: 12px;
+    border: none;
+    box-shadow: none;
+    transition: background-color 0.2s ease, transform 0.2s ease;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.2);
-      border-color: rgba(255, 255, 255, 0.5);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateY(-1px);
     }
 
     &:active {
       transform: translateY(0);
     }
+  }
 
-    // Primary 按钮
-    &.el-button--primary {
-      background: rgba(102, 126, 234, 0.3);
-      border-color: rgba(102, 126, 234, 0.5);
+  :deep(.el-button--primary) {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
 
-      &:hover {
-        background: rgba(102, 126, 234, 0.5);
-        border-color: rgba(102, 126, 234, 0.7);
-      }
+    &:hover {
+      background: linear-gradient(135deg, #5a5eea, #7c3aed);
     }
+  }
 
-    // Warning 按钮
-    &.el-button--warning {
-      background: rgba(245, 158, 11, 0.3);
-      border-color: rgba(245, 158, 11, 0.5);
+  :deep(.el-button--warning) {
+    background: #f59e0b;
+    color: #fff;
 
-      &:hover {
-        background: rgba(245, 158, 11, 0.5);
-        border-color: rgba(245, 158, 11, 0.7);
-      }
+    &:hover {
+      background: #d97706;
     }
+  }
 
-    // Danger 按钮
-    &.el-button--danger {
-      background: rgba(239, 68, 68, 0.3);
-      border-color: rgba(239, 68, 68, 0.5);
+  :deep(.el-button--danger) {
+    background: #ef4444;
+    color: #fff;
 
-      &:hover {
-        background: rgba(239, 68, 68, 0.5);
-        border-color: rgba(239, 68, 68, 0.7);
-      }
+    &:hover {
+      background: #dc2626;
     }
+  }
 
-    // Success 按钮
-    &.el-button--success {
-      background: rgba(16, 185, 129, 0.3);
-      border-color: rgba(16, 185, 129, 0.5);
+  :deep(.el-button--success) {
+    background: #10b981;
+    color: #fff;
 
-      &:hover {
-        background: rgba(16, 185, 129, 0.5);
-        border-color: rgba(16, 185, 129, 0.7);
-      }
+    &:hover {
+      background: #0f9f6e;
     }
+  }
 
-    // Info/Plain 按钮
-    &.el-button--info,
-    &.is-plain {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.2);
+  :deep(.el-button--info),
+  :deep(.el-button.is-plain),
+  :deep(.el-button:not([class*="el-button--"])) {
+    background: #e2e8f0;
+    color: #334155;
 
-      &:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.3);
-      }
+    &:hover {
+      background: #cbd5f5;
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .focus-controls {
+    justify-content: center;
   }
 }
 </style>

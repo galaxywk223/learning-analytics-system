@@ -87,18 +87,6 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div v-if="authStore.user" class="user-info">
-          <Icon icon="lucide:user-circle-2" />
-          <span>你好, {{ authStore.user.username }}</span>
-        </div>
-        <a
-          v-if="authStore.isAuthenticated"
-          @click="handleLogout"
-          class="logout-link"
-        >
-          <Icon icon="lucide:log-out" />
-          <span>登出</span>
-        </a>
         <p>&copy; wangk227@ahut.edu.cn</p>
       </div>
     </aside>
@@ -116,23 +104,13 @@
 
 <script setup>
 import { computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
 import { Icon } from "@iconify/vue";
-import { useAuthStore } from "@/stores/modules/auth";
 import { useSettingsStore } from "@/stores/modules/settings";
 
-const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
-const router = useRouter();
 
 // 获取当前主题
 const currentTheme = computed(() => settingsStore.theme || "palette-purple");
-
-// 退出登录
-const handleLogout = async () => {
-  await authStore.logout();
-  router.push("/login");
-};
 
 // 应用背景图片
 onMounted(async () => {
@@ -145,10 +123,6 @@ onMounted(async () => {
     document.body.style.backgroundImage = `url(${backgroundImage})`;
   }
 });
-
-const toggleSidebar = () => {
-  settingsStore.setSidebarCollapsed(!settingsStore.layout.sidebarCollapsed);
-};
 
 // 鼠标悬停事件（保留用于未来扩展）
 const handleMouseEnter = () => {};

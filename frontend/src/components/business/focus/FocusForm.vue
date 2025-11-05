@@ -135,15 +135,24 @@ defineExpose({
 
 <style scoped lang="scss">
 .focus-form {
-  max-width: 100%;
-  margin: 1rem 0;
-  padding: 0;
-  background: transparent;
+  width: 100%;
+  margin: 0;
+
+  :deep(.el-form) {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    padding: clamp(1.5rem, 3vw, 1.9rem);
+    border-radius: 20px;
+    background: linear-gradient(150deg, rgba(249, 250, 255, 0.96), rgba(236, 243, 255, 0.93));
+    border: 1px solid rgba(203, 213, 225, 0.65);
+    box-shadow: 0 16px 36px rgba(148, 163, 235, 0.18);
+  }
 
   .category-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.1rem;
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
@@ -155,84 +164,58 @@ defineExpose({
   }
 
   :deep(.el-form-item) {
-    margin-bottom: 1rem;
+    margin-bottom: 0;
   }
 
   :deep(.el-form-item__label) {
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 500;
-    font-size: 0.875rem;
-    padding-bottom: 0.375rem;
-    line-height: 1.2;
+    color: #334155;
+    font-weight: 600;
+    font-size: 0.92rem;
+    padding-bottom: 0.4rem;
   }
 
-  :deep(.el-input__wrapper) {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+  :deep(.el-input__wrapper),
+  :deep(.el-select .el-input__wrapper) {
+    background: rgba(248, 250, 252, 0.96) !important;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 12px;
     box-shadow: none !important;
-    transition: all 0.2s;
-    padding: 6px 10px;
+    padding: 8px 12px;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.15) !important;
-      border-color: rgba(255, 255, 255, 0.3);
+      border-color: rgba(129, 140, 248, 0.65);
     }
 
     &.is-focus {
-      background: rgba(255, 255, 255, 0.15) !important;
-      border-color: rgba(255, 255, 255, 0.4);
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+      border-color: rgba(99, 102, 241, 0.82);
+      background: rgba(255, 255, 255, 0.98) !important;
+      box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.12) !important;
     }
   }
 
-  :deep(.el-input__inner) {
-    color: rgba(255, 255, 255, 0.95);
-    font-size: 0.95rem;
+  :deep(.el-input__inner),
+  :deep(.el-select__placeholder),
+  :deep(.el-select__selected-item) {
+    color: #1f2937;
+    font-size: 0.98rem;
 
     &::placeholder {
-      color: rgba(255, 255, 255, 0.4);
+      color: #94a3b8;
     }
   }
 
   :deep(.el-input__count) {
     background: transparent;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.75rem;
-  }
-
-  :deep(.el-select) {
-    width: 100%;
-  }
-
-  // 修复下拉框背景
-  :deep(.el-select__wrapper) {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: none !important;
-    padding: 6px 10px;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.15) !important;
-    }
-
-    &.is-focus {
-      background: rgba(255, 255, 255, 0.15) !important;
-      border-color: rgba(255, 255, 255, 0.4);
-    }
-  }
-
-  :deep(.el-select__placeholder) {
-    color: rgba(255, 255, 255, 0.4);
-  }
-
-  :deep(.el-select__selected-item) {
-    color: rgba(255, 255, 255, 0.95);
+    color: #94a3b8;
+    font-size: 0.78rem;
+    font-weight: 500;
   }
 
   .el-form-item__tip {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.8rem;
-    margin-top: 0.25rem;
+    color: #6b7280;
+    font-size: 0.82rem;
+    margin-top: 0.35rem;
   }
 }
 </style>

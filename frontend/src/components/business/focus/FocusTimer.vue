@@ -59,17 +59,11 @@ const formattedTime = computed(() => {
   const hours = Math.floor(props.elapsedSeconds / 3600);
   const minutes = Math.floor((props.elapsedSeconds % 3600) / 60);
   const seconds = props.elapsedSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-  } else {
-    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-  }
+  return [hours, minutes, seconds].map((unit) => unit.toString().padStart(2, "0")).join(":");
 });
 
 const timeLabel = computed(() => {
-  const hours = Math.floor(props.elapsedSeconds / 3600);
-  return hours > 0 ? "小时:分钟:秒" : "分钟:秒";
+  return "时 : 分 : 秒";
 });
 </script>
 
@@ -78,7 +72,7 @@ const timeLabel = computed(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 1.5rem 0;
+  margin: 0;
 
   .time-circle {
     position: relative;
@@ -88,18 +82,17 @@ const timeLabel = computed(() => {
 
     .progress-ring {
       transform: rotate(-90deg);
-      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
 
       &-bg {
-        stroke: rgba(255, 255, 255, 0.15);
+        stroke: rgba(129, 140, 248, 0.18);
         stroke-width: 5;
       }
 
       &-circle {
-        stroke: rgba(255, 255, 255, 0.8);
+        stroke: #6366f1;
         stroke-width: 5;
         stroke-linecap: round;
-        transition: stroke-dashoffset 0.3s ease;
+        transition: stroke-dashoffset 0.25s ease, stroke 0.25s ease;
       }
     }
 
@@ -111,38 +104,27 @@ const timeLabel = computed(() => {
       justify-content: center;
 
       .time-value {
-        font-size: 2.75rem;
-        font-weight: 300;
-        color: rgba(255, 255, 255, 0.95);
-        font-family: "Courier New", monospace;
-        letter-spacing: 0.1em;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        font-size: clamp(2.4rem, 4vw, 2.8rem);
+        font-weight: 600;
+        color: #1f2937;
+        letter-spacing: 0.08em;
+        font-family: "SFMono-Regular", "JetBrains Mono", monospace;
       }
 
       .time-label {
-        font-size: 0.8rem;
-        color: rgba(255, 255, 255, 0.6);
-        margin-top: 0.5rem;
-        letter-spacing: 0.05em;
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-top: 0.35rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
       }
     }
   }
 
   &.timer-active {
     .progress-ring-circle {
-      stroke: rgba(255, 255, 255, 0.95);
-      animation: pulse 2s ease-in-out infinite alternate;
-      filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.5));
+      stroke: #4c51bf;
     }
-  }
-}
-
-@keyframes pulse {
-  from {
-    stroke-opacity: 0.8;
-  }
-  to {
-    stroke-opacity: 1;
   }
 }
 </style>

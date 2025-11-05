@@ -59,41 +59,42 @@ const currentSubcategory = computed(() => {
 <style scoped lang="scss">
 .focus-info {
   max-width: 100%;
-  margin: 2rem 0;
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
+  margin-top: 1.5rem;
+  padding: 1.75rem;
+  border-radius: 18px;
+  background: linear-gradient(150deg, rgba(248, 250, 255, 0.95), rgba(236, 244, 255, 0.9));
+  border: 1px solid rgba(203, 213, 225, 0.6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
   .info-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 0;
+    padding: 0.9rem 0;
 
     &:not(:last-child) {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.7);
     }
 
     .info-label {
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.7);
-      min-width: 100px;
+      font-weight: 600;
+      color: #475569;
       font-size: 0.95rem;
+      letter-spacing: 0.01em;
     }
 
     .info-value {
       flex: 1;
       text-align: right;
-      color: rgba(255, 255, 255, 0.95);
+      color: #1f2937;
       font-size: 1rem;
+      font-weight: 500;
 
       :deep(.el-tag) {
-        margin-left: 0.5rem;
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.25);
-        color: rgba(255, 255, 255, 0.9);
+        margin-left: 0.6rem;
+        background: rgba(129, 140, 248, 0.12);
+        border-color: rgba(129, 140, 248, 0.35);
+        color: #4338ca;
       }
     }
   }

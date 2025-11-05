@@ -24,15 +24,9 @@
 .settings-card {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
   margin-bottom: 1.25rem;
   overflow: hidden;
-  transition: box-shadow 0.2s ease;
-}
-
-.settings-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .card-header {
@@ -174,12 +168,10 @@
 .btn-primary {
   background: #667eea;
   color: white;
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
   background: #5568d3;
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.35);
 }
 
 .btn-secondary {
@@ -190,6 +182,48 @@
 
 .btn-secondary:hover:not(:disabled) {
   background: #e2e8f0;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.danger-card .card-header {
+  background: #fff1f2;
+  border-bottom: 1px solid #fecdd3;
+}
+
+.danger-card .card-title {
+  color: #b91c1c;
+}
+
+.logout-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.logout-text h6 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.logout-text p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.logout-panel .btn {
+  flex-shrink: 0;
 }
 
 /* 提示标签 */
@@ -286,6 +320,15 @@
     flex-direction: column;
     text-align: center;
     gap: 1rem;
+  }
+
+  .logout-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .logout-panel .btn {
+    width: 100%;
   }
 }
 

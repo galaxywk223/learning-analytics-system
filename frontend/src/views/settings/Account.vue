@@ -179,6 +179,26 @@
         </form>
       </div>
     </div>
+
+    <!-- 账号控制卡片 -->
+    <div class="settings-card danger-card">
+      <div class="card-header">
+        <Icon icon="lucide:power" />
+        <h5 class="card-title">账号控制</h5>
+      </div>
+      <div class="card-body">
+        <div class="logout-panel">
+          <div class="logout-text">
+            <h6>退出当前账号</h6>
+            <p>退出后将返回登录页，如需继续使用请重新登录。</p>
+          </div>
+          <button type="button" class="btn btn-danger" @click="handleLogout">
+            <Icon icon="lucide:log-out" :style="{ width: '18px', height: '18px' }" />
+            退出登录
+          </button>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -224,6 +244,10 @@ const isPasswordFormFilled = computed(() => {
     passwordForm.value.confirmPassword
   );
 });
+
+const handleLogout = () => {
+  authStore.logout();
+};
 
 const isPasswordFormValid = computed(() => {
   return (

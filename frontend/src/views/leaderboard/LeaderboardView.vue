@@ -334,55 +334,63 @@ async function handleLeave() {
 </script>
 
 <style scoped lang="scss">
-.leaderboard-view {
-  padding: 24px;
+ .leaderboard-view {
+  padding: 20px clamp(16px, 3vw, 32px) 32px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background: var(--surface-page);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: 16px;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 18px 22px;
 
   .title-group {
     h1 {
       margin: 0;
-      font-size: 28px;
-      font-weight: 700;
+      font-size: clamp(1.8rem, 3vw, 2.2rem);
+      font-weight: 600;
+      color: #111827;
     }
 
     .subtitle {
-      margin: 4px 0 0;
+      margin: 6px 0 0;
       color: #6b7280;
+      font-size: 0.95rem;
     }
   }
 
   .controls {
     display: flex;
-    gap: 16px;
+    gap: 14px;
     flex-wrap: wrap;
 
     .control-group {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
 
       .label {
-        color: #6b7280;
-        font-size: 14px;
+        color: #475569;
+        font-size: 0.88rem;
+        font-weight: 600;
       }
 
       .btn-group {
         display: inline-flex;
-        background: #f5f5f5;
-        border-radius: 8px;
+        background: #f1f5f9;
+        border-radius: 10px;
         padding: 4px;
         gap: 4px;
-        border: 1px solid #e0e0e0;
+        border: 1px solid #e2e8f0;
       }
     }
   }
@@ -399,12 +407,12 @@ async function handleLeave() {
   transition: all 0.2s ease;
 
   &:hover {
-    background: #ede9fe;
-    color: #5b21b6;
+    background: #e2e8f0;
+    color: #1f2937;
   }
 
   &.active {
-    background: #5b21b6;
+    background: #2563eb;
     color: #fff;
   }
 }
@@ -413,8 +421,10 @@ async function handleLeave() {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-radius: 12px;
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
 }
-
 
 .join-alert__body {
   display: flex;
@@ -425,13 +435,27 @@ async function handleLeave() {
 }
 
 .card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #2563eb;
+    border-radius: 14px 14px 0 0;
+    opacity: 0.6;
+    pointer-events: none;
+  }
 
   .card-header {
     display: flex;
@@ -439,28 +463,33 @@ async function handleLeave() {
     align-items: flex-start;
     flex-wrap: wrap;
     gap: 12px;
+    padding: 18px 22px;
+    border-bottom: 1px solid #e5e7eb;
 
     h2 {
       margin: 0;
-      font-size: 20px;
+      font-size: 1.2rem;
       font-weight: 600;
+      color: #111827;
     }
 
     .card-subtitle {
-      margin: 4px 0 0;
+      margin: 6px 0 0;
       color: #6b7280;
-      font-size: 13px;
+      font-size: 0.85rem;
     }
   }
 }
 
 .leaderboard-table {
   cursor: pointer;
+  border-top: none;
 }
 
 .table-footer {
   display: flex;
   justify-content: flex-end;
+  padding: 12px 22px 20px;
 }
 
 .detail-wrapper {
@@ -471,37 +500,44 @@ async function handleLeave() {
   .detail-header {
     h3 {
       margin: 0;
-      font-size: 22px;
+      font-size: 1.4rem;
       font-weight: 600;
+      color: #111827;
     }
 
     p {
-      margin: 4px 0 0;
+      margin: 6px 0 0;
       color: #6b7280;
-      font-size: 13px;
+      font-size: 0.85rem;
     }
   }
 }
 
 .detail-metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
 
   .metric {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
 
     .label {
-      color: #6b7280;
-      font-size: 13px;
+      color: #475569;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
     }
 
     .value {
-      font-size: 20px;
+      font-size: 1.1rem;
       font-weight: 600;
-      color: #111827;
+      color: #1f2937;
     }
   }
 }

@@ -4,45 +4,51 @@
       <!-- 头部 -->
       <div class="focus-header">
         <h1>{{ isTimerRunning ? "专注中" : "开始专注" }}</h1>
-        <p class="subtitle">保持专注，记录每一分钟的进步</p>
+        <p class="subtitle">保持专注，记录每一步的累积</p>
       </div>
 
-      <!-- 计时器显示 -->
-      <FocusTimer
-        :elapsed-seconds="elapsedSeconds"
-        :is-active="isTimerRunning"
-      />
+      <div class="focus-layout">
+        <div class="focus-layout__timer">
+          <!-- 计时器显示 -->
+          <FocusTimer
+            :elapsed-seconds="elapsedSeconds"
+            :is-active="isTimerRunning"
+          />
 
-      <!-- 表单区域 -->
-      <FocusForm
-        v-if="!isTimerRunning && !isPaused"
-        v-model:form-data="focusForm"
-        :categories="categories"
-        :subcategories="allSubcategories"
-        @category-change="onCategoryChange"
-        ref="formRef"
-      />
+          <!-- 控制按钮 -->
+          <FocusControls
+            :is-running="isTimerRunning"
+            :is-paused="isPaused"
+            :loading="loading"
+            @start="startTimer"
+            @pause="pauseTimer"
+            @resume="resumeTimer"
+            @stop="showStopDialog"
+            @cancel="cancelSession"
+            @go-back="goBack"
+          />
+        </div>
 
-      <!-- 已开始时显示的信息 -->
-      <FocusInfo
-        v-else
-        :form-data="focusForm"
-        :categories="categories"
-        :subcategories="allSubcategories"
-      />
+        <div class="focus-layout__details">
+          <!-- 表单区域 -->
+          <FocusForm
+            v-if="!isTimerRunning && !isPaused"
+            v-model:form-data="focusForm"
+            :categories="categories"
+            :subcategories="allSubcategories"
+            @category-change="onCategoryChange"
+            ref="formRef"
+          />
 
-      <!-- 控制按钮 -->
-      <FocusControls
-        :is-running="isTimerRunning"
-        :is-paused="isPaused"
-        :loading="loading"
-        @start="startTimer"
-        @pause="pauseTimer"
-        @resume="resumeTimer"
-        @stop="showStopDialog"
-        @cancel="cancelSession"
-        @go-back="goBack"
-      />
+          <!-- 已开始时显示的信息 -->
+          <FocusInfo
+            v-else
+            :form-data="focusForm"
+            :categories="categories"
+            :subcategories="allSubcategories"
+          />
+        </div>
+      </div>
     </div>
 
     <!-- 结束专注弹窗 -->
@@ -464,66 +470,76 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  padding: clamp(1.5rem, 3vw, 3rem);
+  background: var(--surface-page);
 }
 
 .focus-container {
-  width: 100%;
-  max-width: 850px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  padding: 2.5rem 2.5rem;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  width: min(1000px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 2.8vw, 2.4rem);
+  padding: clamp(1.75rem, 3vw, 2.5rem);
+  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
 }
 
 .focus-header {
   text-align: center;
-  margin-bottom: 1.5rem;
 
   h1 {
-    font-size: 2.25rem;
+    font-size: clamp(2rem, 3.5vw, 2.75rem);
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.95);
-    margin-bottom: 0.5rem;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    line-height: 1.2;
+    color: #1f2937;
+    margin-bottom: 0.35rem;
+    letter-spacing: 0.01em;
   }
 
   .subtitle {
     font-size: 1rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: #64748b;
     margin: 0;
-    line-height: 1.4;
   }
 }
 
-/* 组件级样式现在在各自的组件中 */
+.focus-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 300px) 1fr;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  align-items: start;
 
-/* 结束专注弹窗样式 */
+  &__timer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+}
+
 :deep(.stop-dialog) {
   .el-dialog {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    background: #ffffff;
+    border: 1px solid rgba(203, 213, 225, 0.6);
+    border-radius: 18px;
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.12);
   }
 
   .el-dialog__header {
     padding: 1.5rem 2rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid rgba(229, 231, 235, 0.9);
   }
 
   .el-dialog__title {
-    font-size: 1.25rem;
+    font-size: 1.28rem;
     font-weight: 600;
-    color: #333;
+    color: #1f2937;
   }
 
   .el-dialog__body {
@@ -531,82 +547,65 @@ onMounted(async () => {
   }
 
   .el-dialog__footer {
-    padding: 1rem 2rem;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 1.2rem 2rem;
+    border-top: 1px solid rgba(229, 231, 235, 0.9);
   }
 }
 
 .dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+
   .time-info {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem;
     padding: 1.5rem;
-    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-    border-radius: 12px;
-    margin-bottom: 2rem;
+    border-radius: 16px;
+    background: rgba(99, 102, 241, 0.08);
 
     .info-item {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
 
       .label {
-        font-size: 0.875rem;
-        color: #666;
+        font-size: 0.9rem;
+        color: #55607a;
         font-weight: 500;
       }
 
       .value {
-        font-size: 1.125rem;
+        font-size: 1.15rem;
         font-weight: 600;
-        color: #333;
+        color: #3730a3;
+        letter-spacing: 0.01em;
       }
     }
   }
 
   .el-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+
     .el-form-item {
-      margin-bottom: 1.5rem;
+      margin-bottom: 0;
     }
 
     .el-form-item__label {
-      font-weight: 500;
-      color: #333;
-      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 0.35rem;
     }
 
     .el-rate {
-      height: 2.5rem;
+      height: 2.6rem;
       display: flex;
       align-items: center;
     }
-
-    .el-textarea__inner {
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-radius: 8px;
-      padding: 0.75rem;
-      font-size: 0.95rem;
-      transition: all 0.2s;
-
-      &:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-      }
-    }
-  }
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
-  }
-  50% {
-    transform: scale(1.02);
-    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
   }
 }
 
@@ -619,10 +618,12 @@ onMounted(async () => {
     padding: 2rem 1.5rem;
   }
 
-  .focus-header h1 {
-    font-size: 2rem;
+  .focus-layout {
+    grid-template-columns: 1fr;
   }
 
-  /* 移动端样式调整现在在各个组件中处理 */
+  .dialog-content .time-info {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

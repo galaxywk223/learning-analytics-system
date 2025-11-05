@@ -1,7 +1,7 @@
 /* 设置页面布局样式 */
 .settings-view {
   min-height: calc(100vh - 80px);
-  background: transparent;
+  background: var(--surface-page);
   padding: 1.5rem 0;
 }
 
@@ -45,10 +45,9 @@
 .settings-sidebar {
   position: sticky;
   top: 100px;
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
   padding: 1.25rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
 }
 
@@ -109,10 +108,9 @@
 
 /* 内容区域 */
 .settings-content {
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
   padding: 1.75rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #e2e8f0;
   min-height: 500px;
 }
