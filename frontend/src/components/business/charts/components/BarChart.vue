@@ -37,7 +37,8 @@ const props = defineProps({
   colors: { type: Array, default: () => [] },
 });
 
-const chartUpdateOptions = { replaceMerge: ["series", "yAxis"] };
+// 当标签长度变化或布局变化时，需要同时更新 grid 和 yAxis
+const chartUpdateOptions = { replaceMerge: ["series", "yAxis", "grid"] };
 
 const normalized = computed(() => {
   const labels = Array.isArray(props.data?.labels) ? props.data.labels : [];
@@ -96,6 +97,52 @@ const barColors = computed(() => {
 
 const categoryNames = computed(() => sortedData.value.map((item) => item.name));
 
+// 将标签按字符数截断，超出 4 个字符用 ...
+const truncateLabel = (text, limit = 4) => {
+  if (!text) return "";
+  let out = "";
+  let count = 0;
+  for (const ch of String(text)) {
+    if (count >= limit) break;
+    out += ch;
+    count += 1;
+  }
+  // 使用 code point 计算长度，避免多字节被截断
+  const len = Array.from(String(text)).length;
+  return len > limit ? `${out}...` : out;
+};
+
+const truncatedAxisLabels = computed(() =>
+  categoryNames.value.map((n) => truncateLabel(n))
+);
+
+// 估算标签文字宽度（px），用于计算 grid.left
+const estimateTextWidth = (text, fontSize = 12) => {
+  if (!text) return 0;
+  let units = 0;
+  for (const ch of String(text)) {
+    const code = ch.codePointAt(0) || 0;
+    // 粗略估算：ASCII 0.6 单位，CJK/其他 1.0 单位
+    units += code <= 0x7f ? 0.6 : 1.0;
+  }
+  return Math.ceil(units * fontSize);
+};
+
+const maxLabelWidth = computed(() => {
+  // 网格左边距基于截断后的标签宽度，避免长名称把柱子挤到右侧
+  const names = truncatedAxisLabels.value;
+  if (!names.length) return 0;
+  const size = 12; // 与 axisLabel.fontSize 保持一致
+  return Math.max(...names.map((n) => estimateTextWidth(n, size)));
+});
+
+// grid.left 为标签预留空间：基本间距 8px + 估算宽度，限制最大 160px
+const gridLeft = computed(() => {
+  const base = 8;
+  const cap = 160;
+  return Math.min(Math.max(base, maxLabelWidth.value + base), cap);
+});
+
 const seriesData = computed(() =>
   sortedData.value.map((item, idx) => ({
     value: Number.parseFloat(Number(item.value ?? 0).toFixed(2)),
@@ -109,11 +156,12 @@ const option = computed(() => {
   return {
     color: barColors.value,
     grid: {
-      left: 12,
+      // 为左侧分类名称预留空间，避免与柱子重叠且不被裁切
+      left: gridLeft.value,
       right: 40,
       top: 24,
       bottom: 24,
-      containLabel: true,
+      containLabel: false,
     },
     tooltip: {
       trigger: "axis",
@@ -133,10 +181,21 @@ const option = computed(() => {
     yAxis: {
       type: "category",
       inverse: true,
+      // 使用原始名称作为数据，工具提示仍可显示完整名称
       data: categories,
       axisTick: { show: false },
       axisLine: { show: false },
-      axisLabel: { show: false },
+      // 左侧显示分类名称，放在网格之外，避免与柱子重叠
+      axisLabel: {
+        show: true,
+        inside: false,
+        color: "#1f2937",
+        fontSize: 12,
+        // 在左轴上将文字右对齐，这样文本位于轴线左侧
+        align: "right",
+        margin: 4,
+        formatter: (val) => truncateLabel(val, 4),
+      },
     },
     series: [
       {
