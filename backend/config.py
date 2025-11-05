@@ -27,6 +27,10 @@ class Config:
         "GOOGLE_API_KEY"
     )
     GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+    # AI健壮性配置
+    AI_ENABLE_FALLBACK = os.environ.get("AI_ENABLE_FALLBACK", "1") not in {"0", "false", "False"}
+    AI_MAX_RETRIES = int(os.environ.get("AI_MAX_RETRIES", "2"))
+    AI_RETRY_BACKOFF = float(os.environ.get("AI_RETRY_BACKOFF", "1.25"))
 
     # 数据库配置
     SQLALCHEMY_TRACK_MODIFICATIONS = False

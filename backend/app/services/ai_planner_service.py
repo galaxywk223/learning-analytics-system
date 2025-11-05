@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 from flask import current_app
+import time
 from google.api_core.exceptions import GoogleAPIError
 
 try:
@@ -162,6 +163,31 @@ def _get_next_range(
     return None, None, None
 
 
+def _get_prev_range(
+    scope: str,
+    start: Optional[date],
+    end: Optional[date],
+) -> Tuple[Optional[date], Optional[date]]:
+    """Return the previous window relative to [start, end] for day/week/month.
+    Stage 级别不提供上一阶段（因无法可靠推断）。
+    """
+    scope = scope.lower()
+    if not start or not end:
+        return None, None
+    if scope == "day":
+        prev = start - timedelta(days=1)
+        return prev, prev
+    if scope == "week":
+        prev_end = start - timedelta(days=1)
+        prev_start = prev_end - timedelta(days=6)
+        return prev_start, prev_end
+    if scope == "month":
+        prev_end = start - timedelta(days=1)
+        prev_start = prev_end.replace(day=1)
+        return prev_start, prev_end
+    return None, None
+
+
 
 def _aggregate_learning_data(
     user_id: int,
@@ -190,6 +216,8 @@ def _aggregate_learning_data(
     total_sessions = len(logs)
 
     daily_minutes: Dict[date, int] = defaultdict(int)
+    weekday_minutes: Dict[int, int] = defaultdict(int)  # 0=Mon ... 6=Sun
+    hour_minutes: Dict[int, int] = defaultdict(int)  # 0-23
     mood_sum = 0
     mood_count = 0
     task_counter: Counter[str] = Counter()
@@ -209,6 +237,19 @@ def _aggregate_learning_data(
         minutes = int(log.actual_duration or 0)
         log_day = log.log_date
         daily_minutes[log_day] += minutes
+        try:
+            # 「活跃时段」统计：使用开始时间 hour，如果缺失则跳过
+            if getattr(log, "start_time", None):
+                hour = int(str(log.start_time)[0:2])  # 支持 "HH:MM:SS" 或 datetime
+                if 0 <= hour <= 23:
+                    hour_minutes[hour] += minutes
+        except Exception:
+            pass
+        try:
+            weekday = log_day.weekday()
+            weekday_minutes[weekday] += minutes
+        except Exception:
+            pass
 
         task_name = (log.task or '').strip() or '未命名任务'
         task_counter[task_name] += minutes
@@ -299,6 +340,56 @@ def _aggregate_learning_data(
                 idle_days.append(current.isoformat())
             current += timedelta(days=1)
 
+    # 活跃占比与学习打卡连击（当前/最长连续）
+    total_days = None
+    active_ratio = None
+    current_streak = 0
+    longest_streak = 0
+    if start_date and end_date:
+        total_days = (end_date - start_date).days + 1
+        if total_days > 0:
+            active_ratio = round(active_days / total_days, 3)
+        # 计算 streak
+        run = 0
+        current = start_date
+        last_day_with_log = None
+        while current <= end_date:
+            if current in daily_minutes and daily_minutes[current] > 0:
+                run += 1
+                longest_streak = max(longest_streak, run)
+                last_day_with_log = current
+            else:
+                run = 0
+            current += timedelta(days=1)
+        # 计算当前连击：从区间末尾往前
+        run = 0
+        current = end_date
+        while current >= start_date:
+            if current in daily_minutes and daily_minutes[current] > 0:
+                run += 1
+                current -= timedelta(days=1)
+            else:
+                break
+        current_streak = run
+
+    # 将 weekday/hour 统计转为列表并补齐缺失键
+    weekday_stats = [
+        {
+            "weekday": i,  # 0=Mon
+            "minutes": int(weekday_minutes.get(i, 0)),
+            "hours": round(weekday_minutes.get(i, 0) / 60, 2),
+        }
+        for i in range(7)
+    ]
+    hour_stats = [
+        {
+            "hour": h,
+            "minutes": int(hour_minutes.get(h, 0)),
+            "hours": round(hour_minutes.get(h, 0) / 60, 2),
+        }
+        for h in range(24)
+    ]
+
     return {
         'total_minutes': total_minutes,
         'total_hours': round(total_minutes / 60, 2) if total_minutes else 0,
@@ -312,6 +403,13 @@ def _aggregate_learning_data(
         'category_stats': category_stats,
         'top_tasks': top_tasks,
         'idle_days': idle_days,
+        'total_days': total_days,
+        'active_days': active_days,
+        'active_ratio': active_ratio,
+        'streak_current': current_streak,
+        'streak_longest': longest_streak,
+        'weekday_stats': weekday_stats,
+        'hour_stats': hour_stats,
     }
 
 
@@ -352,9 +450,12 @@ def _build_analysis_prompt(
     stats: Dict,
     stage: Optional[Stage],
     period_label: str,
+    prev_stats: Optional[Dict] = None,
 ) -> str:
     lines = [
-        "请基于以下学习统计数据，输出结构清晰的中文分析总结（可包含小标题与项目符号）：",
+        "请严格基于下述统计数据给出中文分析总结，必须以事实为依据：",
+        "- 不得编造未提供的数字或类别，如数据不足需显式说明；",
+        "- 以要点列表和小标题组织，重点突出可验证的发现；",
         f"- 分析范围：{period_label}",
     ]
     if stage:
@@ -372,6 +473,18 @@ def _build_analysis_prompt(
     if stats.get("average_mood") is not None:
         lines.append(f"- 平均心情评分：{stats['average_mood']}")
 
+    # 活跃占比、连续打卡
+    if stats.get("total_days"):
+        active_ratio = stats.get("active_ratio")
+        if active_ratio is not None:
+            lines.append(
+                f"- 活跃天数：{stats.get('active_days', 0)}/{stats['total_days']}（活跃占比 {active_ratio*100:.1f}%）"
+            )
+    if stats.get("streak_longest"):
+        lines.append(
+            f"- 连续打卡：当前 {stats.get('streak_current', 0)} 天，历史最长 {stats['streak_longest']} 天"
+        )
+
     category_lines = [
         f"  • {item['name']}：{item['hours']} 小时，占比 {item['percentage']}%"
         for item in stats["category_stats"][:5]
@@ -386,6 +499,36 @@ def _build_analysis_prompt(
     ]
     if task_lines:
         lines.append("- 高频任务概览：\n" + "\n".join(task_lines))
+
+    # 时间分布偏好
+    try:
+        wd_sorted = sorted(stats.get("weekday_stats", []), key=lambda x: x.get("minutes", 0), reverse=True)
+        top_wd = [w for w in wd_sorted[:2] if w.get("minutes", 0) > 0]
+        if top_wd:
+            wd_map = {0: "周一", 1: "周二", 2: "周三", 3: "周四", 4: "周五", 5: "周六", 6: "周日"}
+            lines.append(
+                "- 偏好日：" + "；".join([f"{wd_map.get(w['weekday'], w['weekday'])}（{w['hours']}h）" for w in top_wd])
+            )
+    except Exception:
+        pass
+    try:
+        hr_sorted = sorted(stats.get("hour_stats", []), key=lambda x: x.get("minutes", 0), reverse=True)
+        top_hr = [h for h in hr_sorted[:3] if h.get("minutes", 0) > 0]
+        if top_hr:
+            lines.append(
+                "- 高效时段：" + "；".join([f"{h['hour']:02d}:00（{h['hours']}h）" for h in top_hr])
+            )
+    except Exception:
+        pass
+
+    # 与上一周期对比
+    if prev_stats and prev_stats.get("total_minutes") is not None:
+        cur_h = float(stats.get("total_hours", 0) or 0)
+        prev_h = float(prev_stats.get("total_hours", 0) or 0)
+        diff_h = cur_h - prev_h
+        pct = (diff_h / prev_h * 100) if prev_h > 0 else None
+        diff_str = (f"{diff_h:+.1f}h" + (f"（{pct:+.1f}%）" if pct is not None else ""))
+        lines.append(f"- 与上一周期对比：总时长 {diff_str}")
 
     if stats["idle_days"]:
         lines.append(
@@ -405,9 +548,12 @@ def _build_plan_prompt(
     stage: Optional[Stage],
     period_label: str,
     next_period_label: str,
+    next_days: Optional[int] = None,
 ) -> str:
     lines = [
-        "请参考统计数据，为用户制定下一阶段的中文学习计划（结构清晰，可含项目符号）：",
+        "请严格基于下述统计数据制定下一阶段的中文学习计划：",
+        "- 只引用已提供的数据，不得臆测；",
+        "- 结果需结构清晰（小标题+要点），包含可执行清单；",
         f"- 当前复盘范围：{period_label}",
         f"- 规划目标范围：{next_period_label}",
     ]
@@ -434,6 +580,9 @@ def _build_plan_prompt(
             )
         )
 
+    if next_days:
+        lines.append(f"- 下一阶段天数：约 {next_days} 天（用于时间预算与节奏安排参考）")
+
     lines.append(
         "请结合以上数据给出：1）核心目标 2）时间与节奏安排 3）重点任务/主题 4）效率或心态优化建议，可适当引用数据佐证，鼓励用户保持动力。"
     )
@@ -452,22 +601,166 @@ def _build_plan_prompt(
 
 def _call_gemini(prompt: str) -> str:
     client, model_name = _configure_gemini()
-    try:
-        response = client.models.generate_content(
-            model=model_name,
-            contents=prompt,
-        )
-    except GoogleAPIError as exc:
-        detail = getattr(exc, "message", str(exc))
-        raise AIPlannerError(
-            f"调用 Gemini 接口失败：{detail}（模型：{model_name}）"
-        ) from exc
-    except Exception as exc:
-        raise AIPlannerError(f"生成内容失败，请稍后重试：{exc}") from exc
+    max_retries = int(current_app.config.get("AI_MAX_RETRIES", 2) or 0)
+    backoff = float(current_app.config.get("AI_RETRY_BACKOFF", 1.25) or 1.25)
+    attempt = 0
+    last_error: Exception | None = None
+    while attempt <= max_retries:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+            )
+            if not response or not getattr(response, "text", None):
+                raise AIPlannerError("未能生成有效的模型输出")
+            return response.text.strip()
+        except GoogleAPIError as exc:
+            last_error = exc
+            detail = getattr(exc, "message", str(exc))
+            # 对临时性错误做重试
+            transient = any(
+                key in str(detail).lower()
+                for key in [
+                    "timeout",
+                    "temporarily",
+                    "unavailable",
+                    "deadline",
+                    "internal",
+                    "quota",
+                    "network",
+                    "503",
+                ]
+            )
+            if attempt < max_retries and transient:
+                time.sleep(max(0.2, 0.6 * (backoff ** attempt)))
+                attempt += 1
+                continue
+            raise AIPlannerError(
+                f"调用 Gemini 接口失败：{detail}（模型：{model_name}）"
+            ) from exc
+        except Exception as exc:
+            last_error = exc
+            # 常见 SSL/连接错误
+            msg = str(exc)
+            if attempt < max_retries and any(
+                s in msg for s in [
+                    "SSL:",
+                    "EOF occurred",
+                    "Connection reset",
+                    "Connection aborted",
+                    "RemoteDisconnected",
+                ]
+            ):
+                time.sleep(max(0.2, 0.6 * (backoff ** attempt)))
+                attempt += 1
+                continue
+            raise AIPlannerError(f"生成内容失败，请稍后重试：{exc}") from exc
 
-    if not response or not getattr(response, "text", None):
-        raise AIPlannerError("未能生成有效的模型输出")
-    return response.text.strip()
+    # 理论上到不了这里
+    if last_error:
+        raise AIPlannerError(f"生成内容失败，请稍后重试：{last_error}")
+    raise AIPlannerError("生成内容失败：未知原因")
+
+
+def _fallback_analysis_text(scope: str, stats: Dict, period_label: str, prev_stats: Optional[Dict]) -> str:
+    lines: list[str] = []
+    lines.append(f"## 分析总结 · {period_label}")
+    lines.append("")
+    lines.append("### 数据概览")
+    lines.append(
+        f"- 总时长：{stats.get('total_hours', 0)}h（{stats.get('total_minutes', 0)} 分钟） | 记录：{stats.get('total_sessions', 0)} 条"
+    )
+    if stats.get("average_daily_minutes"):
+        lines.append(f"- 平均每日：{stats['average_daily_minutes']} 分钟")
+    if stats.get("average_efficiency") is not None:
+        lines.append(f"- 平均效率：{stats['average_efficiency']}")
+    if stats.get("average_mood") is not None:
+        lines.append(f"- 平均心情：{stats['average_mood']}")
+    if stats.get("active_ratio") is not None and stats.get("total_days"):
+        lines.append(
+            f"- 活跃天数：{stats.get('active_days', 0)}/{stats['total_days']}（{round(stats['active_ratio']*100,1)}%） | 连击：当前 {stats.get('streak_current',0)} 天 / 最长 {stats.get('streak_longest',0)} 天"
+        )
+
+    lines.append("")
+    if stats.get("category_stats"):
+        lines.append("### 主要投入方向（Top 5）")
+        for item in stats["category_stats"][:5]:
+            lines.append(f"- {item['name']}：{item['hours']}h（{item['percentage']}%）")
+
+    if stats.get("top_tasks"):
+        lines.append("")
+        lines.append("### 高频任务")
+        for item in stats["top_tasks"]:
+            lines.append(f"- {item['task']}：{item['hours']}h（{item['percentage']}%）")
+
+    # 时间偏好
+    top_hours = sorted(stats.get("hour_stats", []), key=lambda x: x.get("minutes", 0), reverse=True)[:3]
+    if any(h.get("minutes", 0) for h in top_hours):
+        lines.append("")
+        lines.append("### 高效时段")
+        lines.append("、".join([f"{h['hour']:02d}:00（{h['hours']}h）" for h in top_hours if h.get('minutes',0)>0]))
+
+    # 对比
+    if prev_stats and prev_stats.get("total_hours") is not None:
+        cur = float(stats.get("total_hours", 0) or 0)
+        prev = float(prev_stats.get("total_hours", 0) or 0)
+        diff = cur - prev
+        pct = (diff / prev * 100) if prev > 0 else None
+        lines.append("")
+        lines.append("### 与上一周期对比")
+        lines.append(f"- 总时长：{diff:+.1f}h" + (f"（{pct:+.1f}%）" if pct is not None else ""))
+
+    if stats.get("idle_days"):
+        lines.append("")
+        lines.append("### 提醒")
+        lines.append("- 有未记录的日期：" + ", ".join(stats["idle_days"]))
+
+    lines.append("")
+    lines.append(
+        "> 本段为离线模板生成（模型连接异常时的兜底结果），仅依据统计数据输出。"
+    )
+    return "\n".join(lines)
+
+
+def _fallback_plan_text(scope: str, stats: Dict, period_label: str, next_period_label: str, next_days: Optional[int]) -> str:
+    avg_daily = float(stats.get("average_daily_minutes", 0) or 0)
+    baseline_daily_h = round(avg_daily / 60, 1) if avg_daily else 1.5
+    total_budget_h = round((next_days or 7) * baseline_daily_h, 1)
+    lines: list[str] = []
+    lines.append(f"## 规划建议 · {next_period_label}")
+    lines.append("")
+    lines.append("### 目标与节奏")
+    lines.append(f"- 总投入预算：≈ {total_budget_h} 小时（按 {baseline_daily_h}h/日 × {next_days or 7} 天估算）")
+    lines.append("- 节奏：优先安排 3–4 个重点主题，每日至少 1 次复盘记录")
+
+    # 类别分配（按历史占比微调）
+    cats = stats.get("category_stats", [])[:4]
+    if cats:
+        lines.append("")
+        lines.append("### 建议分配（按历史占比参考）")
+        for c in cats:
+            share = float(c.get("percentage", 0) or 0) / 100.0
+            alloc = round(total_budget_h * share, 1)
+            lines.append(f"- {c['name']}：约 {alloc}h（历史占比 {c['percentage']}%）")
+
+    if stats.get("top_tasks"):
+        lines.append("")
+        lines.append("### 重点任务候选（来自历史高频）")
+        for t in stats["top_tasks"]:
+            lines.append(f"- {t['task']}：建议投入 {max(0.5, round(t['hours']*0.3,1))}h")
+
+    lines.append("")
+    lines.append("### 习惯与效率")
+    lines.append("- 固定番茄时段：选择你的高效时段开展重难点学习")
+    if stats.get("streak_current") is not None:
+        lines.append(f"- 连击目标：在当前 {stats.get('streak_current',0)} 天基础上，争取 +3 天")
+    lines.append("- 每日复盘：记录 1 句反思或心得，保留数据闭环")
+
+    lines.append("")
+    lines.append(
+        "> 本段为离线模板生成（模型连接异常时的兜底结果），仅依据统计数据输出。"
+    )
+    return "\n".join(lines)
 
 
 def _save_insight(
@@ -507,9 +800,21 @@ def generate_analysis(
 ) -> Dict:
     start, end, stage = _get_date_range_for_scope(scope, date_str, stage_id, user_id)
     stats = _aggregate_learning_data(user_id, start, end, stage)
+    # 上一周期（仅限日/周/月）
+    prev_start, prev_end = _get_prev_range(scope, start, end)
+    prev_stats = None
+    if prev_start and prev_end and scope != "stage":
+        prev_stats = _aggregate_learning_data(user_id, prev_start, prev_end, None)
     period_label = _format_period_label(scope, start, end)
-    prompt = _build_analysis_prompt(scope, stats, stage, period_label)
-    output_text = _call_gemini(prompt)
+    prompt = _build_analysis_prompt(scope, stats, stage, period_label, prev_stats)
+    try:
+        output_text = _call_gemini(prompt)
+    except AIPlannerError as exc:
+        # 兜底：允许用模板生成，避免前端空结果
+        if current_app.config.get("AI_ENABLE_FALLBACK", True):
+            output_text = _fallback_analysis_text(scope, stats, period_label, prev_stats)
+        else:
+            raise
     insight = _save_insight(
         user_id=user_id,
         insight_type="analysis",
@@ -550,10 +855,19 @@ def generate_plan(
     next_period_label = _format_period_label(scope, next_start, next_end)
     if scope == "stage" and next_stage_name:
         next_period_label = f"阶段：{next_stage_name}"
-    prompt = _build_plan_prompt(
-        scope, stats, stage, period_label, next_period_label or "后续阶段"
+    next_days = (
+        (next_end - next_start).days + 1 if next_start and next_end else None
     )
-    output_text = _call_gemini(prompt)
+    prompt = _build_plan_prompt(
+        scope, stats, stage, period_label, next_period_label or "后续阶段", next_days
+    )
+    try:
+        output_text = _call_gemini(prompt)
+    except AIPlannerError as exc:
+        if current_app.config.get("AI_ENABLE_FALLBACK", True):
+            output_text = _fallback_plan_text(scope, stats, period_label, next_period_label or "后续阶段", next_days)
+        else:
+            raise
     insight = _save_insight(
         user_id=user_id,
         insight_type="plan",

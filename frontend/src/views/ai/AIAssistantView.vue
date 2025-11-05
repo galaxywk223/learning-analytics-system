@@ -3,6 +3,11 @@
     <header class="ai-assistant__header">
       <h1>智能规划助手</h1>
       <p>按日、周、月或阶段梳理学习数据，生成易读的总结与下一步规划，并支持历史追溯。</p>
+      <div class="meta-chips">
+        <span class="chip"><span class="dot" />{{ scopeLabel }}</span>
+        <span class="chip" v-if="!isStageScope">{{ currentPeriodLabel }}</span>
+        <span class="chip" v-else>{{ currentStageLabel }}</span>
+      </div>
     </header>
 
     <el-card class="control-card" shadow="never">
@@ -294,6 +299,34 @@ const datePlaceholder = computed(() => {
   }
 });
 
+// 头部展示：当前选区信息
+const scopeLabel = computed(() => scopeLabelMap[scopeValue.value]);
+const currentStageLabel = computed(() => {
+  if (!isStageScope.value) return "";
+  const id = stageValue.value;
+  const found = stageStore.stages.find((s: any) => Number(s.id) === Number(id));
+  return found ? `阶段：${found.name}` : "阶段：未选择";
+});
+
+const currentPeriodLabel = computed(() => {
+  if (isStageScope.value) return "";
+  const d = dayjs(dateValue.value || dayjs());
+  if (scopeValue.value === "day") {
+    const dateStr = d.format("YYYY-MM-DD");
+    return buildPeriodLabel("day", dateStr, dateStr);
+  }
+  if (scopeValue.value === "week") {
+    const weekday = d.day();
+    const monday = d.subtract((weekday + 6) % 7, "day");
+    const sunday = monday.add(6, "day");
+    return buildPeriodLabel("week", monday.format("YYYY-MM-DD"), sunday.format("YYYY-MM-DD"));
+  }
+  // month
+  const first = d.startOf("month");
+  const last = d.endOf("month");
+  return buildPeriodLabel("month", first.format("YYYY-MM-DD"), last.format("YYYY-MM-DD"));
+});
+
 
 function renderMarkdown(text?: string) {
   if (!text) return "";
@@ -435,59 +468,67 @@ onMounted(async () => {
   min-height: 100%;
   padding: 24px;
   isolation: isolate;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at 18% 18%, rgba(129, 140, 248, 0.18), transparent 48%),
-      radial-gradient(circle at 78% 26%, rgba(236, 72, 153, 0.16), transparent 52%),
-      radial-gradient(circle at 70% 86%, rgba(45, 212, 191, 0.14), transparent 58%);
-    pointer-events: none;
-    z-index: -2;
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    backdrop-filter: blur(18px);
-    opacity: 0.35;
-    z-index: -3;
-  }
+  background: linear-gradient(180deg, #fafbff 0%, #ffffff 100%);
 
   &__header {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 18px 22px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(129, 140, 248, 0.2);
-    box-shadow: 0 18px 40px rgba(79, 70, 229, 0.12);
+    gap: 8px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid var(--color-border-card);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 
     h1 {
       margin: 0;
-      font-size: 26px;
-      font-weight: 600;
+      font-size: 24px;
+      font-weight: 700;
       color: #1f1d47;
     }
 
     p {
       margin: 0;
-      color: rgba(79, 70, 229, 0.72);
+      color: #64748b;
       font-size: 14px;
+    }
+  }
+
+  .meta-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border: 1px solid var(--stroke-soft);
+      background: var(--surface-card);
+      color: #334155;
+      border-radius: 999px;
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
     }
   }
 }
 
 .control-card {
-  background: rgba(255, 255, 255, 0.88);
-  border-radius: 20px;
-  border: 1px solid rgba(129, 140, 248, 0.18);
-  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.12);
-  padding: 24px 28px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-card);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  padding: 18px 20px;
 
   .control-grid {
     display: grid;
@@ -510,8 +551,8 @@ onMounted(async () => {
     }
 
     .control-label {
-      font-size: 13px;
-      color: rgba(79, 70, 229, 0.78);
+      font-size: 12px;
+      color: #64748b;
       font-weight: 500;
       letter-spacing: 0.2px;
     }
@@ -527,30 +568,16 @@ onMounted(async () => {
 
 .insight-card {
   position: relative;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 255, 0.9));
-  border-radius: 22px;
-  padding: 24px 26px;
-  box-shadow: 0 24px 50px rgba(79, 70, 229, 0.14);
-  border: 1px solid rgba(129, 140, 248, 0.2);
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--color-border-card);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 80% 0%, rgba(129, 140, 248, 0.25), transparent 60%);
-    opacity: 0.65;
-    pointer-events: none;
-  }
-
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 28px 60px rgba(79, 70, 229, 0.18);
-  }
+  transition: box-shadow 0.2s ease;
 
   &.is-loading {
     opacity: 0.72;
@@ -590,11 +617,11 @@ onMounted(async () => {
 }
 
 .history-card {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 20px;
-  border: 1px solid rgba(148, 163, 235, 0.26);
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.14);
-  padding: 24px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-card);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  padding: 18px;
 
   &__header {
     display: flex;
