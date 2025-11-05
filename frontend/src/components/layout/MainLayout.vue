@@ -121,7 +121,10 @@ onMounted(async () => {
   const backgroundImage = settingsStore.backgroundImage;
   if (backgroundImage) {
     document.body.style.backgroundImage = `url(${backgroundImage})`;
+  } else {
+    document.body.style.backgroundImage = "none";
   }
+  document.body.style.backgroundColor = "var(--surface-page)";
 });
 
 // 鼠标悬停事件（保留用于未来扩展）
