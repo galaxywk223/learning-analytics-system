@@ -9,20 +9,21 @@
       </div>
       <span class="bar-card__badge">{{ badgeText }}</span>
     </header>
-    <div class="bar-card__chart-wrapper">
+    <div class="bar-card__chart-wrapper" ref="scrollWrapper">
       <v-chart
         class="bar-card__chart"
         :option="option"
         :update-options="chartUpdateOptions"
         autoresize
         :style="chartStyle"
+        @click="onChartClick"
       />
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { use } from "echarts/core";
 import { BarChart as EBarChart } from "echarts/charts";
 import { GridComponent, TooltipComponent } from "echarts/components";
@@ -36,6 +37,21 @@ const props = defineProps({
   title: { type: String, default: "High Frequency Categories" },
   colors: { type: Array, default: () => [] },
 });
+
+const emit = defineEmits(["bar-click"]);
+
+// 滚动容器，用于外部调用复位滚动位置
+const scrollWrapper = ref(null);
+function scrollToTop(smooth = true) {
+  const el = scrollWrapper.value;
+  if (!el) return;
+  if (typeof el.scrollTo === "function") {
+    el.scrollTo({ top: 0, behavior: smooth ? "smooth" : "auto" });
+  } else {
+    el.scrollTop = 0;
+  }
+}
+defineExpose({ scrollToTop });
 
 // 当标签长度变化或布局变化时，需要同时更新 grid 和 yAxis
 const chartUpdateOptions = { replaceMerge: ["series", "yAxis", "grid"] };
@@ -220,6 +236,17 @@ const option = computed(() => {
     ],
   };
 });
+
+function onChartClick(params) {
+  // 仅响应柱子点击
+  if (!params || params.componentType !== "series" || params.seriesType !== "bar") {
+    return;
+  }
+  const name = params.name;
+  if (typeof name === "string" && name.trim()) {
+    emit("bar-click", name);
+  }
+}
 </script>
 
 <style scoped>
@@ -288,5 +315,6 @@ const option = computed(() => {
 
 .bar-card__chart {
   width: 100%;
+  cursor: pointer;
 }
 </style>

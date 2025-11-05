@@ -2,9 +2,14 @@
   <div class="motto-management settings-subview">
     <!-- 添加格言 -->
     <div class="card mb-4 add-card">
-      <div class="card-header d-flex align-items-center gap-2">
-        <Icon icon="lucide:plus-circle" />
-        <h5 class="card-title mb-0">添加新格言</h5>
+      <div class="card-header">
+        <div class="header-title">
+          <Icon icon="lucide:quote" class="title-icon" />
+          <div class="title-text">
+            <h5 class="card-title">添加新格言</h5>
+            <p class="subtitle">写下一句激励你的话语，启发每一天。</p>
+          </div>
+        </div>
       </div>
       <div class="card-body">
         <el-form
@@ -19,26 +24,34 @@
             :rules="[
               { required: true, message: '请输入格言内容', trigger: 'blur' },
             ]"
+            class="motto-input-item"
           >
             <el-input
               v-model="form.content"
+              type="textarea"
+              :autosize="{ minRows: 2, maxRows: 6 }"
               placeholder="在此输入新的格言..."
               maxlength="500"
               show-word-limit
             />
           </el-form-item>
-          <el-button type="primary" :loading="adding" @click="submitAdd"
-            >添加</el-button
-          >
+          <div class="form-actions">
+            <el-button type="primary" :loading="adding" @click="submitAdd">添加</el-button>
+          </div>
         </el-form>
       </div>
     </div>
 
     <!-- 格言列表 -->
     <div class="card">
-      <div class="card-header d-flex align-items-center gap-2">
-        <Icon icon="lucide:book-quote" />
-        <h5 class="card-title mb-0">我的格言库</h5>
+      <div class="card-header">
+        <div class="header-title">
+          <Icon icon="lucide:book-quote" class="title-icon" />
+          <div class="title-text">
+            <h5 class="card-title mb-0">我的格言库</h5>
+            <p class="subtitle">共 {{ itemsSorted.length }} 条</p>
+          </div>
+        </div>
       </div>
       <div class="list-group list-group-flush" id="motto-list-container">
         <MottoItem
@@ -180,31 +193,41 @@ onMounted(async () => {
 });
 </script>
 <style scoped>
-.settings-subview {
-  padding: 1rem 0;
-}
-.card-header {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #f0f0f0;
-}
+.settings-subview { padding: 0.5rem 0 1.5rem; }
+
 .card {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border: 1px solid var(--color-border-card);
+  border-radius: 16px;
+  background: var(--surface-card);
+  box-shadow: var(--box-shadow);
   margin-bottom: 1.25rem;
 }
-#motto-list-container {
-  min-height: 60px;
+
+.card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-card);
 }
-.list-group-item {
-  border-bottom: 1px solid #eee;
+
+.header-title { display: flex; align-items: center; gap: 12px; }
+.title-icon { color: var(--color-primary); width: 22px; height: 22px; }
+.title-text { display: flex; flex-direction: column; }
+.card-title { margin: 0; font-weight: 700; color: var(--color-text-heading); }
+.subtitle { margin: 2px 0 0; font-size: 12px; color: var(--color-text-secondary); }
+
+/* 添加区域 */
+.add-form { display: flex; flex-direction: column; gap: 0.5rem; }
+.motto-input-item { margin-bottom: 0; }
+.form-actions { display: flex; justify-content: flex-end; }
+
+.add-form :deep(.el-textarea__inner) {
+  box-shadow: none !important;
+  border-radius: 12px;
 }
-.list-group-item:last-child {
-  border-bottom: none;
-}
-.add-form :deep(.el-input__wrapper) {
-  box-shadow: none;
-}
-.dialog-footer {
-  margin-top: 0.5rem;
-}
+
+/* 列表区域 */
+#motto-list-container { min-height: 60px; }
+.list-group-item { border-bottom: 1px dashed var(--stroke-soft); }
+.list-group-item:last-child { border-bottom: none; }
+
+.dialog-footer { margin-top: 0.5rem; }
 </style>

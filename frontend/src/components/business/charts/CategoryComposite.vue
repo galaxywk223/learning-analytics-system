@@ -23,7 +23,13 @@
           <span class="panel-title">{{ drilldownPanelTitle }}</span>
         </div>
         <div class="panel-chart">
-          <BarChart :data="barData" :title="barTitle" :colors="chartColors" />
+          <BarChart
+            ref="barRef"
+            :data="barData"
+            :title="barTitle"
+            :colors="chartColors"
+            @bar-click="handleSliceClick"
+          />
         </div>
       </div>
     </div>
@@ -44,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import { ArrowLeft } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import DoughnutChart from "./components/DoughnutChart.vue";
@@ -61,6 +67,7 @@ const emit = defineEmits(["sliceClick", "back"]);
 
 const view = ref("main");
 const currentCategory = ref("");
+const barRef = ref(null);
 
 const TEXT = {
   mainTitle: "\u5b66\u4e60\u65f6\u957f\u5360\u6bd4",
@@ -126,12 +133,20 @@ function handleSliceClick(label) {
   currentCategory.value = label;
   view.value = "drilldown";
   emit("sliceClick", label);
+  // 进入下钻后，将条形图滚动到顶部
+  nextTick(() => {
+    barRef.value?.scrollToTop?.();
+  });
 }
 
 function goBack() {
   view.value = "main";
   currentCategory.value = "";
   emit("back");
+  // 返回主视图时重置条形图滚动
+  nextTick(() => {
+    barRef.value?.scrollToTop?.();
+  });
 }
 
 defineExpose({ goBack });

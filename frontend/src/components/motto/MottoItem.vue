@@ -1,9 +1,13 @@
 <template>
   <div
-    class="list-group-item d-flex justify-content-between align-items-center motto-item"
+    class="list-group-item motto-item"
     :id="`motto-${motto.id}`"
   >
-    <p class="motto-content mb-0">“ {{ motto.content }} ”</p>
+    <p class="motto-content">
+      <span class="quote-mark left">“</span>
+      <span class="text">{{ motto.content }}</span>
+      <span class="quote-mark right">”</span>
+    </p>
     <div class="item-actions">
       <el-button
         size="small"
@@ -80,10 +84,14 @@ async function onDelete() {
 <style scoped>
 .motto-item {
   padding: 1rem 1.25rem;
-  transition: background-color 0.2s ease-in-out;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
 }
 .motto-item:hover {
-  background-color: #f8f9fa;
+  background-color: var(--surface-card-muted);
 }
 .item-actions {
   display: flex;
@@ -102,6 +110,14 @@ async function onDelete() {
   height: 16px;
 }
 .motto-content {
-  font-size: 0.95rem;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-text-heading);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
+.motto-content .quote-mark { color: #94a3b8; font-size: 1.25rem; }
+.motto-content .text { color: var(--color-text-secondary); }
 </style>

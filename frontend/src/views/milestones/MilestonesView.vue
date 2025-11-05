@@ -119,7 +119,8 @@ import MilestoneItem from "@/components/milestones/MilestoneItem.vue";
 import { milestoneAPI } from "@/api/modules/milestone";
 
 const router = useRouter();
-const state = reactive({ page: 1, per_page: 10, category_id: null });
+// 每页显示条目数调小，便于分页浏览
+const state = reactive({ page: 1, per_page: 6, category_id: null });
 const allItems = ref([]);
 const displayedItems = ref([]);
 const categories = ref([]);
