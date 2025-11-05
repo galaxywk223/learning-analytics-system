@@ -167,3 +167,59 @@
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
+
+/* 对话框与表单（美化尺寸与间距） */
+.countdown-page :deep(.el-dialog) {
+  border-radius: 16px;
+}
+
+.countdown-page :deep(.el-dialog__header) {
+  padding: 16px 20px 0 20px;
+}
+
+.countdown-page :deep(.el-dialog__title) {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.countdown-page :deep(.el-dialog__body) {
+  padding: 16px 20px 20px 20px;
+}
+
+.countdown-page :deep(.el-form) {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.countdown-page :deep(.el-form-item__label) {
+  font-weight: 600;
+  color: #334155;
+}
+
+/* 输入框高度与宽度，日期/时间更大更易点选 */
+.countdown-page :deep(.el-input__wrapper) {
+  min-height: 48px;
+  border-radius: 12px;
+}
+
+
+/* 日期/时间输入：默认宽一些，图标与文本间距更宽松 */
+.countdown-page :deep(.el-date-editor) { width: 400px; }
+
+.countdown-page :deep(.el-date-editor .el-input__wrapper) { padding: 0 18px; column-gap: 12px; }
+
+.countdown-page :deep(.el-time-picker) { width: 300px; }
+
+.countdown-page :deep(.el-time-picker .el-input__wrapper) { padding: 0 18px; column-gap: 12px; }
+
+.countdown-page :deep(.el-dialog__footer) {
+  padding: 10px 20px 18px 20px;
+}
+
+@media (max-width: 600px) {
+  .countdown-page :deep(.el-date-editor),
+  .countdown-page :deep(.el-time-picker) {
+    width: 100%;
+  }
+}

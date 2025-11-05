@@ -52,7 +52,7 @@
     <el-dialog
       v-model="dialogVisible"
       :title="form.id ? '编辑倒计时' : '新建倒计时'"
-      width="460px"
+      width="720px"
       destroy-on-close
     >
       <el-form
@@ -63,7 +63,7 @@
         @submit.prevent
       >
         <el-form-item label="目标名称" prop="title">
-          <el-input v-model="form.title" autocomplete="off" />
+          <el-input v-model="form.title" autocomplete="off" size="large" />
         </el-form-item>
         <el-row :gutter="12">
           <el-col :span="12">
@@ -72,6 +72,7 @@
                 v-model="form.target_date"
                 type="date"
                 value-format="YYYY-MM-DD"
+                size="large"
               />
             </el-form-item>
           </el-col>
@@ -82,6 +83,7 @@
                 value-format="HH:mm"
                 format="HH:mm"
                 placeholder="选择时间"
+                size="large"
               />
             </el-form-item>
           </el-col>
