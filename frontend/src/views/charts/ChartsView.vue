@@ -163,7 +163,10 @@
         >
           当前筛选范围内没有找到任何带分类的学习记录。
         </div>
-        <div class="category-header" v-if="categoryPath.length">
+        <div
+          class="category-header"
+          v-if="currentCategoryName"
+        >
           <el-button
             class="category-back"
             size="small"
@@ -172,17 +175,12 @@
             :icon="ArrowLeft"
             @click="handleBackClick"
           >
-            返回父分类
+            返回上级
           </el-button>
           <span class="path">
             <span class="path-label">当前层级：</span>
             <span class="breadcrumbs">
-              <span v-for="(p, idx) in categoryPath" :key="p.id">
-                <span class="crumb" @click="jumpTo(idx)">{{ p.name }}</span>
-                <span v-if="idx < categoryPath.length - 1" class="separator">
-                  /
-                </span>
-              </span>
+              <span class="crumb">{{ currentCategoryName }}</span>
             </span>
           </span>
         </div>
@@ -191,8 +189,9 @@
           :main="charts.categoryData.main"
           :drilldown="charts.categoryData.drilldown"
           :loading="charts.loading"
+          :show-panel-header="false"
           @sliceClick="onCategorySlice"
-          @back="charts.backCategory"
+          @back="handleCategoryBack"
         />
       </div>
     </div>
@@ -201,13 +200,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onActivated, computed, watch } from "vue";
+import dayjs from "dayjs";
 import { ArrowLeft } from "@element-plus/icons-vue";
 import { useChartsStore } from "@/stores/modules/charts";
+import { useStageStore } from "@/stores/modules/stage";
 import TrendsChart from "@/components/business/charts/TrendsChart.vue";
 import CategoryComposite from "@/components/business/charts/CategoryComposite.vue";
 import KpiCard from "@/components/business/charts/KpiCard.vue";
 
 const charts = useChartsStore();
+const stageStore = useStageStore();
 const stageSelected = ref<string | number>("all");
 const categoryModes = [
   { value: "all", label: "全部历史" },
@@ -229,20 +231,6 @@ const rawChartData = computed<Record<string, any>>(
   () => charts.rawChartData as Record<string, any>
 );
 
-type CategoryBreadcrumb = { id: string | number; name: string };
-const categoryPath = computed<CategoryBreadcrumb[]>(() => {
-  const rawPath = (charts as unknown as Record<string, unknown>)
-    .categoryPath as CategoryBreadcrumb[] | undefined;
-  if (Array.isArray(rawPath) && rawPath.length) {
-    return rawPath;
-  }
-  if (charts.currentCategoryView === "drilldown" && charts.currentCategory) {
-    const name = String(charts.currentCategory);
-    return [{ id: name, name }];
-  }
-  return [];
-});
-
 const datePoint = computed({
   get: () => charts.categoryDatePoint,
   set: (value) => charts.setCategoryDatePoint(value),
@@ -253,24 +241,35 @@ const customRange = computed({
   set: (value) => charts.setCategoryCustomRange(value),
 });
 
+const currentCategoryName = computed(() => {
+  if (charts.currentCategoryView !== "drilldown") {
+    return "";
+  }
+  const name = charts.currentCategory;
+  if (!name) return "";
+  return String(name);
+});
+
 function onCategorySlice(cat) {
   if (!cat) return;
   charts.drillCategory(cat);
 }
 
-function jumpTo(index) {
-  // Jump breadcrumb back to a target level
-  if (index < 0) return;
-  while (categoryPath.value.length > index + 1) {
-    if (
-      categoryCompositeRef.value &&
-      typeof categoryCompositeRef.value.goBack === "function"
-    ) {
-      categoryCompositeRef.value.goBack();
-    } else {
-      charts.backCategory();
-    }
+function handleCategoryBack() {
+  charts.backCategory();
+}
+
+const categoryCompositeRef = ref<{ goBack?: () => void } | null>(null);
+
+function handleBackClick() {
+  if (
+    categoryCompositeRef.value &&
+    typeof categoryCompositeRef.value.goBack === "function"
+  ) {
+    categoryCompositeRef.value.goBack();
+    return;
   }
+  handleCategoryBack();
 }
 
 function onRangeModeChange(mode: CategoryRangeMode) {
@@ -301,6 +300,8 @@ watch(
 watch(
   () => rangeMode.value,
   (mode, previous) => {
+    if (previous === mode) return;
+
     if (previous === "stage" && mode !== "stage") {
       if (stageSelected.value !== "all") {
         stageSelected.value = "all";
@@ -309,14 +310,97 @@ watch(
         charts.setStage("all");
       }
     }
+
     if (mode === "stage") {
-      stageSelected.value = charts.stageId as string | number;
+      const activeId =
+        stageStore.activeStage?.id ??
+        (charts.stages.length ? charts.stages[0].id : "all");
+      stageSelected.value = activeId as string | number;
+      if (charts.stageId !== activeId) {
+        charts.setStage(activeId);
+      } else {
+        charts.fetchCategories();
+      }
+      return;
+    }
+
+    const today = dayjs();
+
+    if (mode === "daily") {
+      const date = today.format("YYYY-MM-DD");
+      if (datePoint.value !== date) {
+        datePoint.value = date;
+      } else {
+        charts.fetchCategories();
+      }
+      return;
+    }
+
+    if (mode === "weekly") {
+      const date = today.format("YYYY-MM-DD");
+      if (datePoint.value !== date) {
+        datePoint.value = date;
+      } else {
+        charts.fetchCategories();
+      }
+      return;
+    }
+
+    if (mode === "monthly") {
+      const month = today.format("YYYY-MM");
+      if (datePoint.value !== month) {
+        datePoint.value = month;
+      } else {
+        charts.fetchCategories();
+      }
+      return;
+    }
+
+    if (mode === "custom") {
+      const range: [string, string] = [
+        today.startOf("month").format("YYYY-MM-DD"),
+        today.format("YYYY-MM-DD"),
+      ];
+      if (
+        !customRange.value ||
+        customRange.value[0] !== range[0] ||
+        customRange.value[1] !== range[1]
+      ) {
+        customRange.value = range;
+      } else {
+        charts.fetchCategories();
+      }
+      return;
+    }
+
+    charts.fetchCategories();
+  }
+);
+
+watch(
+  () => stageStore.activeStage?.id,
+  (activeId) => {
+    if (!activeId || rangeMode.value !== "stage") return;
+    if (stageSelected.value !== activeId) {
+      stageSelected.value = activeId;
+    }
+    if (charts.stageId !== activeId) {
+      charts.setStage(activeId);
     }
   }
 );
 
 onMounted(async () => {
-  await charts.initStages();
+  await Promise.all([stageStore.ensureStages(), charts.initStages()]);
+  if (rangeMode.value === "stage") {
+    const activeId =
+      stageStore.activeStage?.id ??
+      (charts.stages.length ? charts.stages[0].id : "all");
+    stageSelected.value = activeId as string | number;
+    if (charts.stageId !== activeId) {
+      charts.setStage(activeId);
+    }
+  }
   await charts.refreshAll();
 });
 
@@ -324,19 +408,6 @@ onActivated(async () => {
   await charts.refreshAll();
 });
 
-// ref to child composite component to call goBack when user clicks header back
-const categoryCompositeRef = ref(null);
-
-function handleBackClick() {
-  if (
-    categoryCompositeRef.value &&
-    typeof categoryCompositeRef.value.goBack === "function"
-  ) {
-    categoryCompositeRef.value.goBack();
-    return;
-  }
-  charts.backCategory();
-}
 </script>
 
 <style scoped lang="scss">

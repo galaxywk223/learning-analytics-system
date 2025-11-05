@@ -34,15 +34,17 @@ const option = computed(() => {
 
   return {
     color: ["#6366f1", "#f97316", "#10b981", "#14b8a6", "#facc15", "#ef4444", "#8b5cf6"],
+    animation: false,
     tooltip: {
       trigger: "item",
       formatter: ({ name, value, percent }) =>
         `${name}<br/>${value.toFixed(2)} 小时 (${percent}%)`,
     },
     legend: {
-      orient: "vertical",
-      right: 0,
-      top: "middle",
+      type: "scroll",
+      orient: "horizontal",
+      bottom: 0,
+      left: "center",
       icon: "circle",
     },
     series: [
@@ -50,7 +52,7 @@ const option = computed(() => {
         name: "学习分类",
         type: "pie",
         radius: ["45%", "70%"],
-        center: ["40%", "50%"],
+        center: ["50%", "48%"],
         avoidLabelOverlap: true,
         label: {
           formatter: "{b}\n{d}%",
@@ -78,7 +80,7 @@ const option = computed(() => {
         ? [
             {
               type: "text",
-              left: "40%",
+              left: "50%",
               top: "42%",
               style: {
                 text: totalHours.toFixed(1),
@@ -90,8 +92,8 @@ const option = computed(() => {
             },
             {
               type: "text",
-              left: "40%",
-              top: "58%",
+              left: "50%",
+              top: "60%",
               style: {
                 text: "总时长 (小时)",
                 textAlign: "center",

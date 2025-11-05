@@ -9,8 +9,14 @@
         @slice-click="handleSliceClick"
       />
 
-      <div :class="['right-panel', view === 'drilldown' ? 'has-drilldown' : '']">
-        <div v-if="view === 'drilldown'" class="panel-header">
+      <div
+        :class="[
+          'right-panel',
+          view === 'drilldown' ? 'has-drilldown' : '',
+          !showPanelHeader ? 'no-header' : '',
+        ]"
+      >
+        <div v-if="showPanelHeader && view === 'drilldown'" class="panel-header">
           <el-button class="panel-back" type="primary" text :icon="ArrowLeft" @click="goBack">
             {{ TEXT.back }}
           </el-button>
@@ -48,6 +54,7 @@ import { buildColors, calculateTotalHours } from "@/utils/charts";
 const props = defineProps({
   main: { type: Object, default: () => ({}) },
   drilldown: { type: Object, default: () => ({}) },
+  showPanelHeader: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(["sliceClick", "back"]);
@@ -171,6 +178,10 @@ watch(
   padding-top: 40px;
 }
 
+.right-panel.no-header {
+  padding-top: 0;
+}
+
 .panel-header {
   position: absolute;
   top: 0;
@@ -257,6 +268,10 @@ watch(
 
   .right-panel {
     padding-top: 44px;
+  }
+
+  .right-panel.no-header {
+    padding-top: 0;
   }
 
   .panel-header {

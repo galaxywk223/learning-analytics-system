@@ -9,7 +9,7 @@
     />
 
     <!-- 加载状态 -->
-    <el-skeleton v-if="loading" :rows="4" animated />
+    <el-skeleton v-if="loading" :rows="4" :animated="false" />
 
     <!-- 空状态 -->
     <EmptyState
@@ -181,8 +181,6 @@ const handleDialogClose = () => {
 const handleSubmit = async (formData) => {
   submitting.value = true;
   try {
-    console.log("Submitting record data:", formData);
-
     if (isEditing.value) {
       // 更新记录
       const response = await request.put(
@@ -192,7 +190,6 @@ const handleSubmit = async (formData) => {
           stage_id: currentStage.value.id,
         }
       );
-      console.log("Update response:", response);
       ElMessage.success("记录更新成功!");
     } else {
       // 创建记录
@@ -200,7 +197,6 @@ const handleSubmit = async (formData) => {
         ...formData,
         stage_id: currentStage.value.id,
       });
-      console.log("Create response:", response);
       ElMessage.success("新纪录添加成功!");
     }
 

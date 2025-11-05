@@ -1,6 +1,7 @@
 <!-- 周折叠面板组件 -->
 <template>
   <el-collapse
+    :collapse-transition="false"
     :model-value="activeWeeks"
     @update:model-value="$emit('update:activeWeeks', $event)"
     class="weeks-accordion"

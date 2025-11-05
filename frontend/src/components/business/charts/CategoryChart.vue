@@ -38,6 +38,7 @@ const emit = defineEmits(["sliceClick"]);
 
 const option = computed(() => ({
   title: { text: props.title, left: "center" },
+  animation: false,
   tooltip: {
     trigger: "item",
     formatter: (params) => {
@@ -47,12 +48,18 @@ const option = computed(() => ({
       return `${params.name}<br/>时长: ${params.value} min (${pct}%)`;
     },
   },
-  legend: { orient: "vertical", left: "left" },
+  legend: {
+    type: "scroll",
+    orient: "horizontal",
+    bottom: 0,
+    left: "center",
+  },
   series: [
     {
       name: "分类",
       type: "pie",
-      radius: ["40%", "70%"],
+      radius: ["42%", "72%"],
+      center: ["50%", "50%"],
       avoidLabelOverlap: true,
       data: props.data,
       emphasis: {
@@ -67,12 +74,6 @@ const option = computed(() => ({
     },
   ],
   toolbox: { feature: { saveAsImage: {} } },
-  animation: props.loading
-    ? false
-    : {
-        duration: 500, // 减少动画时长
-        easing: "cubicOut",
-      },
 }));
 
 function onChartClick(event) {

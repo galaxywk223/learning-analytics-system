@@ -121,6 +121,7 @@ const option = computed(() => {
 
   return {
     color: palette,
+    animation: false,
     tooltip: {
       trigger: "item",
       backgroundColor: "rgba(30, 27, 75, 0.92)",
@@ -133,9 +134,10 @@ const option = computed(() => {
       },
     },
     legend: {
-      orient: "vertical",
-      right: 12,
-      top: "middle",
+      type: "scroll",
+      orient: "horizontal",
+      bottom: 0,
+      left: "center",
       data: legendLabels.value,
       icon: "circle",
       itemWidth: 10,
@@ -150,7 +152,7 @@ const option = computed(() => {
         name: uiText.pieName,
         type: "pie",
         radius: ["56%", "84%"],
-        center: ["44%", "50%"],
+        center: ["50%", "48%"],
         avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: 8,
@@ -271,12 +273,12 @@ function handleSliceClick(params) {
 
   &__chart {
     width: 100%;
-    height: 280px;
+    height: 320px;
     position: relative;
     z-index: 1;
 
     @media (max-width: 768px) {
-      height: 260px;
+      height: 300px;
     }
   }
 }

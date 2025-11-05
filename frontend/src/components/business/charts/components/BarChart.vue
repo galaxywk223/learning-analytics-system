@@ -96,18 +96,6 @@ const barColors = computed(() => {
 
 const categoryNames = computed(() => sortedData.value.map((item) => item.name));
 
-const longestLabelLength = computed(() =>
-  categoryNames.value.reduce((max, name) => Math.max(max, name ? name.length : 0), 0)
-);
-
-const axisLabelWidth = computed(() => {
-  const charWidth = 6.25;
-  const estimated = longestLabelLength.value * charWidth;
-  return Math.min(110, Math.max(68, Math.round(estimated)));
-});
-
-const gridLeft = computed(() => axisLabelWidth.value + 22);
-
 const seriesData = computed(() =>
   sortedData.value.map((item, idx) => ({
     value: Number.parseFloat(Number(item.value ?? 0).toFixed(2)),
@@ -121,8 +109,8 @@ const option = computed(() => {
   return {
     color: barColors.value,
     grid: {
-      left: gridLeft.value,
-      right: 48,
+      left: 12,
+      right: 40,
       top: 24,
       bottom: 24,
       containLabel: true,
@@ -148,16 +136,7 @@ const option = computed(() => {
       data: categories,
       axisTick: { show: false },
       axisLine: { show: false },
-      axisLabel: {
-        color: "#334155",
-        fontSize: 12,
-        interval: 0,
-        margin: 12,
-        align: "right",
-        width: axisLabelWidth.value,
-        overflow: "break",
-        lineHeight: 16,
-      },
+      axisLabel: { show: false },
     },
     series: [
       {

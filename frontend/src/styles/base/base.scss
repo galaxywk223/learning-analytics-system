@@ -186,6 +186,89 @@ body::after {
   }
 }
 
+/* ==== 表单基础样式 ==== */
+:where(.el-form):not(.el-form--inline) {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 18px;
+  padding: clamp(18px, 2.4vw, 28px);
+}
+
+:where(.el-form):not(.el-form--inline) .el-form-item {
+  margin-bottom: 20px;
+}
+
+.el-form-item__label {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  padding-bottom: 6px;
+}
+
+:where(.el-input__wrapper),
+:where(.el-date-editor .el-input__wrapper),
+:where(.el-select .el-input__wrapper) {
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 12px;
+  box-shadow: none;
+  transition: border-color var(--transition-speed) ease,
+    background-color var(--transition-speed) ease;
+}
+
+:where(.el-input__wrapper):hover,
+:where(.el-date-editor .el-input__wrapper):hover,
+:where(.el-select .el-input__wrapper):hover {
+  border-color: rgba(167, 139, 250, 0.7);
+}
+
+:where(.el-input__wrapper.is-focus),
+:where(.el-date-editor .el-input__wrapper.is-focus),
+:where(.el-select .el-input__wrapper.is-focus) {
+  border-color: var(--color-primary-dark);
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.el-input__inner,
+.el-textarea__inner {
+  color: var(--color-text-base);
+  background: transparent;
+}
+
+.el-textarea__inner {
+  border-radius: 12px;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  background: rgba(248, 250, 252, 0.95);
+  transition: border-color var(--transition-speed) ease,
+    background-color var(--transition-speed) ease;
+}
+
+.el-textarea__inner:hover,
+.el-textarea__inner:focus {
+  border-color: var(--color-primary-dark);
+  background: rgba(255, 255, 255, 0.98);
+  outline: none;
+  box-shadow: none;
+}
+
+.el-form-item__error {
+  margin-top: 6px;
+  color: var(--color-error);
+  font-size: 13px;
+}
+
+.el-form-item__content {
+  color: var(--color-text-base);
+}
+
+.el-form-item__label:after {
+  display: none;
+}
+
+.el-checkbox__label,
+.el-radio__label {
+  color: var(--color-text-secondary);
+}
+
 /* ===== 9. 全局字体强制应用 ===== */
 html,
 body,

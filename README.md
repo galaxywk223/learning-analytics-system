@@ -80,9 +80,7 @@ code .
 
 ---
 
-## 🚀 快速开始
-
-````
+## 🧭 本地运行步骤
 
 ### 步骤一：启动后端服务
 
@@ -92,7 +90,7 @@ code .
 cd backend
 python -m venv venv
 venv\Scripts\activate
-````
+```
 
 2. 安装依赖
 
@@ -290,4 +288,3 @@ net start postgresql-x64-17
 - 在 `.env` 或系统环境变量中配置 `GEMINI_API_KEY`（必填）和可选的 `GEMINI_MODEL`。
 - 部署或更新后执行 `./scripts/migrate.sh` 应用最新数据库迁移。
 - 后台将聚合日/周/月/阶段的学习数据，再调用 Gemini 生成中文分析与规划，前端支持历史记录查询。
-
