@@ -6,8 +6,8 @@
           <Icon icon="lucide:user-plus" />
         </div>
         <div :class="styles.headerText">
-          <h2>加入学习日志管理系统</h2>
-          <p>三步完成注册，开启高效学习旅程</p>
+          <h2>加入萤火集</h2>
+          <p>三步完成注册，点亮你的学习旅程</p>
         </div>
       </div>
 

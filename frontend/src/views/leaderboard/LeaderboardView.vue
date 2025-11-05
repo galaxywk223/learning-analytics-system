@@ -2,8 +2,8 @@
   <div class="leaderboard-view">
     <section class="header">
       <div class="title-group">
-        <h1>📈 学习排行榜</h1>
-        <p class="subtitle">实时查看全站学习时长与效率榜单，点选用户了解详情</p>
+        <h1>📈 社区排行</h1>
+        <p class="subtitle">实时查看社区学习时长与效率榜单，点选用户了解详情</p>
       </div>
       <div class="controls">
         <div class="control-group">
@@ -41,7 +41,7 @@
       show-icon
       class="join-alert"
     >
-      <template #title>未加入排行榜</template>
+      <template #title>未加入社区排行</template>
       <template #default>
         <div class="join-alert__body">
           <span>加入后即可出现在榜单中，并分享你的学习数据（时长与效率）。</span>
@@ -62,7 +62,7 @@
         </div>
         <div class="card-actions" v-if="leaderboard.optedIn">
           <el-button text type="danger" size="small" @click="handleLeave" :loading="leaveLoading">
-            退出排行榜
+            退出社区排行
           </el-button>
         </div>
       </div>

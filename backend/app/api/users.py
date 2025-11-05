@@ -51,19 +51,35 @@ def dashboard_summary():
     )
     hours, minutes = divmod(today_minutes, 60)
 
+    total_records = (
+        LogEntry.query.join(Stage)
+        .filter(Stage.user_id == current_user_id)
+        .count()
+    )
+
+    latest_entry = (
+        LogEntry.query.join(Stage)
+        .filter(Stage.user_id == current_user_id)
+        .order_by(LogEntry.log_date.desc(), LogEntry.created_at.desc())
+        .first()
+    )
+    latest_record_date = (
+        latest_entry.log_date.isoformat() if latest_entry and latest_entry.log_date else None
+    )
+
     # 下一个倒计时事件
     from datetime import datetime as _dt
     import pytz
 
     utc_now = _dt.utcnow().replace(tzinfo=pytz.utc)
-    next_event = (
-        CountdownEvent.query.filter(
-            CountdownEvent.user_id == current_user_id,
-            CountdownEvent.target_datetime_utc > utc_now,
-        )
-        .order_by(CountdownEvent.target_datetime_utc.asc())
-        .first()
+    next_event_query = CountdownEvent.query.filter(
+        CountdownEvent.user_id == current_user_id,
+        CountdownEvent.target_datetime_utc > utc_now,
     )
+    next_event = next_event_query.order_by(
+        CountdownEvent.target_datetime_utc.asc()
+    ).first()
+    countdown_total = CountdownEvent.query.filter_by(user_id=current_user_id).count()
     next_countdown_payload = None
     if next_event:
         target_dt = next_event.target_datetime_utc
@@ -105,9 +121,13 @@ def dashboard_summary():
                 "today_duration_formatted": f"{hours}h {minutes}m"
                 if hours > 0
                 else f"{minutes}m",
+                "total_records": total_records,
+                "latest_record_date": latest_record_date,
+                "countdown_total": countdown_total,
                 "next_countdown": next_countdown_payload,
                 "pending_todos": pending_todos,
                 "milestones_count": milestones_count,
+                "daily_plan": {"completed": 0, "total": 0},
                 # "daily_plan": {"completed": completed_today, "total": total_today},  # 屏蔽
                 # 恢复随机格言（与旧项目结构一致，仅返回 id 与 content）
                 "random_motto": (

@@ -94,7 +94,7 @@ def create_app(config_name=None):
     def api_root():
         return jsonify(
             {
-                "message": "Learning Logger API",
+                "message": "萤火集 API",
                 "version": "2.0.0",
                 "endpoints": {
                     "auth": "/api/auth",

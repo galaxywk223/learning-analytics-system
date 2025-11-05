@@ -174,7 +174,7 @@ def export_data_for_user(user):
                 )
 
         buffer.seek(0)
-        filename = f"learning_logger_backup_{user.username}.zip"
+        filename = f"yinghuoji_backup_{user.username}.zip"
         return True, buffer, filename
     except Exception as e:
         current_app.logger.error(

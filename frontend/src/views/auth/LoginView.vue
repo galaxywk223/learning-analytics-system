@@ -6,8 +6,8 @@
           <Icon icon="lucide:book-open" />
         </div>
         <div :class="styles.headerText">
-          <h2>学习日志管理系统</h2>
-          <p>多端同步 Â· 数据可视 Â· 智能规划</p>
+          <h2>萤火集</h2>
+          <p>多端同步 · 数据可视 · 智能规划</p>
         </div>
       </div>
 

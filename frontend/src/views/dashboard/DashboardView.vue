@@ -50,9 +50,8 @@
         class="feature-card"
         :class="card.class"
       >
-        <div class="card-background"></div>
         <div class="card-content">
-          <div class="card-icon" :class="card.iconClass">
+          <div class="card-icon">
             <Icon :icon="card.icon" />
           </div>
           <h3 class="card-title">{{ card.title }}</h3>
@@ -68,6 +67,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onActivated } from "vue";
+import dayjs from "dayjs";
 import { Icon } from "@iconify/vue";
 import { useDashboardStore } from "@/stores/modules/dashboard";
 import { useAuthStore } from "@/stores/modules/auth";
@@ -89,23 +89,57 @@ const greeting = computed(() => {
 });
 
 /** 各卡片摘要（统一从 store.summary 取值，若无则给默认文案） */
-const recordSummary = computed(() => {
-  const count = dashboardStore.summary?.records_count ?? 0;
-  const duration = dashboardStore.summary?.total_duration ?? 0;
-  return `已记录 ${count} 条 · 累计 ${duration} 小时`;
+const formatDuration = (minutes) => {
+  if (!minutes) return "0 分钟";
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hrs && mins) return `${hrs} 小时 ${mins} 分钟`;
+  if (hrs) return `${hrs} 小时`;
+  return `${mins} 分钟`;
+};
+
+const focusSummary = computed(() => {
+  const minutes = dashboardStore.summary?.today_duration_minutes ?? 0;
+  if (!minutes) return "还没有记录今日专注时长";
+  return `今日已专注 ${formatDuration(minutes)}`;
 });
 
-const chartSummary = computed(() => "查看学习统计与趋势分析");
-const leaderboardSummary = computed(() => "实时查看全站学习排行榜");
+const recordSummary = computed(() => {
+  const total = dashboardStore.summary?.total_records ?? 0;
+  const latest = dashboardStore.summary?.latest_record_date;
+  if (!total) return "暂无学习记录，点击进入开始记录";
+  const latestText = latest ? dayjs(latest).format("YYYY/MM/DD") : "近期";
+  return `共 ${total} 条 · 最近更新 ${latestText}`;
+});
+
+const chartsSummary = computed(() => {
+  const total = dashboardStore.summary?.total_records ?? 0;
+  if (total >= 5) return "数据已同步，可查看趋势与对比";
+  if (total > 0) return "数据较少，再记录几次即可生成趋势";
+  return "暂无统计数据，先去记录几次学习吧";
+});
+
+const leaderboardSummary = computed(() => "实时查看社区排行动态");
 
 const countdownSummary = computed(() => {
-  const count = dashboardStore.summary?.countdown_count ?? 0;
-  return `${count} 个重要日期正在倒计时`;
+  const next = dashboardStore.summary?.next_countdown;
+  if (next?.title) {
+    const days = next.remaining_days ?? 0;
+    const dayText = days > 0 ? `${days} 天后` : "今天";
+    return `${next.title} · ${dayText}`;
+  }
+  const total = dashboardStore.summary?.countdown_total ?? 0;
+  return total > 0 ? `共有 ${total} 个倒计时事项` : "暂未添加倒计时提醒";
 });
 
 const milestoneSummary = computed(() => {
   const count = dashboardStore.summary?.milestones_count ?? 0;
-  return `已记录 ${count} 个重要时刻`;
+  return count > 0 ? `已记录 ${count} 个高光瞬间` : "记录你的第一个高光瞬间";
+});
+
+const aiSummary = computed(() => {
+  const pending = dashboardStore.summary?.pending_todos ?? 0;
+  return pending > 0 ? `还有 ${pending} 项待办等待处理` : "待办已清空，轻松规划下一步";
 });
 
 /** 随机格言：统一走 store，避免与 fetch('/api/...') 冲突 */
@@ -233,16 +267,14 @@ const cards = computed(() => [
     to: "/focus",
     class: "card-focus",
     icon: "lucide:timer",
-    iconClass: "icon-focus",
     title: "开始专注",
-    summary: "进入专注模式并记录学习时长",
+    summary: focusSummary.value,
   },
   {
     key: "records",
     to: "/records",
     class: "card-record",
     icon: "lucide:book-open",
-    iconClass: "icon-record",
     title: "学习记录",
     summary: recordSummary.value,
   },
@@ -251,17 +283,15 @@ const cards = computed(() => [
     to: "/charts",
     class: "card-chart",
     icon: "lucide:trending-up",
-    iconClass: "icon-chart",
     title: "统计分析",
-    summary: chartSummary.value,
+    summary: chartsSummary.value,
   },
   {
     key: "leaderboard",
     to: "/leaderboard",
     class: "card-leaderboard",
     icon: "lucide:users",
-    iconClass: "icon-leaderboard",
-    title: "排行榜",
+    title: "社区排行",
     summary: leaderboardSummary.value,
   },
   {
@@ -269,7 +299,6 @@ const cards = computed(() => [
     to: "/countdown",
     class: "card-countdown",
     icon: "lucide:calendar-clock",
-    iconClass: "icon-countdown",
     title: "倒计时",
     summary: countdownSummary.value,
   },
@@ -278,8 +307,7 @@ const cards = computed(() => [
     to: "/milestones",
     class: "card-milestone",
     icon: "lucide:award",
-    iconClass: "icon-milestone",
-    title: "里程碑",
+    title: "成就时刻",
     summary: milestoneSummary.value,
   },
   {
@@ -287,18 +315,16 @@ const cards = computed(() => [
     to: "/ai",
     class: "card-ai",
     icon: "lucide:sparkles",
-    iconClass: "icon-ai",
     title: "智能规划",
-    summary: "生成分析与规划建议",
+    summary: aiSummary.value,
   },
   {
     key: "settings",
     to: "/settings",
     class: "card-settings",
     icon: "lucide:settings",
-    iconClass: "icon-settings",
-    title: "系统设置",
-    summary: "配置账户与系统偏好",
+    title: "设置中心",
+    summary: "配置账户、数据与偏好设置",
   },
 ]);
 

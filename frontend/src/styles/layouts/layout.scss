@@ -4,7 +4,7 @@
 .page-wrapper {
   display: flex;
   height: 100vh;
-  background-color: transparent;
+  background-color: var(--surface-page);
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -89,6 +89,7 @@
   width: calc(100% - var(--sidebar-collapsed-width));
   overflow-y: auto;
   overflow-x: hidden;
+  background: var(--surface-page);
 }
 
 /* 主内容区滚动条样式 */
@@ -128,13 +129,13 @@
 .focus-view {
   padding: 2rem;
   min-height: 100vh;
-  background-color: var(--surface-page);
+  background-color: var(--surface-section);
 }
 
 /* 全屏页面保持无 padding */
 .dashboard-view {
   padding: 0;
-  background-color: transparent;
+  background-color: var(--surface-section);
 }
 
 /* ===== Sidebar Components ===== */
@@ -186,13 +187,13 @@
 .sidebar-footer {
   padding-top: 1.5rem;
   margin-top: auto;
-  border-top: 1px solid var(--color-border-sidebar);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .sidebar-footer p {
   text-align: center;
   font-size: 0.8rem;
-  color: var(--color-text-muted);
+  color: rgba(226, 232, 240, 0.6);
   margin: 0.5rem 0 0;
 }
 

@@ -5,9 +5,9 @@
 export default {
   // 应用信息
   app: {
-    name: "学习记录器",
+    name: "萤火集",
     version: "2.0.0",
-    description: "个人学习时间跟踪和分析工具",
+    description: "萤火集：陪你记录每一次专注的学习旅程",
   },
 
   // API 配置

@@ -1,15 +1,18 @@
 // KPI 卡片组件样式
 .kpi-card {
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  border: 1px solid #e2e8f0;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  border: 1px solid var(--color-border-card);
+  transition:
+    background-color var(--transition-speed) ease,
+    border-color var(--transition-speed) ease;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--box-shadow);
 
   .icon-wrapper {
     width: 56px;
@@ -35,7 +38,7 @@
     font-size: 1.85rem;
     font-weight: 700;
     line-height: 1.2;
-    color: #1e293b;
+    color: var(--color-text-heading);
     margin-bottom: 0.25rem;
     letter-spacing: -0.5px;
 
@@ -46,7 +49,7 @@
 
   .label {
     font-size: 0.9rem;
-    color: #64748b;
+    color: var(--color-text-secondary);
     font-weight: 600;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -58,7 +61,7 @@
     --bar-color: #667eea;
     --icon-bg: #eef2ff;
     --icon-color: #4f46e5;
-    border-color: rgba(99, 102, 241, 0.35);
+    border-color: rgba(99, 102, 241, 0.25);
   }
 
   &.amber {

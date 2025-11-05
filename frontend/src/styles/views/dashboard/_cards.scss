@@ -12,51 +12,26 @@
 
 .feature-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.95);
+  --card-accent: var(--color-primary);
+  --card-accent-soft: rgba(85, 100, 216, 0.14);
+  background: var(--surface-card);
   border-radius: 12px;
-  padding: 28px;
+  padding: 24px;
   text-decoration: none;
   color: inherit;
   overflow: hidden;
-  transition: box-shadow 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  animation: fadeInUp 0.4s ease-out both;
-}
-
-.feature-card:nth-child(1) {
-  animation-delay: 0.15s;
-}
-.feature-card:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.feature-card:nth-child(3) {
-  animation-delay: 0.25s;
-}
-.feature-card:nth-child(4) {
-  animation-delay: 0.3s;
-}
-.feature-card:nth-child(5) {
-  animation-delay: 0.35s;
-}
-
-.card-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: currentColor;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.feature-card:hover .card-background {
-  opacity: 1;
+  border: 1px solid var(--color-border-card);
+  border-top: 3px solid var(--card-accent);
+  transition:
+    background-color var(--transition-speed) ease,
+    border-color var(--transition-speed) ease;
+  box-shadow: var(--box-shadow);
 }
 
 .feature-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--surface-card-muted);
+  border-color: var(--stroke-soft);
+  border-top-color: var(--card-accent);
 }
 
 .card-content {
@@ -65,89 +40,35 @@
 }
 
 .card-icon {
-  width: 64px;
-  height: 64px;
+  width: 60px;
+  height: 60px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 0 18px 0;
-  transition: transform 0.2s ease;
+  background: var(--card-accent-soft);
+  color: var(--card-accent);
 }
 
 .card-icon i,
 .card-icon svg {
-  width: 32px;
-  height: 32px;
-}
-
-.feature-card:hover .card-icon {
-  transform: scale(1.05);
-}
-
-/* 图标配色 - 扁平化纯色 */
-.icon-focus {
-  background: #fa709a;
-  color: white;
-}
-
-.icon-record {
-  background: #667eea;
-  color: white;
-}
-
-.icon-chart {
-  background: #f5576c;
-  color: white;
-}
-
-.icon-leaderboard {
-  background: #a855f7;
-  color: white;
-}
-
-.icon-countdown {
-  background: #00f2fe;
-  color: white;
-}
-
-.icon-milestone {
-  background: #43e97b;
-  color: white;
-}
-
-/* 卡片主题色 */
-.card-focus {
-  color: #fa709a;
-}
-.card-record {
-  color: #667eea;
-}
-.card-chart {
-  color: #f5576c;
-}
-.card-leaderboard {
-  color: #a855f7;
-}
-.card-countdown {
-  color: #00f2fe;
-}
-.card-milestone {
-  color: #43e97b;
+  width: 30px;
+  height: 30px;
 }
 
 .card-title {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--color-text-heading);
   margin: 0 0 10px 0;
   font-family: var(--font-family-heading);
 }
 
 .card-description {
-  font-size: 0.9rem;
-  color: #6b7280;
-  line-height: 1.5;
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
   margin: 0;
   min-height: 44px;
 }
@@ -156,46 +77,59 @@
   position: absolute;
   bottom: 20px;
   right: 20px;
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
-  background: #f3f4f6;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(17, 24, 39, 0.05);
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transform: translateX(-8px);
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease,
-    background 0.2s ease;
+  color: var(--card-accent);
 }
 
 .card-arrow i,
 .card-arrow svg {
   width: 16px;
   height: 16px;
-  color: #6b7280;
-  transition: color 0.2s ease;
 }
 
-.feature-card:hover .card-arrow {
-  opacity: 1;
-  transform: translateX(0);
-  background: currentColor;
+.feature-card.card-focus {
+  --card-accent: #4ad991;
+  --card-accent-soft: rgba(74, 217, 145, 0.16);
 }
 
-.feature-card:hover .card-arrow i,
-.feature-card:hover .card-arrow svg {
-  color: white;
+.feature-card.card-record {
+  --card-accent: #5564d8;
+  --card-accent-soft: rgba(85, 100, 216, 0.14);
 }
 
-.icon-ai {
-  background: #ffb347;
-  color: white;
+.feature-card.card-chart {
+  --card-accent: #38bdf8;
+  --card-accent-soft: rgba(56, 189, 248, 0.16);
 }
 
-.card-ai {
-  color: #ffb347;
+.feature-card.card-leaderboard {
+  --card-accent: #a855f7;
+  --card-accent-soft: rgba(168, 85, 247, 0.16);
+}
+
+.feature-card.card-countdown {
+  --card-accent: #f4b740;
+  --card-accent-soft: rgba(244, 183, 64, 0.18);
+}
+
+.feature-card.card-milestone {
+  --card-accent: #f97316;
+  --card-accent-soft: rgba(249, 115, 22, 0.18);
+}
+
+.feature-card.card-ai {
+  --card-accent: #0ea5e9;
+  --card-accent-soft: rgba(14, 165, 233, 0.16);
+}
+
+.feature-card.card-settings {
+  --card-accent: #64748b;
+  --card-accent-soft: rgba(100, 116, 139, 0.18);
 }
 

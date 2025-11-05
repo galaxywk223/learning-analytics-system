@@ -2,24 +2,27 @@
 
 /* ===== Cards ===== */
 .card {
-  background-color: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: var(--surface-card);
+  border: 1px solid var(--color-border-card);
   border-radius: var(--border-radius-md);
   box-shadow: var(--box-shadow);
   overflow: hidden;
-  transition: all var(--transition-speed) ease;
+  transition:
+    background-color var(--transition-speed) ease,
+    border-color var(--transition-speed) ease,
+    box-shadow var(--transition-speed) ease;
 }
 
 .card:hover {
-  background-color: rgba(255, 255, 255, 0.98);
-  transform: translateY(-3px);
+  background-color: var(--surface-card-muted);
+  border-color: var(--stroke-soft);
   box-shadow: var(--box-shadow-hover);
 }
 
 .card-header {
   background-color: transparent;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-card-border);
+  border-bottom: 1px solid var(--color-border-card);
 }
 
 .card-body {
@@ -35,23 +38,25 @@
 
 /* ===== Accordion (Weekly Logs) ===== */
 .accordion-item {
-  background-color: var(--color-card-bg);
+  background-color: var(--surface-card);
   border-radius: var(--border-radius-md) !important;
-  border: 1px solid var(--color-card-border);
+  border: 1px solid var(--color-border-card);
   box-shadow: var(--box-shadow);
   overflow: hidden;
-  transition: all var(--transition-speed) ease;
+  transition:
+    background-color var(--transition-speed) ease,
+    border-color var(--transition-speed) ease,
+    box-shadow var(--transition-speed) ease;
   margin-bottom: 1rem;
 }
 
 .accordion-item:not(:first-of-type) {
-  border-top: 1px solid var(--color-card-border);
+  border-top: 1px solid var(--stroke-soft);
 }
 
 .accordion-item:hover {
-  transform: translateY(-3px);
   box-shadow: var(--box-shadow-hover);
-  background-color: var(--color-card-bg-hover);
+  background-color: var(--surface-card-muted);
 }
 
 .accordion-button {
@@ -70,16 +75,18 @@
 
 /* ===== Buttons ===== */
 .btn {
-  font-weight: 500;
+  font-weight: 600;
   border-radius: var(--border-radius-sm);
   padding: 0.6rem 1.2rem;
-  transition: all var(--transition-speed) ease;
-  box-shadow: var(--box-shadow);
+  transition:
+    background-color var(--transition-speed) ease,
+    color var(--transition-speed) ease,
+    border-color var(--transition-speed) ease;
+  box-shadow: none;
 }
 
 .btn:hover {
-  box-shadow: var(--box-shadow-hover);
-  transform: translateY(-2px);
+  box-shadow: none;
 }
 
 .btn-primary {
@@ -97,13 +104,13 @@
 .btn-accent {
   background-color: var(--color-accent);
   border-color: var(--color-accent);
-  color: var(--color-text-dark);
+  color: var(--color-text-base);
 }
 
 .btn-accent:hover {
-  background-color: var(--color-accent-dark);
-  border-color: var(--color-accent-dark);
-  color: #ffffff;
+  background-color: #e4a92f;
+  border-color: #e4a92f;
+  color: var(--color-text-heading);
 }
 
 /* ===== Forms ===== */
@@ -115,7 +122,7 @@
 .form-control,
 .form-select {
   border-radius: var(--border-radius-sm);
-  border: 1px solid var(--color-card-border);
+  border: 1px solid var(--color-border-card);
 }
 
 .form-control:focus,
@@ -132,22 +139,22 @@
   padding: 0.75rem 1rem;
   border-radius: var(--border-radius-md);
   text-decoration: none;
-  color: #d1d5db;
+  color: rgba(226, 232, 240, 0.85);
   transition:
     background-color var(--transition-speed),
     color var(--transition-speed);
 }
 
 .nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-light);
 }
 
 .nav-link.active {
-  background-color: var(--color-primary);
+  background-color: rgba(255, 255, 255, 0.12);
   color: var(--color-text-light);
-  font-weight: 500;
-  box-shadow: var(--box-shadow);
+  font-weight: 600;
+  box-shadow: none;
 }
 
 .nav-link svg {
@@ -161,37 +168,21 @@
   color: inherit;
   display: block;
   transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+    background-color var(--transition-speed) ease,
+    border-color var(--transition-speed) ease;
   height: 100%;
   border-radius: var(--border-radius-md);
-  background-color: rgba(255, 255, 255, 0.95);
-  border: 1px solid #e5e7eb;
-  border-top-width: 4px;
+  background-color: var(--surface-card);
+  border: 1px solid var(--color-border-card);
+  border-top: 3px solid var(--color-primary);
   overflow: hidden;
   position: relative;
 }
 
-.dashboard-card::before {
-  content: "";
-  position: absolute;
-  top: -2px;
-  left: 0;
-  height: 4px;
-  width: 0;
-  background-color: var(--color-primary-dark);
-  transition: width 0.4s ease;
-}
-
-.dashboard-card:hover::before {
-  width: 100%;
-}
-
 .dashboard-card:hover {
-  transform: translateY(-8px);
-  box-shadow:
-    0 20px 25px -5px rgb(0 0 0 / 0.1),
-    0 8px 10px -6px rgb(0 0 0 / 0.1);
+  background-color: var(--surface-card-muted);
+  border-color: var(--stroke-soft);
+  border-top-color: var(--color-primary-dark);
 }
 
 .dashboard-card .card-body {
@@ -199,117 +190,3 @@
   text-align: center;
 }
 
-/* Card specific colors */
-.card-records {
-  border-top-color: var(--color-primary);
-}
-.card-charts {
-  border-top-color: var(--color-accent);
-}
-.card-countdown {
-  border-top-color: #4338ca;
-}
-.card-todo {
-  border-top-color: #22c55e;
-}
-.card-milestone {
-  border-top-color: #a855f7;
-}
-.card-plan {
-  border-top-color: #06b6d4;
-}
-
-.card-records:hover::before {
-  background-color: var(--color-primary-dark);
-}
-.card-charts:hover::before {
-  background-color: var(--color-accent-dark);
-}
-.card-countdown:hover::before {
-  background-color: #3730a3;
-}
-.card-todo:hover::before {
-  background-color: #15803d;
-}
-.card-milestone:hover::before {
-  background-color: #9333ea;
-}
-.card-plan:hover::before {
-  background-color: #0891b2;
-}
-
-/* Icon containers */
-.icon-container {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 1.5rem auto;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-primary-light);
-  transition: transform 0.3s ease;
-}
-
-.dashboard-card:hover .icon-container {
-  transform: scale(1.1);
-}
-
-.icon-container svg {
-  width: 32px;
-  height: 32px;
-  color: var(--color-primary-dark);
-}
-
-.icon-container-records {
-  background-color: var(--color-primary-light);
-}
-.icon-container-records svg {
-  color: var(--color-primary-dark);
-}
-.icon-container-charts {
-  background-color: var(--color-accent-light);
-}
-.icon-container-charts svg {
-  color: var(--color-accent-dark);
-}
-.icon-container-countdown {
-  background-color: #c7d2fe;
-}
-.icon-container-countdown svg {
-  color: #4338ca;
-}
-.icon-container-todo {
-  background-color: #dcfce7;
-}
-.icon-container-todo svg {
-  color: #16a34a;
-}
-.icon-container-milestone {
-  background-color: #f3e8ff;
-}
-.icon-container-milestone svg {
-  color: #9333ea;
-}
-.icon-container-plan {
-  background-color: #cffafe;
-}
-.icon-container-plan svg {
-  color: #0e7490;
-}
-
-.card-title-custom {
-  font-family: var(--font-family-heading);
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.card-summary {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--color-text-dark);
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
-}

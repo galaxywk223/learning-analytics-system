@@ -1,28 +1,35 @@
 /* 问候区域 */
 .greeting-section {
-  padding: 48px 30px 32px;
-  text-align: center;
+  padding: 40px 30px 24px;
+  display: flex;
+  justify-content: center;
   position: relative;
   z-index: 1;
 }
 
 .greeting-content {
-  animation: fadeInDown 0.4s ease-out;
+  max-width: 720px;
+  width: clamp(280px, 80vw, 720px);
+  padding: 28px 36px;
+  border-radius: 20px;
+  text-align: center;
+  background: transparent;
+  border: 1px solid var(--stroke-soft);
+  box-shadow: none;
 }
 
 .greeting-title {
   font-family: var(--font-family-heading);
-  font-size: 2.5rem;
+  font-size: clamp(2rem, 4vw, 2.4rem);
   font-weight: 600;
-  color: #ffffff;
-  margin: 0 0 10px 0;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  letter-spacing: 0.5px;
+  color: var(--color-text-heading);
+  margin: 0 0 12px 0;
+  letter-spacing: 0.4px;
 }
 
 .greeting-subtitle {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text-secondary);
   margin: 0;
   font-weight: 400;
 }

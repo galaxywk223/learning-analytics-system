@@ -13,11 +13,12 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 24px;
-  padding: 18px 20px;
-  background: #f3e5f5;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(103, 58, 183, 0.08);
-  color: #2d3748;
+  padding: 20px 24px;
+  background: var(--surface-card);
+  border-radius: 16px;
+  border: 1px solid var(--color-border-card);
+  box-shadow: var(--box-shadow);
+  color: var(--color-text-heading);
 }
 
 .page-header h1 {
@@ -25,13 +26,20 @@
   margin: 0;
   font-weight: 600;
   letter-spacing: -0.3px;
-  color: #1e293b;
+  color: var(--color-text-heading);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: var(--surface-card-muted);
+  border-radius: 999px;
+  border: 1px solid var(--stroke-soft);
 }
 
 .page-header .lead {
   margin: 6px 0 0;
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-secondary);
   font-weight: 400;
 }
 
@@ -41,16 +49,18 @@
   gap: 6px;
   padding: 10px 20px !important;
   font-weight: 500;
-  background: #667eea !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 8px !important;
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
-  transition: box-shadow 0.2s ease;
+  background: var(--color-primary) !important;
+  color: var(--color-text-light) !important;
+  border: 1px solid var(--color-primary) !important;
+  border-radius: 10px !important;
+  box-shadow: none;
+  transition: background-color var(--transition-speed) ease,
+    border-color var(--transition-speed) ease;
 }
 
 .add-btn:hover {
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  background: var(--color-primary-dark) !important;
+  border-color: var(--color-primary-dark) !important;
 }
 
 /* 分区标题 */
@@ -58,12 +68,12 @@
   font-size: 18px;
   margin: 32px 0 16px;
   padding: 10px 16px;
-  background: white;
-  border-radius: 8px;
-  border-left: 4px solid #667eea;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  background: var(--surface-card);
+  border-radius: 10px;
+  border-left: 4px solid var(--color-primary);
+  box-shadow: var(--box-shadow);
   font-weight: 600;
-  color: #2d3748;
+  color: var(--color-text-heading);
 }
 
 .mt-40 {

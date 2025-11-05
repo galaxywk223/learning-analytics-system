@@ -18,9 +18,9 @@
           <span class="week-title">
             {{ week.year }} 年 - 第 {{ week.week_num }} 周
           </span>
-          <el-tag type="info" size="small">
+          <span class="week-eff">
             周平均效率: {{ Number(week.efficiency).toFixed(2) }}
-          </el-tag>
+          </span>
         </div>
       </template>
 
@@ -91,6 +91,10 @@ defineEmits([
     &:hover {
       background: linear-gradient(135deg, #667eea25 0%, #764ba225 100%);
     }
+
+    .el-collapse-item__arrow {
+      display: none;
+    }
   }
 
   :deep(.el-collapse-item__wrap) {
@@ -104,9 +108,10 @@ defineEmits([
   .week-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
     width: 100%;
     font-size: 16px;
+    color: #1f2937;
 
     .week-icon {
       font-size: 24px;
@@ -115,18 +120,13 @@ defineEmits([
 
     .week-title {
       font-weight: 600;
-      color: #1f2937;
-      flex: 1;
       font-size: 16px;
     }
 
-    .el-tag {
-      flex-shrink: 0;
-      height: 28px;
-      line-height: 26px;
-      padding: 0 12px;
+    .week-eff {
       font-size: 14px;
       font-weight: 500;
+      color: rgba(17, 24, 39, 0.72);
     }
   }
 

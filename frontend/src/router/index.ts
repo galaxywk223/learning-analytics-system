@@ -63,14 +63,14 @@ const routes: RouteRecordRaw[] = [
         path: "milestones",
         name: "Milestones",
         component: () => import("@/views/milestones/MilestonesView.vue"),
-        meta: { title: "里程碑" },
+        meta: { title: "成就时刻" },
       },
       {
         path: "milestones/categories",
         name: "MilestoneCategories",
         component: () =>
           import("@/views/milestones/MilestoneCategoryManager.vue"),
-        meta: { title: "里程碑分类管理" },
+        meta: { title: "成就分类管理" },
       },
       {
         path: "countdown",
@@ -94,7 +94,7 @@ const routes: RouteRecordRaw[] = [
         path: "leaderboard",
         name: "Leaderboard",
         component: () => import("@/views/leaderboard/LeaderboardView.vue"),
-        meta: { title: "排行榜" },
+        meta: { title: "社区排行" },
       },
       {
         path: "ai",

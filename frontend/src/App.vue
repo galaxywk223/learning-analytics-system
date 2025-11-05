@@ -48,13 +48,7 @@ body {
 
 #app {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  background-attachment: fixed;
-  /* 性能优化：使用 GPU 加速 */
-  will-change: auto;
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  background: var(--surface-page);
 }
 
 /* 当用户上传了自定义背景时，通过settings store动态设置 */

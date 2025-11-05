@@ -27,7 +27,7 @@ def get_status():
 def join_leaderboard():
     user_id = get_jwt_identity()
     set_leaderboard_opt_in(user_id, True)
-    return jsonify({"success": True, "message": "已加入排行榜"})
+    return jsonify({"success": True, "message": "已加入社区排行"})
 
 
 @bp.route("/leave", methods=["POST"])
@@ -35,7 +35,7 @@ def join_leaderboard():
 def leave_leaderboard():
     user_id = get_jwt_identity()
     set_leaderboard_opt_in(user_id, False)
-    return jsonify({"success": True, "message": "已退出排行榜"})
+    return jsonify({"success": True, "message": "已退出社区排行"})
 
 
 @bp.route("", methods=["GET"])
@@ -72,6 +72,6 @@ def get_public_stats(target_user_id: int):
         return jsonify({"success": False, "message": str(exc)}), 400
 
     if not result:
-        return jsonify({"success": False, "message": "用户未参与排行榜"}), 404
+        return jsonify({"success": False, "message": "用户未参与社区排行"}), 404
 
     return jsonify(result), 200

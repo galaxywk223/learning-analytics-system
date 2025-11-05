@@ -50,10 +50,10 @@
           </router-link>
         </el-tooltip>
 
-        <el-tooltip content="学习排行榜" placement="right">
+        <el-tooltip content="社区排行" placement="right">
           <router-link to="/leaderboard" class="nav-link">
             <Icon icon="lucide:users" />
-            <span>学习排行榜</span>
+            <span>社区排行</span>
           </router-link>
         </el-tooltip>
 
@@ -78,10 +78,10 @@
           </router-link>
         </el-tooltip>
 
-        <el-tooltip content="系统设置" placement="right">
+        <el-tooltip content="设置中心" placement="right">
           <router-link to="/settings" class="nav-link">
             <Icon icon="lucide:settings" />
-            <span>系统设置</span>
+            <span>设置中心</span>
           </router-link>
         </el-tooltip>
       </nav>

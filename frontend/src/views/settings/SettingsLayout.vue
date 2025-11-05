@@ -3,7 +3,7 @@
     <div class="settings-container">
       <header class="settings-page-header">
         <h1>⚙️ 设置中心</h1>
-        <p class="lead">个性化您的学习日志体验</p>
+        <p class="lead">个性化您的萤火集体验</p>
       </header>
 
       <div class="settings-main-content">

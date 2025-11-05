@@ -109,7 +109,7 @@ export const useLeaderboardStore = defineStore("leaderboard", () => {
       const response: any = await leaderboardAPI.join();
       if (response?.success) {
         optedIn.value = true;
-        ElMessage.success(response.message || "已加入排行榜");
+        ElMessage.success(response.message || "已加入社区排行");
         await fetchRankings(true);
       }
     } catch (error) {
@@ -122,7 +122,7 @@ export const useLeaderboardStore = defineStore("leaderboard", () => {
       const response: any = await leaderboardAPI.leave();
       if (response?.success) {
         optedIn.value = false;
-        ElMessage.success(response.message || "已退出排行榜");
+        ElMessage.success(response.message || "已退出社区排行");
         await fetchRankings(true);
       }
     } catch (error) {

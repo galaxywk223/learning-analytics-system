@@ -105,7 +105,7 @@ class ProductionConfig(Config):
             os.mkdir("logs")
 
         file_handler = RotatingFileHandler(
-            "logs/learning_logger_api.log", maxBytes=10240000, backupCount=10
+            "logs/yinghuoji_api.log", maxBytes=10240000, backupCount=10
         )
         file_handler.setFormatter(
             logging.Formatter(
@@ -115,7 +115,7 @@ class ProductionConfig(Config):
         file_handler.setLevel(logging.INFO)
         app.logger.addHandler(file_handler)
         app.logger.setLevel(logging.INFO)
-        app.logger.info("Learning Logger API startup")
+        app.logger.info("萤火集 API startup")
 
 
 class TestingConfig(Config):

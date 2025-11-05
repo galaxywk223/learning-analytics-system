@@ -9,19 +9,19 @@
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: #eef2ff;
-  color: #4338ca;
+  background: var(--surface-card-muted);
+  color: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border: 1px solid #c7d2fe;
+  border: 1px solid var(--stroke-soft);
 }
 
 .timeline-content {
   flex: 1;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--surface-card);
+  border: 1px solid var(--color-border-card);
   border-radius: 16px;
   padding: 18px 20px;
   display: flex;
@@ -29,6 +29,7 @@
   gap: 16px;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--box-shadow);
 }
 
 .timeline-content::before {
@@ -38,8 +39,8 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #6366f1, rgba(99, 102, 241, 0));
-  opacity: 0.6;
+  background: linear-gradient(90deg, var(--color-primary), transparent);
+  opacity: 0.2;
   pointer-events: none;
 }
 
@@ -56,8 +57,8 @@
   padding: 4px 10px;
   font-size: 12px;
   border-radius: 999px;
-  background: rgba(99, 102, 241, 0.12);
-  color: #4338ca;
+  background: rgba(85, 100, 216, 0.14);
+  color: var(--color-primary-dark);
   font-weight: 600;
 }
 
@@ -65,12 +66,12 @@
   margin: 6px 0 4px;
   font-size: 20px;
   font-weight: 600;
-  color: #1f1d47;
+  color: var(--color-text-heading);
 }
 
 .timeline-date {
   margin: 0;
-  color: #6366f1;
+  color: var(--color-primary);
   font-size: 13px;
 }
 
@@ -81,14 +82,15 @@
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: rgba(148, 163, 235, 0.16);
-  color: #4f46e5;
+  border: 1px solid var(--stroke-soft);
+  background: transparent;
+  color: var(--color-text-secondary);
 }
 
 .timeline-description {
   font-size: 14px;
   line-height: 1.7;
-  color: #424b5c;
+  color: var(--color-text-secondary);
 }
 
 .timeline-attachments {
@@ -109,21 +111,22 @@
   gap: 8px;
   padding: 6px 12px;
   border-radius: 999px;
-  background: #eef2ff;
+  background: var(--surface-card-muted);
+  border: 1px solid var(--stroke-soft);
 }
 
 .attachment-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #4c51bf;
+  color: var(--color-primary-dark);
   font-size: 13px;
 }
 
 .attachment-delete-btn {
   background: transparent;
   border: none;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
