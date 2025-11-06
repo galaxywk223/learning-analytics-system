@@ -15,7 +15,7 @@ export const useChartsStore = defineStore("charts", () => {
   // 过滤器
   const viewType = ref("weekly"); // 'weekly' | 'daily'
   const stageId = ref("all");
-  const activeTab = ref("trends"); // 'trends' | 'categories'
+  const activeTab = ref("trends"); // 'trends' | 'categories' | 'cattrend'
 
   // 数据状态
   const loading = ref(false);
@@ -49,6 +49,15 @@ export const useChartsStore = defineStore("charts", () => {
   });
   const currentCategoryView = ref("main"); // 'main' | 'drilldown'
   const currentCategory = ref(""); // 当前下钻的分类名
+
+  const categoryTrend = ref({
+    labels: [] as string[],
+    data: [] as number[],
+    granularity: "weekly" as "weekly" | "daily",
+  });
+  const categoryTrendLoading = ref(false);
+  const trendCategoryId = ref<number | null>(null);
+  const trendSubcategoryId = ref<number | null>(null);
 
   // 阶段列表
   const stages = ref([]);
@@ -165,67 +174,74 @@ export const useChartsStore = defineStore("charts", () => {
   /**
    * 获取分类数据（与旧项目 fetchAndRenderAll 对应）
    */
+  function buildCategoryRangeParams() {
+    const mode = categoryRangeMode.value;
+    let start: string | null = null;
+    let end: string | null = null;
+
+    if (mode === "daily" && categoryDatePoint.value) {
+      const base = dayjs(categoryDatePoint.value);
+      if (base.isValid()) {
+        const formatted = base.format("YYYY-MM-DD");
+        start = formatted;
+        end = formatted;
+      }
+    } else if (mode === "weekly" && categoryDatePoint.value) {
+      const base = dayjs(categoryDatePoint.value);
+      if (base.isValid()) {
+        const weekStart = base
+          .startOf("day")
+          .subtract((base.day() + 6) % 7, "day");
+        start = weekStart.format("YYYY-MM-DD");
+        end = weekStart.add(6, "day").format("YYYY-MM-DD");
+      }
+    } else if (mode === "monthly" && categoryDatePoint.value) {
+      const base = dayjs(categoryDatePoint.value);
+      if (base.isValid()) {
+        start = base.startOf("month").format("YYYY-MM-DD");
+        end = base.endOf("month").format("YYYY-MM-DD");
+      }
+    } else if (mode === "custom" && categoryCustomRange.value) {
+      const [rangeStart, rangeEnd] = categoryCustomRange.value;
+      if (rangeStart && rangeEnd) {
+        const startDate = dayjs(rangeStart);
+        const endDate = dayjs(rangeEnd);
+        if (startDate.isValid() && endDate.isValid()) {
+          start = startDate.format("YYYY-MM-DD");
+          end = endDate.format("YYYY-MM-DD");
+        }
+      }
+    }
+
+    const params: Record<string, any> = {
+      stage_id: stageId.value,
+      range_mode: mode,
+    };
+    const requiresRange = ["daily", "weekly", "monthly", "custom"].includes(mode);
+    if (start && end) {
+      params.start_date = start;
+      params.end_date = end;
+    }
+
+    return {
+      params,
+      valid: !requiresRange || (start && end),
+    };
+  }
+
   async function fetchCategories() {
     loading.value = true;
     try {
-      const mode = categoryRangeMode.value;
-      let start: string | null = null;
-      let end: string | null = null;
-
-      if (mode === "daily" && categoryDatePoint.value) {
-        const base = dayjs(categoryDatePoint.value);
-        if (base.isValid()) {
-          const formatted = base.format("YYYY-MM-DD");
-          start = formatted;
-          end = formatted;
-        }
-      } else if (mode === "weekly" && categoryDatePoint.value) {
-        const base = dayjs(categoryDatePoint.value);
-        if (base.isValid()) {
-          const weekStart = base
-            .startOf("day")
-            .subtract((base.day() + 6) % 7, "day");
-          start = weekStart.format("YYYY-MM-DD");
-          end = weekStart.add(6, "day").format("YYYY-MM-DD");
-        }
-      } else if (mode === "monthly" && categoryDatePoint.value) {
-        const base = dayjs(categoryDatePoint.value);
-        if (base.isValid()) {
-          start = base.startOf("month").format("YYYY-MM-DD");
-          end = base.endOf("month").format("YYYY-MM-DD");
-        }
-      } else if (mode === "custom" && categoryCustomRange.value) {
-        const [rangeStart, rangeEnd] = categoryCustomRange.value;
-        if (rangeStart && rangeEnd) {
-          const startDate = dayjs(rangeStart);
-          const endDate = dayjs(rangeEnd);
-          if (startDate.isValid() && endDate.isValid()) {
-            start = startDate.format("YYYY-MM-DD");
-            end = endDate.format("YYYY-MM-DD");
-          }
-        }
-      }
-
-        const params: Record<string, any> = {
-          stage_id: stageId.value,
-          range_mode: mode,
+      const { params, valid } = buildCategoryRangeParams();
+      if (!valid) {
+        categoryData.value = {
+          main: { labels: [], data: [] },
+          drilldown: {},
         };
-        const requiresRange = ["daily", "weekly", "monthly", "custom"].includes(
-          mode
-        );
-        if (requiresRange && (!start || !end)) {
-          categoryData.value = {
-            main: { labels: [], data: [] },
-            drilldown: {},
-          };
-          currentCategoryView.value = "main";
-          currentCategory.value = "";
-          return;
-        }
-        if (start && end) {
-          params.start_date = start;
-          params.end_date = end;
-        }
+        currentCategoryView.value = "main";
+        currentCategory.value = "";
+        return;
+      }
 
       console.log("[Charts Store] Fetching categories with params:", params);
       const response = await chartsAPI.getCategories(params);
@@ -257,9 +273,52 @@ export const useChartsStore = defineStore("charts", () => {
       }
     } catch (error) {
       console.error("Error fetching category data:", error);
-      ElMessage.error("���ط���ͼ������ʧ��");
+      // 修正编码乱码
+      ElMessage.error("加载分类图表数据失败");
     } finally {
       loading.value = false;
+    }
+  }
+
+  async function fetchCategoryTrend() {
+    // 支持“全部分类/全部子分类”场景：允许 category_id 与 subcategory_id 都为空
+
+    const { params, valid } = buildCategoryRangeParams();
+    if (!valid) {
+      categoryTrend.value = { labels: [], data: [], granularity: "weekly" };
+      return;
+    }
+
+    categoryTrendLoading.value = true;
+    try {
+      const query: Record<string, any> = {
+        ...params,
+        category_id: trendCategoryId.value,
+        subcategory_id: trendSubcategoryId.value,
+      };
+      console.log("[Charts Store] Fetching category trend with:", query);
+      const response = await chartsAPI.getCategoryTrend(query);
+      console.log("[Charts Store] Category trend raw response:", response);
+      const payload = (response as any).data || response;
+      console.log("[Charts Store] Category trend payload:", payload);
+      // 注意：后端返回 { success, data: { labels, data, granularity, ... } }
+      // 上一版错误地把 payload.data 直接当作 dataset，导致 dataset 变成纯数组
+      // 这里应当把 dataset 设为 payload 本身
+      const dataset = (payload && (payload as any).labels && (payload as any).data)
+        ? (payload as any)
+        : ((payload as any).data || {});
+      console.log("[Charts Store] Category trend dataset:", dataset);
+      categoryTrend.value = {
+        labels: dataset.labels || [],
+        data: dataset.data || [],
+        granularity: (dataset.granularity as "weekly" | "daily") || "weekly",
+      };
+    } catch (error) {
+      console.error("Error fetching category trend data:", error);
+      ElMessage.error("获取分类趋势数据失败");
+      categoryTrend.value = { labels: [], data: [], granularity: "weekly" };
+    } finally {
+      categoryTrendLoading.value = false;
     }
   }
 
@@ -300,6 +359,8 @@ export const useChartsStore = defineStore("charts", () => {
         "[Charts Store] Active tab is categories, fetching category data..."
       );
       await fetchCategories();
+    } else if (activeTab.value === "cattrend") {
+      await fetchCategoryTrend();
     } else {
       console.log(
         "[Charts Store] Active tab is not categories, skipping category fetch"
@@ -320,6 +381,7 @@ export const useChartsStore = defineStore("charts", () => {
 
     if (mode === "all" || mode === "stage") {
       fetchCategories();
+      fetchCategoryTrend();
     }
   }
 
@@ -330,6 +392,7 @@ export const useChartsStore = defineStore("charts", () => {
       ["daily", "weekly", "monthly"].includes(categoryRangeMode.value)
     ) {
       fetchCategories();
+      fetchCategoryTrend();
     }
   }
 
@@ -342,6 +405,7 @@ export const useChartsStore = defineStore("charts", () => {
       range[1]
     ) {
       fetchCategories();
+      fetchCategoryTrend();
     }
   }
 
@@ -362,6 +426,7 @@ export const useChartsStore = defineStore("charts", () => {
     if (stageId.value !== id) {
       stageId.value = id;
       refreshAll();
+      fetchCategoryTrend();
     }
   }
 
@@ -381,6 +446,25 @@ export const useChartsStore = defineStore("charts", () => {
         "[Charts Store] Switching to categories tab, current labels:",
         categoryData.value.main.labels
       );
+    } else if (tab === "cattrend") {
+      fetchCategoryTrend();
+    }
+  }
+
+  function setTrendCategory(id: number | null) {
+    trendCategoryId.value = id;
+    if (!id) {
+      trendSubcategoryId.value = null;
+    }
+    if (activeTab.value === "cattrend") {
+      fetchCategoryTrend();
+    }
+  }
+
+  function setTrendSubcategory(id: number | null) {
+    trendSubcategoryId.value = id;
+    if (activeTab.value === "cattrend") {
+      fetchCategoryTrend();
     }
   }
 
@@ -403,6 +487,10 @@ export const useChartsStore = defineStore("charts", () => {
     trends,
     stageAnnotations,
     categoryData,
+    categoryTrend,
+    categoryTrendLoading,
+    trendCategoryId,
+    trendSubcategoryId,
     currentCategoryView,
     currentCategory,
     categoryRangeMode,
@@ -416,6 +504,7 @@ export const useChartsStore = defineStore("charts", () => {
     initStages,
     fetchTrends,
     fetchCategories,
+    fetchCategoryTrend,
     drillCategory,
     backCategory,
     refreshAll,
@@ -425,6 +514,8 @@ export const useChartsStore = defineStore("charts", () => {
     setViewType,
     setStage,
     setActiveTab,
+    setTrendCategory,
+    setTrendSubcategory,
     getFormattedAvgDailyDuration,
   };
 });

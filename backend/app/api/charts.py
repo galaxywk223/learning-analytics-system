@@ -6,7 +6,11 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app, Response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import Stage
-from app.services.chart_service import get_chart_data_for_user, get_category_chart_data
+from app.services.chart_service import (
+    get_chart_data_for_user,
+    get_category_chart_data,
+    get_category_trend_series,
+)
 from app.services.chart_plotter import export_trends_image, export_category_image
 import zipfile
 import io
@@ -182,3 +186,57 @@ def export_charts():
     except Exception as e:
         current_app.logger.error(f"Error exporting charts: {e}", exc_info=True)
         return jsonify({"success": False, "message": "导出图表失败"}), 500
+
+
+@bp.route("/category_trend", methods=["GET"])
+@jwt_required()
+def get_category_trend():
+    """按分类/子分类返回学习时长趋势（条形图数据）。"""
+
+    user_id = get_jwt_identity()
+
+    def _parse_int(value):
+        try:
+            return int(value) if value not in (None, "", "null") else None
+        except (TypeError, ValueError):
+            return None
+
+    category_id = _parse_int(request.args.get("category_id"))
+    subcategory_id = _parse_int(request.args.get("subcategory_id"))
+    stage_id = _parse_int(request.args.get("stage_id"))
+
+    range_mode = (request.args.get("range_mode") or "all").lower()
+    if range_mode not in {"all", "stage", "daily", "weekly", "monthly", "custom"}:
+        return jsonify({"success": False, "message": "range_mode 参数无效"}), 400
+
+    def _parse_date(value):
+        if not value:
+            return None
+        try:
+            return datetime.strptime(value, "%Y-%m-%d").date()
+        except ValueError:
+            return None
+
+    start_date = _parse_date(request.args.get("start_date"))
+    end_date = _parse_date(request.args.get("end_date"))
+
+    # 如果传了阶段，验证所有权；未传则视为全部历史
+    if stage_id:
+        stage = Stage.query.filter_by(id=stage_id, user_id=user_id).first()
+        if not stage:
+            return jsonify({"success": False, "message": "阶段不存在"}), 404
+
+    try:
+        data = get_category_trend_series(
+            user_id,
+            category_id=category_id,
+            subcategory_id=subcategory_id,
+            stage_id=stage_id,
+            range_mode=range_mode,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        return jsonify({"success": True, "data": data}), 200
+    except Exception as exc:  # pragma: no cover - runtime diagnostics
+        current_app.logger.error("get_category_trend error: %s", exc, exc_info=True)
+        return jsonify({"success": False, "message": "获取分类趋势失败"}), 500

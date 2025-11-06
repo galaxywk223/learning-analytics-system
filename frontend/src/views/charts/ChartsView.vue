@@ -23,6 +23,12 @@
           >
             🎯 分类占比
           </button>
+          <button
+            :class="['btn', charts.activeTab === 'cattrend' && 'active']"
+            @click="charts.setActiveTab('cattrend')"
+          >
+            📉 分类趋势
+          </button>
         </div>
         <!-- 周/日视图切换，仅在趋势分析 tab 显示 -->
         <div class="btn-group view-switch" v-if="charts.activeTab === 'trends'">
@@ -40,7 +46,10 @@
           </button>
         </div>
       </div>
-      <div class="category-filters" v-if="charts.activeTab === 'categories'">
+      <div
+        class="category-filters"
+        v-if="['categories', 'cattrend'].includes(charts.activeTab)"
+      >
         <div class="btn-group filter-switch">
           <button
             v-for="mode in categoryModes"
@@ -194,6 +203,9 @@
           @back="handleCategoryBack"
         />
       </div>
+      <div v-if="charts.activeTab === 'cattrend'" class="panel">
+        <CategoryTrend />
+      </div>
     </div>
   </div>
 </template>
@@ -206,6 +218,7 @@ import { useChartsStore } from "@/stores/modules/charts";
 import { useStageStore } from "@/stores/modules/stage";
 import TrendsChart from "@/components/business/charts/TrendsChart.vue";
 import CategoryComposite from "@/components/business/charts/CategoryComposite.vue";
+import CategoryTrend from "@/components/business/charts/CategoryTrend.vue";
 import KpiCard from "@/components/business/charts/KpiCard.vue";
 
 const charts = useChartsStore();

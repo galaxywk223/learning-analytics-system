@@ -392,3 +392,150 @@ def get_category_chart_data(user_id, stage_id=None, start_date=None, end_date=No
     }
 
     return {"main": {"labels": main_labels, "data": main_data}, "drilldown": sub_data}
+
+
+def _iter_days(start: date, end: date):
+    cur = start
+    while cur <= end:
+        yield cur
+        cur += timedelta(days=1)
+
+
+def _week_start(d: date) -> date:
+    return d - timedelta(days=d.weekday())  # Monday=0
+
+
+def get_category_trend_series(
+    user_id: int,
+    *,
+    category_id: int | None = None,
+    subcategory_id: int | None = None,
+    stage_id: int | None = None,
+    range_mode: str = "all",
+    start_date: date | None = None,
+    end_date: date | None = None,
+):
+    """Return aggregated hours series for a category/subcategory."""
+
+    range_mode = (range_mode or "all").lower()
+
+    base = (
+        db.session.query(LogEntry.log_date, func.sum(LogEntry.actual_duration))
+        .join(Stage, LogEntry.stage_id == Stage.id)
+        .filter(Stage.user_id == user_id)
+    )
+
+    if subcategory_id:
+        base = base.filter(LogEntry.subcategory_id == subcategory_id)
+    elif category_id:
+        base = base.join(SubCategory, LogEntry.subcategory_id == SubCategory.id)
+        base = base.filter(SubCategory.category_id == category_id)
+
+    if stage_id:
+        base = base.filter(LogEntry.stage_id == stage_id)
+
+    # 处理默认时间范围
+    today = date.today()
+
+    if start_date is None or end_date is None:
+        if range_mode == "stage" and stage_id:
+            stage = Stage.query.filter_by(id=stage_id, user_id=user_id).first()
+            if stage:
+                start_date = start_date or stage.start_date
+                last_log = (
+                    db.session.query(func.max(LogEntry.log_date))
+                    .filter(LogEntry.stage_id == stage.id)
+                    .scalar()
+                )
+                end_date = end_date or last_log or today
+        elif range_mode == "all":
+            min_date = base.with_entities(func.min(LogEntry.log_date)).scalar()
+            max_date = base.with_entities(func.max(LogEntry.log_date)).scalar()
+            start_date = start_date or min_date or today
+            end_date = end_date or max_date or today
+
+    # 若仍缺少，则使用默认窗口
+    if end_date is None:
+        end_date = today
+    if start_date is None:
+        start_date = end_date - timedelta(weeks=11)
+
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+
+    query = base.filter(
+        LogEntry.log_date >= start_date,
+        LogEntry.log_date <= end_date,
+    )
+
+    rows = (
+        query.group_by(LogEntry.log_date)
+        .order_by(LogEntry.log_date.asc())
+        .all()
+    )
+
+    used_legacy_name: str | None = None
+
+    # 如果没有新体系数据且给定分类，尝试 legacy_category
+    # 说明：很多历史数据只记录了 legacy_category（没有子分类），
+    # 当前端选择了子分类但新体系下没有对应数据时，这里也回退到按分类聚合的 legacy 数据，
+    # 以免“分类趋势”长期为空。
+    if not rows and category_id:
+        category = Category.query.filter_by(id=category_id, user_id=user_id).first()
+        if category and category.name:
+            used_legacy_name = category.name
+            legacy_query = (
+                db.session.query(LogEntry.log_date, func.sum(LogEntry.actual_duration))
+                .join(Stage, LogEntry.stage_id == Stage.id)
+                .filter(
+                    Stage.user_id == user_id,
+                    LogEntry.legacy_category == category.name,
+                    LogEntry.log_date >= start_date,
+                    LogEntry.log_date <= end_date,
+                )
+            )
+            if stage_id:
+                legacy_query = legacy_query.filter(LogEntry.stage_id == stage_id)
+            rows = (
+                legacy_query.group_by(LogEntry.log_date)
+                .order_by(LogEntry.log_date.asc())
+                .all()
+            )
+
+    if not rows:
+        return {"labels": [], "data": [], "granularity": "weekly"}
+
+    day_map = {log_date: int(duration or 0) for log_date, duration in rows}
+    days = list(_iter_days(start_date, end_date))
+
+    daily_hours = [round(day_map.get(day, 0) / 60.0, 2) for day in days]
+
+    delta_days = (end_date - start_date).days + 1
+    # 小于等于 35 天走日粒度；明确选择“按日”也走日粒度；否则按周
+    granularity = "daily" if (delta_days <= 35 or range_mode == "daily") else "weekly"
+
+    if granularity == "daily":
+        return {
+            "labels": [day.isoformat() for day in days],
+            "data": daily_hours,
+            "granularity": "daily",
+            "start": start_date.isoformat(),
+            "end": end_date.isoformat(),
+            **({"legacy_name": used_legacy_name} if used_legacy_name else {}),
+        }
+
+    # 聚合为周数据（周一为起点）
+    week_map: dict[date, float] = {}
+    for day, hours in zip(days, daily_hours):
+        start_of_week = _week_start(day)
+        week_map[start_of_week] = round(week_map.get(start_of_week, 0) + hours, 2)
+
+    weeks = sorted(week_map.keys())
+    return {
+        "labels": [week.isoformat() for week in weeks],
+        "data": [week_map[week] for week in weeks],
+        "granularity": "weekly",
+        "start": start_date.isoformat(),
+        "end": end_date.isoformat(),
+        **({"legacy_name": used_legacy_name} if used_legacy_name else {}),
+    }
