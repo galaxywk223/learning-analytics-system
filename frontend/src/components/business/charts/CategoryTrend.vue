@@ -298,7 +298,8 @@ onMounted(async () => {
     selectedCategory.value = categoryOptions.value[0].value as any;
   }
   calcBarWidth();
-  window.addEventListener('resize', calcBarWidth);
+  // 为了通过TS校验，包装一个无参的监听函数
+  window.addEventListener('resize', onResize);
 });
 
 watch(
@@ -362,8 +363,12 @@ watch(
 );
 
 onUnmounted(() => {
-  window.removeEventListener('resize', calcBarWidth);
+  window.removeEventListener('resize', onResize);
 });
+
+function onResize() {
+  calcBarWidth();
+}
 </script>
 
 <style scoped>
