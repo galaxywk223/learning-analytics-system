@@ -226,6 +226,9 @@ def get_category_trend():
         if not stage:
             return jsonify({"success": False, "message": "阶段不存在"}), 404
 
+    # 允许前端显式指定粒度（如强制按日）
+    granularity = (request.args.get("granularity") or "").lower() or None
+
     try:
         data = get_category_trend_series(
             user_id,
@@ -235,6 +238,7 @@ def get_category_trend():
             range_mode=range_mode,
             start_date=start_date,
             end_date=end_date,
+            granularity=granularity,
         )
         return jsonify({"success": True, "data": data}), 200
     except Exception as exc:  # pragma: no cover - runtime diagnostics

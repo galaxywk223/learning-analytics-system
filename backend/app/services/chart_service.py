@@ -414,6 +414,7 @@ def get_category_trend_series(
     range_mode: str = "all",
     start_date: date | None = None,
     end_date: date | None = None,
+    granularity: str | None = None,
 ):
     """Return aggregated hours series for a category/subcategory."""
 
@@ -502,8 +503,34 @@ def get_category_trend_series(
                 .all()
             )
 
+    # 若没有任何记录，也需要按所选区间返回完整的日序列（全为 0）
+    # 这样前端能明确看到区间而不是空白提示
     if not rows:
-        return {"labels": [], "data": [], "granularity": "weekly"}
+        days = list(_iter_days(start_date, end_date))
+        zero_daily = [0.0 for _ in days]
+        # 粒度策略与后续一致：若强制按日，则直接返回日序列
+        gran_override = (granularity or "").lower() if granularity else None
+        if gran_override == "daily":
+            return {
+                "labels": [day.isoformat() for day in days],
+                "data": zero_daily,
+                "granularity": "daily",
+                "start": start_date.isoformat(),
+                "end": end_date.isoformat(),
+            }
+        # 否则仍按周聚合（结果也为 0）
+        week_map: dict[date, float] = {}
+        for day in days:
+            start_of_week = _week_start(day)
+            week_map[start_of_week] = round(week_map.get(start_of_week, 0) + 0, 2)
+        weeks = sorted(week_map.keys()) or [_week_start(start_date)]
+        return {
+            "labels": [week.isoformat() for week in weeks],
+            "data": [week_map.get(week, 0) for week in weeks],
+            "granularity": "weekly",
+            "start": start_date.isoformat(),
+            "end": end_date.isoformat(),
+        }
 
     day_map = {log_date: int(duration or 0) for log_date, duration in rows}
     days = list(_iter_days(start_date, end_date))
@@ -511,10 +538,17 @@ def get_category_trend_series(
     daily_hours = [round(day_map.get(day, 0) / 60.0, 2) for day in days]
 
     delta_days = (end_date - start_date).days + 1
-    # 小于等于 35 天走日粒度；明确选择“按日”也走日粒度；否则按周
-    granularity = "daily" if (delta_days <= 35 or range_mode == "daily") else "weekly"
+    # 支持外部强制粒度
+    gran_override = (granularity or "").lower()
+    if gran_override in ("daily", "weekly"):
+        selected_granularity = gran_override
+    else:
+        # 小于等于 35 天走日粒度；明确选择“按日”也走日粒度；否则按周
+        selected_granularity = (
+            "daily" if (delta_days <= 35 or range_mode == "daily") else "weekly"
+        )
 
-    if granularity == "daily":
+    if selected_granularity == "daily":
         return {
             "labels": [day.isoformat() for day in days],
             "data": daily_hours,

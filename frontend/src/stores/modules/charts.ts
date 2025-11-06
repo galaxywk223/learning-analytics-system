@@ -295,6 +295,7 @@ export const useChartsStore = defineStore("charts", () => {
         ...params,
         category_id: trendCategoryId.value,
         subcategory_id: trendSubcategoryId.value,
+        granularity: 'daily',
       };
       console.log("[Charts Store] Fetching category trend with:", query);
       const response = await chartsAPI.getCategoryTrend(query);

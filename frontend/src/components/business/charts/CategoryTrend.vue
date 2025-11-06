@@ -57,7 +57,9 @@
         class="chart"
         :option="option"
         autoresize
-        :update-options="{ replaceMerge: ['series', 'xAxis', 'yAxis', 'grid'] }"
+        :update-options="{ replaceMerge: ['series', 'xAxis', 'yAxis', 'grid', 'dataZoom'] }"
+        @datazoom="handleDataZoom"
+        @finished="handleChartFinished"
       />
       <div v-else class="chart-placeholder">
         <p>切换到“分类趋势”即可查看图表。</p>
@@ -67,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch, nextTick, ref } from "vue";
+import { computed, onMounted, watch, nextTick, ref, onUnmounted } from "vue";
 import { use, graphic } from "echarts/core";
 import { BarChart } from "echarts/charts";
 import { GridComponent, TooltipComponent, DataZoomComponent } from "echarts/components";
@@ -117,6 +119,11 @@ const trendSeries = computed(() => categoryTrend.value);
 const trendLoading = computed(() => categoryTrendLoading.value);
 const isActiveTab = computed(() => activeTab.value === "cattrend");
 const chartRef = ref<InstanceType<typeof VChart> | null>(null);
+const zoomRange = ref<{ start: number | null; end: number | null }>({
+  start: null,
+  end: null,
+});
+const dynamicBarWidth = ref(22);
 
 const trendMeta = computed(() => {
   if (!trendSeries.value.labels.length) return "";
@@ -134,6 +141,61 @@ function handleSubChange(val: number | null) {
   selectedSubcategory.value = val ?? null;
 }
 
+function calcBarWidth(visiblePct?: number) {
+  const labels = trendSeries.value.labels || [];
+  const total = labels.length || 1;
+  const pctRaw =
+    typeof visiblePct === "number"
+      ? visiblePct
+      : zoomRange.value.end != null && zoomRange.value.start != null
+      ? zoomRange.value.end - zoomRange.value.start
+      : 100;
+  const pct = Math.max(1, Math.min(100, pctRaw));
+  const visible = Math.max(1, Math.round((total * pct) / 100));
+  const container = (chartRef.value as any)?.$el as HTMLElement | undefined;
+  const width = (container?.clientWidth ?? 720) - 56; // 估算左右留白
+  const per = width / visible; // 每个类目区域宽
+  const computedWidth = Math.floor(per * 0.6); // 取 60% 作为柱宽
+  dynamicBarWidth.value = Math.max(8, Math.min(42, computedWidth));
+}
+
+function handleDataZoom(e: any) {
+  if (e?.start !== undefined && e?.end !== undefined) {
+    zoomRange.value.start = Math.max(0, Math.min(100, e.start));
+    zoomRange.value.end = Math.max(0, Math.min(100, e.end));
+  } else if (Array.isArray(e?.batch) && e.batch[0]) {
+    const b = e.batch[0];
+    if (b.start !== undefined)
+      zoomRange.value.start = Math.max(0, Math.min(100, b.start));
+    if (b.end !== undefined)
+      zoomRange.value.end = Math.max(0, Math.min(100, b.end));
+  }
+  if (zoomRange.value.start != null && zoomRange.value.end != null) {
+    calcBarWidth(zoomRange.value.end - zoomRange.value.start);
+  } else {
+    calcBarWidth();
+  }
+}
+
+function handleChartFinished() {
+  // 图表首次渲染或重新渲染完成后，按最终尺寸再计算一次柱宽
+  if (zoomRange.value.start == null || zoomRange.value.end == null) {
+    // 如果还没有初始化缩放范围，用与 option 相同的规则初始化一次
+    const len = trendSeries.value.labels?.length || 0;
+    if (len > 0) {
+      const enableZoom = len > 14;
+      const sliderWindow = enableZoom ? Math.min(100, Math.round((14 / len) * 100)) : 100;
+      const start = enableZoom ? Math.max(0, 100 - sliderWindow) : 0;
+      const end = 100;
+      zoomRange.value.start = start;
+      zoomRange.value.end = end;
+      calcBarWidth(end - start);
+      return;
+    }
+  }
+  calcBarWidth();
+}
+
 const option = computed(() => {
   const labels = trendSeries.value.labels || [];
   const values = (trendSeries.value.data || []).map((v) =>
@@ -143,7 +205,17 @@ const option = computed(() => {
   const sliderWindow = enableZoom
     ? Math.min(100, Math.round((14 / labels.length) * 100))
     : 100;
-  const sliderStart = enableZoom ? Math.max(0, 100 - sliderWindow) : 0;
+  const initialStart = enableZoom ? Math.max(0, 100 - sliderWindow) : 0;
+  const start =
+    zoomRange.value.start !== null && zoomRange.value.start !== undefined
+      ? zoomRange.value.start
+      : initialStart;
+  const end =
+    zoomRange.value.end !== null && zoomRange.value.end !== undefined
+      ? zoomRange.value.end
+      : 100;
+  const rotate = labels.length > 24 ? 45 : labels.length > 14 ? 30 : 0;
+  const barWidth = dynamicBarWidth.value;
 
   return {
     color: ["#6366f1"],
@@ -154,22 +226,24 @@ const option = computed(() => {
         const item = Array.isArray(params) ? params[0] : params;
         return `${item.name}<br/>${Number(item.value || 0).toFixed(2)} 小时`;
       },
+      confine: true,
     },
     grid: {
-      left: 24,
-      right: 24,
-      top: 20,
-      bottom: enableZoom ? 56 : 28,
+      left: 20,
+      right: 20,
+      top: 16,
+      bottom: enableZoom ? 60 : rotate ? 44 : 28,
       containLabel: true,
     },
     dataZoom: enableZoom
       ? [
-          { type: "inside", start: sliderStart, end: 100 },
+          { type: "inside", start, end, minValueSpan: 3 },
           {
             type: "slider",
-            start: sliderStart,
-            end: 100,
-            bottom: 16,
+            start,
+            end,
+            minValueSpan: 3,
+            bottom: 12,
             height: 14,
             handleSize: 12,
             brushSelect: false,
@@ -178,13 +252,15 @@ const option = computed(() => {
       : [],
     xAxis: {
       type: "category",
+      boundaryGap: true,
       data: labels,
       axisLabel: {
         color: "#475569",
         formatter: (value: string) => value?.slice(5),
+        rotate,
       },
       axisTick: { show: false },
-      axisLine: { lineStyle: { color: "rgba(148, 163, 184, 0.45)" } },
+      axisLine: { lineStyle: { color: "rgba(148, 163, 184, 0.35)" } },
     },
     yAxis: {
       type: "value",
@@ -192,7 +268,7 @@ const option = computed(() => {
       min: 0,
       axisLabel: { color: "#475569" },
       splitLine: {
-        lineStyle: { type: "dashed", color: "rgba(148,163,184,0.45)" },
+        lineStyle: { type: "dashed", color: "rgba(148,163,184,0.35)" },
       },
     },
     series: [
@@ -200,7 +276,8 @@ const option = computed(() => {
         type: "bar",
         name: "学习时长",
         data: values,
-        barWidth: 24,
+        barWidth,
+        barCategoryGap: "40%",
         itemStyle: {
           borderRadius: [6, 6, 0, 0],
           color: new graphic.LinearGradient(0, 0, 0, 1, [
@@ -220,6 +297,8 @@ onMounted(async () => {
     // 默认选择“全部分类”
     selectedCategory.value = categoryOptions.value[0].value as any;
   }
+  calcBarWidth();
+  window.addEventListener('resize', calcBarWidth);
 });
 
 watch(
@@ -243,6 +322,31 @@ watch(
   }
 );
 
+// 数据加载完成后再按真实数据重算一次柱宽
+watch(
+  () => trendSeries.value.labels.length,
+  () => {
+    nextTick(() => {
+      const len = trendSeries.value.labels?.length || 0;
+      if (len > 0) {
+        if (zoomRange.value.start == null || zoomRange.value.end == null) {
+          const enableZoom = len > 14;
+          const sliderWindow = enableZoom ? Math.min(100, Math.round((14 / len) * 100)) : 100;
+          const start = enableZoom ? Math.max(0, 100 - sliderWindow) : 0;
+          const end = 100;
+          zoomRange.value.start = start;
+          zoomRange.value.end = end;
+          calcBarWidth(end - start);
+        } else {
+          calcBarWidth();
+        }
+      } else {
+        calcBarWidth();
+      }
+    });
+  }
+);
+
 watch(
   isActiveTab,
   (active) => {
@@ -250,11 +354,16 @@ watch(
       nextTick(() => {
         chartRef.value?.resize?.();
         chartsStore.fetchCategoryTrend();
+        calcBarWidth();
       });
     }
   },
   { immediate: true }
 );
+
+onUnmounted(() => {
+  window.removeEventListener('resize', calcBarWidth);
+});
 </script>
 
 <style scoped>
@@ -268,7 +377,8 @@ watch(
   background: var(--surface-card);
   border: 1px solid var(--color-border-card);
   border-radius: 12px;
-  padding: 14px 18px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 
 .selector-grid {
@@ -298,6 +408,7 @@ watch(
   border-radius: 12px;
   border: 1px solid var(--color-border-card);
   min-height: 380px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 
 .chart-title {
@@ -319,7 +430,7 @@ watch(
 }
 
 .empty {
-  padding: 42px 16px;
+  padding: 48px 16px;
   text-align: center;
   color: var(--color-text-secondary);
 }
