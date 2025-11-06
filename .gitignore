@@ -97,3 +97,6 @@ mlogger_0.1.0.tar
 
 # 如果测试生成了文件，也应添加忽略规则
 # 例如：/tests/output/
+
+# 忽略本地开发用的后端启动脚本（不要提交到 git）
+/scripts/start-backend.sh
