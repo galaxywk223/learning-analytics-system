@@ -105,6 +105,11 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 const props = defineProps({
   event: { type: Object, required: true },
   expired: { type: Boolean, default: false },
@@ -112,28 +117,20 @@ const props = defineProps({
 const progressCircle = ref(null);
 let timer = null;
 
-// 计算北京时格式化显示
+// 固定以北京时区显示
 const beijingDate = computed(() => {
   if (!props.event.target_datetime_utc) return null;
-  const utc = new Date(props.event.target_datetime_utc);
-  // Asia/Shanghai fixed offset +8 (不考虑夏令时)
-  return new Date(utc.getTime() + 8 * 3600 * 1000);
+  // 后端给的是 UTC ISO，先按 UTC 解析，再转 Asia/Shanghai
+  return dayjs.utc(props.event.target_datetime_utc).tz("Asia/Shanghai");
 });
 const beijingString = computed(() =>
-  beijingDate.value ? formatDate(beijingDate.value, true) : ""
+  beijingDate.value ? beijingDate.value.format("YYYY-MM-DD HH:mm") : ""
 );
 const beijingDateOnly = computed(() =>
-  beijingDate.value ? formatDate(beijingDate.value, false) : ""
+  beijingDate.value ? beijingDate.value.format("YYYY-MM-DD") : ""
 );
 
-function formatDate(d, withTime) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  return withTime ? `${y}-${m}-${day} ${hh}:${mm}` : `${y}-${m}-${day}`;
-}
+// 已改用 dayjs 格式化，上面 computed 中完成
 
 // 剩余时间对象
 const remaining = ref({ days: 0, hms: "00:00:00" });

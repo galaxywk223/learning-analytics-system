@@ -1,4 +1,10 @@
 import { defineStore } from "pinia";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import {
   listCountdowns,
   createCountdown,
@@ -6,14 +12,13 @@ import {
   deleteCountdown,
 } from "@/api/modules/countdown";
 
-// 将本地北京日期+时间转换为 UTC ISO 字符串
+// 将“北京时间(Asia/Shanghai)的日期+时间”转换为 UTC ISO 字符串
 function toUtcIso(dateStr: string, timeStr?: string): string {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const [hh, mm] = (timeStr || "00:00").split(":").map(Number);
-  // 构造北京时间 (UTC+8)，然后转为 UTC
-  // 北京 2025-01-01 10:00 => UTC 2025-01-01 02:00
-  const dt = new Date(Date.UTC(y, m - 1, d, hh - 8, mm, 0));
-  return dt.toISOString();
+  const time = timeStr || "00:00";
+  // 以北京时区解释输入，然后转为 UTC ISO
+  return dayjs.tz(`${dateStr} ${time}`, "YYYY-MM-DD HH:mm", "Asia/Shanghai")
+    .utc()
+    .toISOString();
 }
 
 export const useCountdownStore = defineStore("countdown", {

@@ -103,6 +103,10 @@
 import { ref, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import { useCountdownStore } from "@/stores";
 import CountdownItem from "@/components/business/countdown/CountdownItem.vue";
 
@@ -138,16 +142,13 @@ function openCreate() {
 
 function edit(ev) {
   const { id, title, target_datetime_utc } = ev;
-  // 解析 UTC -> 本地(北京) 日期与时间
-  const dt = new Date(target_datetime_utc);
-  const beijingOffsetMs = 8 * 60 * 60 * 1000;
-  const localMs = dt.getTime() + beijingOffsetMs;
-  const local = new Date(localMs);
-  const y = local.getFullYear();
-  const m = String(local.getMonth() + 1).padStart(2, "0");
-  const d = String(local.getDate()).padStart(2, "0");
-  const hh = String(local.getHours()).padStart(2, "0");
-  const mm = String(local.getMinutes()).padStart(2, "0");
+  // 解析 UTC -> 北京时间，统一用 Asia/Shanghai
+  const local = dayjs.utc(target_datetime_utc).tz("Asia/Shanghai");
+  const y = local.format("YYYY");
+  const m = local.format("MM");
+  const d = local.format("DD");
+  const hh = local.format("HH");
+  const mm = local.format("mm");
   form.value = {
     id,
     title,
@@ -169,7 +170,8 @@ function confirmDelete(ev) {
 }
 
 function today() {
-  return dayjs().format("YYYY-MM-DD");
+  // 以北京时区的“今天”
+  return dayjs().tz("Asia/Shanghai").format("YYYY-MM-DD");
 }
 
 function submit() {
