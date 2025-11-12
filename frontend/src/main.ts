@@ -9,6 +9,7 @@ import "./styles/index.scss";
 
 import App from "./App.vue";
 import router from "./router";
+import { setupMessageDefaults } from "@/plugins/message";
 
 const app = createApp(App);
 
@@ -23,6 +24,8 @@ app.use(ElementPlus, {
   size: "default",
   zIndex: 3000,
 });
+
+setupMessageDefaults();
 
 // 性能优化：设置 Vue 性能追踪（仅开发环境）
 if (import.meta.env.DEV) {
