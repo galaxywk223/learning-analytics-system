@@ -296,7 +296,7 @@ const topSubCards = computed(() => {
   const items = charts.kpiTopSubs30d || [];
   const normalized = [...items];
   while (normalized.length < 3) {
-    normalized.push({ label: "--", parent: "", percent: 0 });
+    normalized.push({ label: "--", parent: "", percent: 0, hours: 0 });
   }
   return normalized.slice(0, 3).map((item, idx) => {
     const hasParent = !!item.parent;
