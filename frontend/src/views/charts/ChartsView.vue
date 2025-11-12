@@ -174,7 +174,7 @@
         </div>
         <div
           class="category-header"
-          v-if="currentCategoryName"
+          :class="{ 'is-inactive': !isDrilldown }"
         >
           <el-button
             class="category-back"
@@ -182,15 +182,19 @@
             type="primary"
             plain
             :icon="ArrowLeft"
+            :disabled="!isDrilldown"
             @click="handleBackClick"
           >
-            返回上级
+            返回分类
           </el-button>
-          <span class="path">
+          <span class="path" v-if="isDrilldown">
             <span class="path-label">当前层级：</span>
             <span class="breadcrumbs">
               <span class="crumb">{{ currentCategoryName }}</span>
             </span>
+          </span>
+          <span class="path placeholder" v-else>
+            点击图表中的分类可查看子分类占比
           </span>
         </div>
         <CategoryComposite
@@ -254,8 +258,12 @@ const customRange = computed({
   set: (value) => charts.setCategoryCustomRange(value),
 });
 
+const isDrilldown = computed(() => charts.currentCategoryView === "drilldown");
+
+const compositeDrilldown = ref(false);
+
 const currentCategoryName = computed(() => {
-  if (charts.currentCategoryView !== "drilldown") {
+  if (!isDrilldown.value) {
     return "";
   }
   const name = charts.currentCategory;
@@ -265,24 +273,22 @@ const currentCategoryName = computed(() => {
 
 function onCategorySlice(cat) {
   if (!cat) return;
+  compositeDrilldown.value = true;
   charts.drillCategory(cat);
 }
 
 function handleCategoryBack() {
+  compositeDrilldown.value = false;
   charts.backCategory();
 }
 
 const categoryCompositeRef = ref<{ goBack?: () => void } | null>(null);
 
 function handleBackClick() {
-  if (
-    categoryCompositeRef.value &&
-    typeof categoryCompositeRef.value.goBack === "function"
-  ) {
-    categoryCompositeRef.value.goBack();
+  if (!isDrilldown.value) {
     return;
   }
-  handleCategoryBack();
+  charts.backCategory();
 }
 
 function onRangeModeChange(mode: CategoryRangeMode) {
@@ -399,6 +405,18 @@ watch(
     }
     if (charts.stageId !== activeId) {
       charts.setStage(activeId);
+    }
+  }
+);
+
+watch(
+  () => charts.currentCategoryView,
+  (view) => {
+    if (view === "drilldown" || !compositeDrilldown.value) return;
+    const target = categoryCompositeRef.value;
+    if (target && typeof target.goBack === "function") {
+      target.goBack();
+      compositeDrilldown.value = false;
     }
   }
 );

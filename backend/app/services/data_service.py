@@ -1,4 +1,5 @@
-# 文件路径: backend/app/services/data_service.py
+# -*- coding: utf-8 -*-
+"""数据导入导出服务"""
 import io
 import json
 import os
@@ -41,6 +42,12 @@ MODELS_TO_HANDLE = [
     DailyPlanItem,
 ]
 
+# 缓存各模型的真实字段，用于导入时剔除派生属性
+MODEL_COLUMN_MAP = {
+    model.__tablename__: {column.name for column in model.__table__.columns}
+    for model in MODELS_TO_HANDLE
+}
+
 # 对于用户私有且没有被其它表引用其主键的叶子表,导入时忽略提供的 id, 交由数据库自增
 # 这样可避免不同用户/历史备份之间的主键碰撞
 LEAF_USER_TABLES = (
@@ -49,6 +56,30 @@ LEAF_USER_TABLES = (
     DailyPlanItem,
     CountdownEvent,
 )
+
+def _prune_unknown_fields(table_name: str, payload: dict) -> dict:
+    """Drop keys that are not actual table columns to avoid assigning read-only properties."""
+    allowed = MODEL_COLUMN_MAP.get(table_name)
+    if not allowed:
+        return payload
+    return {key: value for key, value in payload.items() if key in allowed}
+
+
+def _query_user_records(model, user_id):
+    """Return all rows for the given model that belong to user_id."""
+    if "user_id" in model.__table__.columns:
+        return model.query.filter(model.user_id == user_id).all()
+
+    if hasattr(model, "stage") and "stage_id" in model.__table__.columns:
+        return model.query.join(Stage).filter(Stage.user_id == user_id).all()
+
+    if hasattr(model, "milestone") and "milestone_id" in model.__table__.columns:
+        return model.query.join(Milestone).filter(Milestone.user_id == user_id).all()
+
+    if hasattr(model, "category") and "category_id" in model.__table__.columns:
+        return model.query.join(Category).filter(Category.user_id == user_id).all()
+
+    return []
 
 
 def _clear_user_data(user):
@@ -122,19 +153,7 @@ def export_data_for_user(user):
     try:
         with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
             for model in MODELS_TO_HANDLE:
-                records = model.query.filter(
-                    getattr(model, "user_id", None) == user.id
-                ).all()
-                if hasattr(model, "stage") and not hasattr(model, "user_id"):
-                    records = (
-                        model.query.join(Stage).filter(Stage.user_id == user.id).all()
-                    )
-                if hasattr(model, "milestone") and not hasattr(model, "user_id"):
-                    records = (
-                        model.query.join(Milestone)
-                        .filter(Milestone.user_id == user.id)
-                        .all()
-                    )
+                records = _query_user_records(model, user.id)
 
                 data = [record.to_dict() for record in records]
                 json_data = json.dumps(data, indent=4, ensure_ascii=False)
@@ -225,6 +244,9 @@ def import_data_for_user(user, zip_file_stream):
                 "milestone": {},
             }
 
+            category_name_cache: dict[str, int] = {}
+            subcategory_name_cache: dict[str, int] = {}
+
             def _store_mapping(bucket: str, original_id, new_id):
                 if original_id is None:
                     return
@@ -234,6 +256,95 @@ def import_data_for_user(user, zip_file_stream):
                 if incoming_id is None:
                     return None
                 return id_maps[bucket].get(str(incoming_id))
+
+            def _ensure_category_from_info(cat_info):
+                if not cat_info:
+                    return None
+
+                original_id = cat_info.get("id")
+                if original_id:
+                    mapped = _map_id("category", original_id)
+                    if mapped:
+                        return mapped
+
+                name = cat_info.get("name")
+                if not name:
+                    return None
+
+                if name in category_name_cache:
+                    cat_id = category_name_cache[name]
+                    if original_id:
+                        _store_mapping("category", original_id, cat_id)
+                    return cat_id
+
+                existing = Category.query.filter_by(name=name, user_id=user.id).first()
+                if existing:
+                    category_name_cache[name] = existing.id
+                    if original_id:
+                        _store_mapping("category", original_id, existing.id)
+                    return existing.id
+
+                new_category = Category(name=name, user_id=user.id)
+                db.session.add(new_category)
+                db.session.flush()
+                category_name_cache[name] = new_category.id
+                if original_id:
+                    _store_mapping("category", original_id, new_category.id)
+                current_app.logger.info(
+                    "Reconstructed missing category '%s' (new id=%s)",
+                    name,
+                    new_category.id,
+                )
+                return new_category.id
+
+            def _ensure_subcategory_from_info(sub_info, fallback_original_id=None):
+                if not sub_info and not fallback_original_id:
+                    return None
+
+                original_id = sub_info.get("id") if sub_info else fallback_original_id
+                if original_id:
+                    mapped = _map_id("sub_category", original_id)
+                    if mapped:
+                        return mapped
+
+                name = (sub_info or {}).get("name")
+                category_id_hint = (sub_info or {}).get("category_id")
+                category_info = (sub_info or {}).get("category")
+
+                mapped_category = _map_id("category", category_id_hint)
+                if mapped_category is None:
+                    mapped_category = _ensure_category_from_info(category_info)
+                if mapped_category is None and category_id_hint is not None:
+                    mapped_category = _map_id("milestone_category", category_id_hint)
+
+                if mapped_category is None:
+                    current_app.logger.warning(
+                        "Unable to recreate subcategory '%s' because category mapping is missing.",
+                        name or original_id,
+                    )
+                    return None
+
+                cache_key = f"{mapped_category}:{name}"
+                if cache_key in subcategory_name_cache:
+                    sub_id = subcategory_name_cache[cache_key]
+                    if original_id:
+                        _store_mapping("sub_category", original_id, sub_id)
+                    return sub_id
+
+                new_name = name or f"未命名标签-{original_id or mapped_category}"
+                new_sub = SubCategory(name=new_name, category_id=mapped_category)
+                db.session.add(new_sub)
+                db.session.flush()
+                subcategory_name_cache[cache_key] = new_sub.id
+                if original_id:
+                    _store_mapping("sub_category", original_id, new_sub.id)
+                current_app.logger.info(
+                    "Reconstructed missing subcategory '%s' (new id=%s, category_id=%s)",
+                    new_name,
+                    new_sub.id,
+                    mapped_category,
+                )
+                return new_sub.id
 
             for table_name in import_order:
                 model = model_map.get(table_name)
@@ -247,6 +358,9 @@ def import_data_for_user(user, zip_file_stream):
                 for record in records:
                     record_data = dict(record)
                     original_id = record_data.pop("id", None)
+                    sub_info = record_data.get("subcategory") if table_name == "log_entry" else None
+                    if table_name == "log_entry":
+                        record_data.pop("subcategory", None)
 
                     if "user_id" in model.__table__.columns:
                         record_data["user_id"] = user.id
@@ -273,6 +387,8 @@ def import_data_for_user(user, zip_file_stream):
                                         f"Could not parse date string '{value}' for key '{key}': {ve}"
                                     )
 
+                    record_data = _prune_unknown_fields(table_name, record_data)
+
                     try:
                         if table_name == "stage":
                             new_stage = model(**record_data)
@@ -286,6 +402,7 @@ def import_data_for_user(user, zip_file_stream):
                             db.session.add(new_category)
                             db.session.flush()
                             _store_mapping("category", original_id, new_category.id)
+                            category_name_cache[new_category.name] = new_category.id
                             continue
 
                         if table_name == "milestone_category":
@@ -308,6 +425,8 @@ def import_data_for_user(user, zip_file_stream):
                             db.session.add(new_sub)
                             db.session.flush()
                             _store_mapping("sub_category", original_id, new_sub.id)
+                            sub_key = f"{parent_id}:{new_sub.name}"
+                            subcategory_name_cache[sub_key] = new_sub.id
                             continue
 
                         if table_name == "milestone":
@@ -330,7 +449,10 @@ def import_data_for_user(user, zip_file_stream):
                                 continue
                             record_data["stage_id"] = mapped_stage
                             sub_old = record_data.get("subcategory_id")
-                            record_data["subcategory_id"] = _map_id("sub_category", sub_old)
+                            mapped_sub = _map_id("sub_category", sub_old)
+                            if not mapped_sub:
+                                mapped_sub = _ensure_subcategory_from_info(sub_info, sub_old)
+                            record_data["subcategory_id"] = mapped_sub
                             db.session.add(model(**record_data))
                             continue
 

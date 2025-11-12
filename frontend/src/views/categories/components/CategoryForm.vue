@@ -79,9 +79,10 @@ const props = defineProps({
 const emit = defineEmits(["close", "submit"]);
 
 const formRef = ref(null);
-const form = ref({
+const defaultFormState = {
   name: "",
-});
+};
+const form = ref({ ...defaultFormState });
 
 const isEdit = computed(() => {
   return props.categoryData && props.categoryData.id;
@@ -99,17 +100,10 @@ const rules = {
   ],
 };
 
-// 初始化表单数据
-function initForm() {
-  if (props.categoryData) {
-    form.value = {
-      name: props.categoryData.name || "",
-    };
-  } else {
-    form.value = {
-      name: "",
-    };
-  }
+// 初始化或填充表单数据
+function syncFormFromProps() {
+  const name = props.categoryData?.name || "";
+  Object.assign(form.value, { name });
 }
 
 // 处理提交
@@ -150,10 +144,11 @@ function handleClose() {
 
 // 重置表单
 function resetForm() {
+  Object.assign(form.value, { ...defaultFormState });
   if (formRef.value) {
-    formRef.value.resetFields();
+    formRef.value.clearValidate?.();
+    formRef.value.resetFields?.();
   }
-  initForm();
 }
 
 // 监听器
@@ -162,7 +157,8 @@ watch(
   (visible) => {
     if (visible) {
       nextTick(() => {
-        initForm();
+        syncFormFromProps();
+        formRef.value?.clearValidate?.();
       });
     } else {
       resetForm();
@@ -170,7 +166,7 @@ watch(
   }
 );
 
-watch(() => props.categoryData, initForm, { deep: true });
+watch(() => props.categoryData, () => syncFormFromProps(), { deep: true });
 </script>
 
 <style scoped>

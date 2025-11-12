@@ -18,6 +18,35 @@ def resolve_upload_folder(default_path: str) -> str:
     return os.path.abspath(default_path)
 
 
+def resolve_max_content_length(default_mb: int = 64) -> int:
+    """
+    Resolve Flask MAX_CONTENT_LENGTH from env.
+
+    1) Use MAX_CONTENT_LENGTH (bytes) when explicitly provided.
+    2) Otherwise read MAX_UPLOAD_SIZE_MB (megabytes, human friendly).
+    3) Fallback to default when parsing fails.
+    """
+    raw_bytes = os.environ.get("MAX_CONTENT_LENGTH")
+    if raw_bytes:
+        try:
+            value = int(raw_bytes)
+            if value > 0:
+                return value
+        except ValueError:
+            pass
+
+    raw_mb = os.environ.get("MAX_UPLOAD_SIZE_MB")
+    if raw_mb:
+        try:
+            mb_value = int(raw_mb)
+            if mb_value > 0:
+                return mb_value * 1024 * 1024
+        except ValueError:
+            pass
+
+    return max(default_mb, 1) * 1024 * 1024
+
+
 class Config:
     """基础配置"""
 
@@ -53,7 +82,7 @@ class Config:
 
     # 上传配置
     UPLOAD_FOLDER = resolve_upload_folder(os.path.join(basedir, "uploads"))
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
+    MAX_CONTENT_LENGTH = resolve_max_content_length()  # default 64MB, env overridable
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
     # 日志配置
