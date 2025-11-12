@@ -31,6 +31,10 @@ export const useChartsStore = defineStore("charts", () => {
     weekly_trend: null,
   });
 
+  // KPI: 近30天 Top3 子分类
+  type TopSub = { label: string; parent?: string; hours: number; percent: number };
+  const kpiTopSubs30d = ref<TopSub[]>([]);
+
   // 趋势图表数据（从rawChartData中提取）
   const trends = ref({
     weekly_duration_data: { labels: [], actuals: [], trends: [] },
@@ -229,6 +233,66 @@ export const useChartsStore = defineStore("charts", () => {
     };
   }
 
+  /**
+   * 计算近30天 Top3 子分类（不影响分类页的筛选状态）
+   */
+  async function fetchTopSubsLast30d() {
+    try {
+      const today = dayjs();
+      const start = today.subtract(29, "day").format("YYYY-MM-DD");
+      const end = today.format("YYYY-MM-DD");
+      const params: Record<string, any> = {
+        range_mode: "custom",
+        start_date: start,
+        end_date: end,
+      };
+      const resp = await chartsAPI.getCategories(params);
+      const payload = (resp as any).data || resp;
+      const drill = (payload && (payload as any).drilldown) || {};
+      const main = (payload && (payload as any).main) || { labels: [], data: [] };
+      // 汇总所有子分类（名称 + 父类）
+      const map = new Map<string, { label: string; parent?: string; hours: number }>();
+      let total = 0;
+      Object.keys(drill).forEach((catName) => {
+        const ds = drill[catName] || { labels: [], data: [] };
+        (ds.labels || []).forEach((subName: string, i: number) => {
+          const hours = Number((ds.data || [])[i] || 0);
+          total += hours;
+          const key = `${catName}__${subName}`;
+          const existed = map.get(key);
+          if (existed) {
+            existed.hours += hours;
+          } else {
+            map.set(key, { label: subName, parent: catName, hours });
+          }
+        });
+      });
+
+      // 若没有 drilldown 数据，尝试用主类作为“伪子类”（legacy 场景）
+      if (map.size === 0 && Array.isArray(main?.labels)) {
+        (main.labels as string[]).forEach((name: string, i: number) => {
+          const hours = Number(main.data?.[i] || 0);
+          total += hours;
+          const label = `${name} (旧)`;
+          const key = `legacy__${label}`;
+          map.set(key, { label, parent: undefined, hours });
+        });
+      }
+
+      const items = Array.from(map.values())
+        .sort((a, b) => b.hours - a.hours)
+        .slice(0, 3)
+        .map((x) => ({
+          ...x,
+          percent: total > 0 ? Math.round((x.hours / total) * 100) : 0,
+        }));
+      kpiTopSubs30d.value = items;
+    } catch (e) {
+      // 静默失败，不影响页面其他数据
+      kpiTopSubs30d.value = [];
+    }
+  }
+
   async function fetchCategories() {
     loading.value = true;
     try {
@@ -367,6 +431,8 @@ export const useChartsStore = defineStore("charts", () => {
         "[Charts Store] Active tab is not categories, skipping category fetch"
       );
     }
+    // 计算 Top3 子分类（近30天）
+    await fetchTopSubsLast30d();
   }
 
   function setCategoryRangeMode(mode: typeof categoryRangeMode.value) {
@@ -485,6 +551,7 @@ export const useChartsStore = defineStore("charts", () => {
     loading,
     rawChartData,
     kpis,
+    kpiTopSubs30d,
     trends,
     stageAnnotations,
     categoryData,
@@ -504,6 +571,7 @@ export const useChartsStore = defineStore("charts", () => {
     // 方法
     initStages,
     fetchTrends,
+    fetchTopSubsLast30d,
     fetchCategories,
     fetchCategoryTrend,
     drillCategory,

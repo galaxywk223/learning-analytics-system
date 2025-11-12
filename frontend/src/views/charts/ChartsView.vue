@@ -123,26 +123,47 @@
       <div v-show="charts.activeTab === 'trends'" class="panel">
         <!-- KPI 仅在趋势分析面板内部显示，符合旧项目布局 -->
         <div class="kpi-grid" v-loading="charts.loading">
-          <KpiCard
-            label="平均每日时长"
-            :value="charts.kpis.avg_daily_formatted || '--'"
-            color="primary"
-          >
-            <template #icon>⏱️</template>
+          <KpiCard label="今天时长" color="amber">
+            <template #icon>🚀</template>
+            <template #value>
+              <div class="kpi-value-main">{{ todayHoursWithRank }}</div>
+              <div class="kpi-value-sub">{{ todayExceedText }}</div>
+            </template>
           </KpiCard>
-          <KpiCard
-            label="效率之星"
-            :value="charts.kpis.efficiency_star || '--'"
-            color="amber"
-          >
-            <template #icon>⭐</template>
+          <KpiCard label="本周趋势（至今日 VS 上周）" color="green">
+            <template #icon>📈</template>
+            <template #value>
+              <div class="kpi-value-main">{{ weeklyTrendToDateValue }}</div>
+              <div class="kpi-value-sub">
+                本周均 {{ weeklyThisAvgText }} · 上周均 {{ weeklyLastAvgText }}
+              </div>
+            </template>
           </KpiCard>
+          <KpiCard label="近30天波动" color="purple">
+            <template #icon>🛡️</template>
+            <template #value>
+              <div class="kpi-value-main">{{ stabilityTitle }}</div>
+              <div class="kpi-value-sub">{{ stabilityDetail }}</div>
+            </template>
+          </KpiCard>
+        </div>
+        <div
+          class="kpi-grid top-sub-grid"
+          v-if="topSubCards.length"
+          v-loading="charts.loading"
+        >
           <KpiCard
-            label="本周趋势 (vs 上周)"
-            :value="charts.kpis.weekly_trend || '--'"
-            color="green"
+            v-for="card in topSubCards"
+            :key="card.key"
+            :label="card.label"
+            color="indigo"
+            dense
           >
-            <template #icon>📊</template>
+            <template #icon>🏷️</template>
+            <template #value>
+              <div class="kpi-value-main">{{ card.name }}</div>
+              <div class="kpi-value-sub">{{ card.percent }}</div>
+            </template>
           </KpiCard>
         </div>
         <!-- 无数据/初始化提示 -->
@@ -269,6 +290,240 @@ const currentCategoryName = computed(() => {
   const name = charts.currentCategory;
   if (!name) return "";
   return String(name);
+});
+
+const topSubCards = computed(() => {
+  const items = charts.kpiTopSubs30d || [];
+  const normalized = [...items];
+  while (normalized.length < 3) {
+    normalized.push({ label: "--", parent: "", percent: 0 });
+  }
+  return normalized.slice(0, 3).map((item, idx) => {
+    const hasParent = !!item.parent;
+    const name = item.label === "--"
+      ? "暂无数据"
+      : hasParent
+        ? `${item.parent}：${item.label}`
+        : item.label;
+    return {
+      key: `${item.parent || "legacy"}-${item.label}-${idx}`,
+      label: `TOP${idx + 1}（近30天）`,
+      name,
+      percent: item.label === "--" ? "--" : `${item.percent}%`,
+    };
+  });
+});
+
+// 今日超过历史百分比（全历史）
+const todayPercentileValue = computed(() => {
+  const daily = charts.trends.daily_duration_data;
+  const labels: string[] = (daily?.labels as string[]) || [];
+  const data: number[] = (daily?.actuals as number[]) || [];
+  if (!labels.length || !data.length) return "--";
+  const today = dayjs().format("YYYY-MM-DD");
+  const idx = labels.indexOf(today);
+  if (idx < 0) return "--";
+  const todayVal = Number(data[idx] || 0);
+  const n = data.length;
+  if (!n) return "--";
+  const less = data.filter((v) => Number(v || 0) < todayVal).length;
+  const pct = Math.round((less * 100) / n);
+  return `打败 ${pct}%`;
+});
+
+const todayHoursText = computed(() => {
+  const daily = charts.trends.daily_duration_data;
+  const labels: string[] = (daily?.labels as string[]) || [];
+  const data: number[] = (daily?.actuals as number[]) || [];
+  if (!labels.length || !data.length) return "今日 0h";
+  const today = dayjs().format("YYYY-MM-DD");
+  const idx = labels.indexOf(today);
+  const hours = idx >= 0 ? Number(data[idx] || 0) : 0;
+  return `${hours.toFixed(1)}h`;
+});
+
+const todayHoursWithRank = computed(() => {
+  const daily = charts.trends.daily_duration_data;
+  const labels: string[] = (daily?.labels as string[]) || [];
+  const data: number[] = (daily?.actuals as number[]) || [];
+  if (!labels.length || !data.length) return `${todayHoursText.value}`;
+  const today = dayjs().format("YYYY-MM-DD");
+  const idx = labels.indexOf(today);
+  const hoursStr = todayHoursText.value;
+  if (idx < 0) return hoursStr;
+  const todayVal = Number(data[idx] || 0);
+  const sorted = [...data].sort((a, b) => b - a);
+  const total = sorted.length;
+  let rank = sorted.findIndex((v) => v === todayVal);
+  rank = rank >= 0 ? rank + 1 : total; // 1-based
+  return `${hoursStr}（${rank}/${total}）`;
+});
+
+// 今日超过历史百分比（友好文案）
+const todayExceedText = computed(() => {
+  const daily = charts.trends.daily_duration_data;
+  const labels: string[] = (daily?.labels as string[]) || [];
+  const data: number[] = (daily?.actuals as number[]) || [];
+  if (!labels.length || !data.length) return "超过 0%";
+  const today = dayjs().format("YYYY-MM-DD");
+  const idx = labels.indexOf(today);
+  if (idx < 0) return "超过 0%";
+  const todayVal = Number(data[idx] || 0);
+  const n = data.length;
+  if (!n) return "超过 0%";
+  const less = data.filter((v) => Number(v || 0) < todayVal).length;
+  const pct = Math.round((less * 100) / n);
+  return `超过 ${pct}%`;
+});
+
+const todayRankLabel = computed(() => {
+  const daily = charts.trends.daily_duration_data;
+  const labels: string[] = (daily?.labels as string[]) || [];
+  const data: number[] = (daily?.actuals as number[]) || [];
+  if (!labels.length || !data.length) return "无记录";
+  const today = dayjs().format("YYYY-MM-DD");
+  const idx = labels.indexOf(today);
+  if (idx < 0) return "无记录";
+  const todayVal = Number(data[idx] || 0);
+  const sorted = [...data].sort((a, b) => b - a);
+  const rank = sorted.findIndex((v) => v === todayVal);
+  return rank >= 0 ? `历史第 ${rank + 1}` : "无记录";
+});
+
+// 本周趋势（至今日 VS 上周同段）
+const weeklyTrendToDateValue = computed(() => {
+  const daily = charts.trends.daily_duration_data;
+  const labels: string[] = (daily?.labels as string[]) || [];
+  const values: number[] = (daily?.actuals as number[]) || [];
+  if (!labels.length || !values.length) return "--";
+
+  const today = dayjs();
+  const startThis = today.startOf("week").add(1, "day"); // Monday-based
+  const dow = (today.day() + 6) % 7; // 0..6, Monday=0
+  const nDays = dow + 1;
+
+  const fmt = (d: dayjs.Dayjs) => d.format("YYYY-MM-DD");
+  const rangeSum = (start: dayjs.Dayjs, count: number) => {
+    let sum = 0;
+    for (let i = 0; i < count; i++) {
+      const d = fmt(start.add(i, "day"));
+      const idx = labels.indexOf(d);
+      sum += idx >= 0 ? Number(values[idx] || 0) : 0;
+    }
+    return sum;
+  };
+
+  const thisSum = rangeSum(startThis, nDays);
+  const thisAvg = thisSum / Math.max(nDays, 1);
+
+  const startLast = startThis.subtract(7, "day");
+  const lastSum = rangeSum(startLast, nDays);
+  const lastAvg = lastSum / Math.max(nDays, 1);
+
+  if (lastAvg === 0 && thisAvg === 0) return "--";
+  if (lastAvg === 0 && thisAvg > 0) return "新开始";
+  const diff = ((thisAvg - lastAvg) / lastAvg) * 100;
+  const sign = diff >= 0 ? "+" : "";
+  return `${sign}${diff.toFixed(0)}%`;
+});
+
+const weeklyThisAvgText = computed(() => {
+  const { thisAvg } = weeklyTrendStats();
+  return `${thisAvg.toFixed(1)}h`;
+});
+
+const weeklyLastAvgText = computed(() => {
+  const { lastAvg } = weeklyTrendStats();
+  return `${lastAvg.toFixed(1)}h`;
+});
+
+function weeklyTrendStats() {
+  const daily = charts.trends.daily_duration_data;
+  const labels: string[] = (daily?.labels as string[]) || [];
+  const values: number[] = (daily?.actuals as number[]) || [];
+  if (!labels.length || !values.length) {
+    return { thisAvg: 0, lastAvg: 0 };
+  }
+  const today = dayjs();
+  const startThis = today.startOf("week").add(1, "day");
+  const dow = (today.day() + 6) % 7;
+  const nDays = dow + 1;
+  const fmt = (d: dayjs.Dayjs) => d.format("YYYY-MM-DD");
+  const rangeAvg = (start: dayjs.Dayjs, count: number) => {
+    let sum = 0;
+    for (let i = 0; i < count; i++) {
+      const idx = labels.indexOf(fmt(start.add(i, "day")));
+      sum += idx >= 0 ? Number(values[idx] || 0) : 0;
+    }
+    return sum / Math.max(count, 1);
+  };
+  const thisAvg = rangeAvg(startThis, nDays);
+  const lastAvg = rangeAvg(startThis.subtract(7, "day"), nDays);
+  return { thisAvg, lastAvg };
+}
+
+// 稳定性档位（近30天）
+const stabilityGradeValue = computed(() => {
+  const daily = charts.trends.daily_duration_data;
+  const labels: string[] = (daily?.labels as string[]) || [];
+  const values: number[] = (daily?.actuals as number[]) || [];
+  if (!labels.length || !values.length) return "--";
+  const today = dayjs();
+  const start = today.subtract(29, "day");
+  const seq: number[] = [];
+  for (let i = 0; i < 30; i++) {
+    const d = start.add(i, "day").format("YYYY-MM-DD");
+    const idx = labels.indexOf(d);
+    seq.push(idx >= 0 ? Number(values[idx] || 0) : 0);
+  }
+  const mean = seq.reduce((a, b) => a + b, 0) / seq.length;
+  if (mean <= 0) return "--";
+  const variance = seq.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / seq.length;
+  const std = Math.sqrt(variance);
+  const cv = std / mean;
+  if (cv <= 0.35) return "高";
+  if (cv <= 0.65) return "中";
+  return "低";
+});
+
+const stabilityTitle = computed(() => {
+  const grade = stabilityGradeValue.value;
+  if (grade === "高") return "很稳定";
+  if (grade === "中") return "较稳定";
+  if (grade === "低") return "波动较大";
+  return "--";
+});
+
+const stabilityScore = computed(() => {
+  // 依据 CV -> 分数（0-100），低 CV 得高分
+  const daily = charts.trends.daily_duration_data;
+  const labels: string[] = (daily?.labels as string[]) || [];
+  const values: number[] = (daily?.actuals as number[]) || [];
+  if (!labels.length || !values.length) return 0;
+  const today = dayjs();
+  const start = today.subtract(29, "day");
+  const seq: number[] = [];
+  for (let i = 0; i < 30; i++) {
+    const d = start.add(i, "day").format("YYYY-MM-DD");
+    const idx = labels.indexOf(d);
+    seq.push(idx >= 0 ? Number(values[idx] || 0) : 0);
+  }
+  const mean = seq.reduce((a, b) => a + b, 0) / seq.length;
+  if (mean <= 0) return 0;
+  const variance = seq.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / seq.length;
+  const std = Math.sqrt(variance);
+  const cv = std / mean;
+  const score = Math.round(Math.max(0, Math.min(1, 1 - Math.min(cv, 1))) * 100);
+  return score;
+});
+
+const stabilityDetail = computed(() => {
+  const grade = stabilityGradeValue.value;
+  const score = stabilityScore.value;
+  if (grade === "高") return `日时长波动很小（${score}/100）`;
+  if (grade === "中") return `日时长波动中等（${score}/100）`;
+  if (grade === "低") return `日时长波动较大（${score}/100）`;
+  return "近30天暂无数据";
 });
 
 function onCategorySlice(cat) {
