@@ -41,6 +41,7 @@
       :close-on-click-modal="false"
     >
       <RecordForm
+        ref="recordFormRef"
         :initial-data="currentRecord"
         :is-edit="isEditing"
         :loading="submitting"
@@ -72,6 +73,7 @@ const structuredLogs = ref([]);
 const currentSort = ref("desc");
 const activeWeeks = ref([]);
 const expandedNotes = ref([]); // 记录展开的笔记ID
+const recordFormRef = ref(null);
 
 const isEditing = computed(() => !!currentRecord.value?.id);
 // 是否可以添加记录（阶段已加载并选定）
@@ -150,6 +152,9 @@ const openAddDialog = (date = null) => {
   currentRecord.value = null;
   defaultDate.value = normalizeDate(date);
   dialogVisible.value = true;
+  if (recordFormRef.value?.resetForm) {
+    recordFormRef.value.resetForm();
+  }
 };
 
 // 打开编辑对话框

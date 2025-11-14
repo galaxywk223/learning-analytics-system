@@ -126,8 +126,20 @@
           <KpiCard label="今天时长" color="amber">
             <template #icon>🚀</template>
             <template #value>
-              <div class="kpi-value-main">{{ todayHoursWithRank }}</div>
-              <div class="kpi-value-sub">{{ todayExceedText }}</div>
+              <div class="today-kpi-layout">
+                <div class="today-kpi-main">
+                  <div class="kpi-value-main">{{ todayHoursWithRank }}</div>
+                  <div class="kpi-value-sub">{{ todayExceedText }}</div>
+                </div>
+                <div class="today-kpi-yesterday">
+                  <div class="kpi-value-main">
+                    {{ yesterdayHoursWithRank }}
+                  </div>
+                  <div class="kpi-value-sub">
+                    {{ yesterdayExceedText }}
+                  </div>
+                </div>
+              </div>
             </template>
           </KpiCard>
           <KpiCard label="本周趋势（至今日 VS 上周）" color="green">
@@ -342,6 +354,17 @@ const todayHoursText = computed(() => {
   return `${hours.toFixed(1)}h`;
 });
 
+const yesterdayHoursText = computed(() => {
+  const daily = charts.trends.daily_duration_data;
+  const labels: string[] = (daily?.labels as string[]) || [];
+  const data: number[] = (daily?.actuals as number[]) || [];
+  if (!labels.length || !data.length) return "昨日 0.0h";
+  const yesterday = dayjs().subtract(1, "day").format("YYYY-MM-DD");
+  const idx = labels.indexOf(yesterday);
+  const hours = idx >= 0 ? Number(data[idx] || 0) : 0;
+  return `昨日 ${hours.toFixed(1)}h`;
+});
+
 const todayHoursWithRank = computed(() => {
   const daily = charts.trends.daily_duration_data;
   const labels: string[] = (daily?.labels as string[]) || [];
@@ -359,6 +382,24 @@ const todayHoursWithRank = computed(() => {
   return `${hoursStr}（${rank}/${total}）`;
 });
 
+const yesterdayHoursWithRank = computed(() => {
+  const daily = charts.trends.daily_duration_data;
+  const labels: string[] = (daily?.labels as string[]) || [];
+  const data: number[] = (daily?.actuals as number[]) || [];
+  if (!labels.length || !data.length) return "昨日 0.0h";
+  const yesterday = dayjs().subtract(1, "day").format("YYYY-MM-DD");
+  const idx = labels.indexOf(yesterday);
+  const hours = idx >= 0 ? Number(data[idx] || 0) : 0;
+  const hoursStr = `${hours.toFixed(1)}h`;
+  if (idx < 0) return `昨日 ${hoursStr}`;
+  const sorted = [...data].sort((a, b) => b - a);
+  const total = sorted.length;
+  if (!total) return `昨日 ${hoursStr}`;
+  let rank = sorted.findIndex((v) => v === hours);
+  rank = rank >= 0 ? rank + 1 : total;
+  return `昨日 ${hoursStr}（${rank}/${total}）`;
+});
+
 // 今日超过历史百分比（友好文案）
 const todayExceedText = computed(() => {
   const daily = charts.trends.daily_duration_data;
@@ -372,6 +413,22 @@ const todayExceedText = computed(() => {
   const n = data.length;
   if (!n) return "超过 0%";
   const less = data.filter((v) => Number(v || 0) < todayVal).length;
+  const pct = Math.round((less * 100) / n);
+  return `超过 ${pct}%`;
+});
+
+const yesterdayExceedText = computed(() => {
+  const daily = charts.trends.daily_duration_data;
+  const labels: string[] = (daily?.labels as string[]) || [];
+  const data: number[] = (daily?.actuals as number[]) || [];
+  if (!labels.length || !data.length) return "超过 0%";
+  const yesterday = dayjs().subtract(1, "day").format("YYYY-MM-DD");
+  const idx = labels.indexOf(yesterday);
+  if (idx < 0) return "超过 0%";
+  const yesterdayVal = Number(data[idx] || 0);
+  const n = data.length;
+  if (!n) return "超过 0%";
+  const less = data.filter((v) => Number(v || 0) < yesterdayVal).length;
   const pct = Math.round((less * 100) / n);
   return `超过 ${pct}%`;
 });

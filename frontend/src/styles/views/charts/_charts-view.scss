@@ -230,6 +230,34 @@
   }
 }
 
+.today-kpi-layout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  .today-kpi-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .today-kpi-yesterday {
+    text-align: right;
+    min-width: 120px;
+
+    .kpi-value-main {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #6b7280; // 略淡于主标题
+    }
+
+    .kpi-value-sub {
+      font-size: 0.74rem;
+      color: #9ca3af; // 更淡一点
+    }
+  }
+}
+
 .top-sub-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
