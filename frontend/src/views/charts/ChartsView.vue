@@ -142,12 +142,26 @@
               </div>
             </template>
           </KpiCard>
-          <KpiCard label="本周趋势（至今日 VS 上周）" color="green">
-            <template #icon>📈</template>
+          <KpiCard label="今天效率" color="green">
+            <template #icon>⚡</template>
             <template #value>
-              <div class="kpi-value-main">{{ weeklyTrendToDateValue }}</div>
-              <div class="kpi-value-sub">
-                本周均 {{ weeklyThisAvgText }} · 上周均 {{ weeklyLastAvgText }}
+              <div class="today-kpi-layout">
+                <div class="today-kpi-main">
+                  <div class="kpi-value-main">
+                    {{ todayEfficiencyWithRank }}
+                  </div>
+                  <div class="kpi-value-sub">
+                    {{ todayEfficiencyExceedText }}
+                  </div>
+                </div>
+                <div class="today-kpi-yesterday">
+                  <div class="kpi-value-main">
+                    {{ yesterdayEfficiencyWithRank }}
+                  </div>
+                  <div class="kpi-value-sub">
+                    {{ yesterdayEfficiencyExceedText }}
+                  </div>
+                </div>
               </div>
             </template>
           </KpiCard>
@@ -447,77 +461,55 @@ const todayRankLabel = computed(() => {
   return rank >= 0 ? `历史第 ${rank + 1}` : "无记录";
 });
 
-// 本周趋势（至今日 VS 上周同段）
-const weeklyTrendToDateValue = computed(() => {
-  const daily = charts.trends.daily_duration_data;
-  const labels: string[] = (daily?.labels as string[]) || [];
-  const values: number[] = (daily?.actuals as number[]) || [];
-  if (!labels.length || !values.length) return "--";
+// ----- 效率 KPI（今日/昨日，与首卡格式一致） -----
+const dailyEfficiencyLabels = computed(
+  () => (charts.trends.daily_efficiency_data?.labels as string[]) || []
+);
+const dailyEfficiencyValues = computed(
+  () => (charts.trends.daily_efficiency_data?.actuals as number[]) || []
+);
 
-  const today = dayjs();
-  const startThis = today.startOf("week").add(1, "day"); // Monday-based
-  const dow = (today.day() + 6) % 7; // 0..6, Monday=0
-  const nDays = dow + 1;
-
-  const fmt = (d: dayjs.Dayjs) => d.format("YYYY-MM-DD");
-  const rangeSum = (start: dayjs.Dayjs, count: number) => {
-    let sum = 0;
-    for (let i = 0; i < count; i++) {
-      const d = fmt(start.add(i, "day"));
-      const idx = labels.indexOf(d);
-      sum += idx >= 0 ? Number(values[idx] || 0) : 0;
-    }
-    return sum;
-  };
-
-  const thisSum = rangeSum(startThis, nDays);
-  const thisAvg = thisSum / Math.max(nDays, 1);
-
-  const startLast = startThis.subtract(7, "day");
-  const lastSum = rangeSum(startLast, nDays);
-  const lastAvg = lastSum / Math.max(nDays, 1);
-
-  if (lastAvg === 0 && thisAvg === 0) return "--";
-  if (lastAvg === 0 && thisAvg > 0) return "新开始";
-  const diff = ((thisAvg - lastAvg) / lastAvg) * 100;
-  const sign = diff >= 0 ? "+" : "";
-  return `${sign}${diff.toFixed(0)}%`;
-});
-
-const weeklyThisAvgText = computed(() => {
-  const { thisAvg } = weeklyTrendStats();
-  return `${thisAvg.toFixed(1)}h`;
-});
-
-const weeklyLastAvgText = computed(() => {
-  const { lastAvg } = weeklyTrendStats();
-  return `${lastAvg.toFixed(1)}h`;
-});
-
-function weeklyTrendStats() {
-  const daily = charts.trends.daily_duration_data;
-  const labels: string[] = (daily?.labels as string[]) || [];
-  const values: number[] = (daily?.actuals as number[]) || [];
-  if (!labels.length || !values.length) {
-    return { thisAvg: 0, lastAvg: 0 };
+function buildEfficiencyStat(targetDate: string) {
+  const labels = dailyEfficiencyLabels.value;
+  const data = dailyEfficiencyValues.value.map((v) => Number(v || 0));
+  const total = data.length;
+  const idx = labels.indexOf(targetDate);
+  if (total === 0 || idx < 0) {
+    return {
+      valueWithRank: "0.00（--/--）",
+      exceedText: "超过 0%",
+    };
   }
-  const today = dayjs();
-  const startThis = today.startOf("week").add(1, "day");
-  const dow = (today.day() + 6) % 7;
-  const nDays = dow + 1;
-  const fmt = (d: dayjs.Dayjs) => d.format("YYYY-MM-DD");
-  const rangeAvg = (start: dayjs.Dayjs, count: number) => {
-    let sum = 0;
-    for (let i = 0; i < count; i++) {
-      const idx = labels.indexOf(fmt(start.add(i, "day")));
-      sum += idx >= 0 ? Number(values[idx] || 0) : 0;
-    }
-    return sum / Math.max(count, 1);
-  };
-  const thisAvg = rangeAvg(startThis, nDays);
-  const lastAvg = rangeAvg(startThis.subtract(7, "day"), nDays);
-  return { thisAvg, lastAvg };
+  const val = Number(data[idx] || 0);
+  const sorted = [...data].sort((a, b) => b - a);
+  const rank = sorted.findIndex((v) => v === val);
+  const rankStr = rank >= 0 ? `${rank + 1}/${sorted.length}` : `--/${sorted.length}`;
+  const valueWithRank = `${val.toFixed(2)}（${rankStr}）`;
+  const less = data.filter((v) => v < val).length;
+  const exceed = total ? Math.round((less * 100) / total) : 0;
+  const exceedText = `超过 ${exceed}%`;
+  return { valueWithRank, exceedText };
 }
+
+const todayEfficiencyStat = computed(() =>
+  buildEfficiencyStat(dayjs().format("YYYY-MM-DD"))
+);
+const yesterdayEfficiencyStat = computed(() =>
+  buildEfficiencyStat(dayjs().subtract(1, "day").format("YYYY-MM-DD"))
+);
+
+const todayEfficiencyWithRank = computed(
+  () => todayEfficiencyStat.value.valueWithRank
+);
+const yesterdayEfficiencyWithRank = computed(
+  () => yesterdayEfficiencyStat.value.valueWithRank
+);
+const todayEfficiencyExceedText = computed(
+  () => todayEfficiencyStat.value.exceedText
+);
+const yesterdayEfficiencyExceedText = computed(
+  () => yesterdayEfficiencyStat.value.exceedText
+);
 
 // 稳定性档位（近30天）
 const stabilityGradeValue = computed(() => {

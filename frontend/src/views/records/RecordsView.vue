@@ -45,6 +45,7 @@
         :initial-data="currentRecord"
         :is-edit="isEditing"
         :loading="submitting"
+        :default-date="defaultDate"
         @submit="handleSubmit"
         @cancel="dialogVisible = false"
       />

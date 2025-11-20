@@ -64,6 +64,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  defaultDate: {
+    type: String,
+    default: null,
+  },
 });
 
 const emit = defineEmits(["submit", "cancel"]);
@@ -71,7 +75,7 @@ const emit = defineEmits(["submit", "cancel"]);
 // 响应式数据
 const formRef = ref(null);
 const categoryStore = useCategoryStore();
-const form = ref(getDefaultFormData());
+const form = ref(getDefaultFormData(props.defaultDate));
 const rules = formRules;
 
 // 计算属性
@@ -123,19 +127,23 @@ function resetForm() {
   if (formRef.value) {
     formRef.value.resetFields();
   }
-  form.value = getDefaultFormData();
+  form.value = getDefaultFormData(props.defaultDate);
 }
 
 function initializeForm() {
   if (props.initialData) {
-    form.value = formatServerDataToForm(props.initialData);
+    form.value = formatServerDataToForm(props.initialData, props.defaultDate);
   } else {
-    form.value = getDefaultFormData();
+    form.value = getDefaultFormData(props.defaultDate);
   }
 }
 
 // 监听器
-watch(() => props.initialData, initializeForm, { deep: true });
+watch(
+  () => [props.initialData, props.defaultDate],
+  initializeForm,
+  { deep: true }
+);
 
 // 生命周期
 onMounted(async () => {

@@ -57,10 +57,13 @@ export const formRules: FormRules = {
 /**
  * 默认表单数据
  */
-export function getDefaultFormData(): FormData {
+export function getDefaultFormData(defaultDate?: string | null): FormData {
+  const baseDate = defaultDate ? dayjs(defaultDate) : dayjs();
+  const effectiveDate = baseDate.isValid() ? baseDate : dayjs();
+
   return {
     task: "",
-    log_date: dayjs().format("YYYY-MM-DD"),
+    log_date: effectiveDate.format("YYYY-MM-DD"),
     time_slot: "",
     actual_duration: 0,
     duration_hours: 0,
@@ -123,8 +126,11 @@ export function formatFormDataForSubmit(
 /**
  * 从服务器数据格式化到表单数据
  */
-export function formatServerDataToForm(serverData: ServerData): FormData {
-  const base = getDefaultFormData();
+export function formatServerDataToForm(
+  serverData: ServerData,
+  defaultDate?: string | null
+): FormData {
+  const base = getDefaultFormData(defaultDate ?? serverData?.log_date);
   const actualDurationRaw = Number(serverData.actual_duration ?? base.actual_duration ?? 0);
   const durationHours = Math.floor(actualDurationRaw / 60);
   const durationMinutes = actualDurationRaw % 60;

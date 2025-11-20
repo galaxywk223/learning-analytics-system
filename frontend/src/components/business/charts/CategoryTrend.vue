@@ -183,13 +183,9 @@ function handleChartFinished() {
     // 如果还没有初始化缩放范围，用与 option 相同的规则初始化一次
     const len = trendSeries.value.labels?.length || 0;
     if (len > 0) {
-      const enableZoom = len > 14;
-      const sliderWindow = enableZoom ? Math.min(100, Math.round((14 / len) * 100)) : 100;
-      const start = enableZoom ? Math.max(0, 100 - sliderWindow) : 0;
-      const end = 100;
-      zoomRange.value.start = start;
-      zoomRange.value.end = end;
-      calcBarWidth(end - start);
+      zoomRange.value.start = 0;
+      zoomRange.value.end = 100;
+      calcBarWidth(100);
       return;
     }
   }
@@ -202,10 +198,7 @@ const option = computed(() => {
     Number.isFinite(Number(v)) ? Number(v) : 0
   );
   const enableZoom = labels.length > 14;
-  const sliderWindow = enableZoom
-    ? Math.min(100, Math.round((14 / labels.length) * 100))
-    : 100;
-  const initialStart = enableZoom ? Math.max(0, 100 - sliderWindow) : 0;
+  const initialStart = 0; // 默认全区间
   const start =
     zoomRange.value.start !== null && zoomRange.value.start !== undefined
       ? zoomRange.value.start
@@ -331,13 +324,9 @@ watch(
       const len = trendSeries.value.labels?.length || 0;
       if (len > 0) {
         if (zoomRange.value.start == null || zoomRange.value.end == null) {
-          const enableZoom = len > 14;
-          const sliderWindow = enableZoom ? Math.min(100, Math.round((14 / len) * 100)) : 100;
-          const start = enableZoom ? Math.max(0, 100 - sliderWindow) : 0;
-          const end = 100;
-          zoomRange.value.start = start;
-          zoomRange.value.end = end;
-          calcBarWidth(end - start);
+          zoomRange.value.start = 0;
+          zoomRange.value.end = 100;
+          calcBarWidth(100);
         } else {
           calcBarWidth();
         }

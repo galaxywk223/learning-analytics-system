@@ -150,10 +150,7 @@ const showStageHelper = computed(
 const chartOption = computed(() => {
   const { labels, durationActual, efficiencyActual } = viewSource.value;
   const enableZoom = labels.length > 14;
-  const sliderWindow = enableZoom
-    ? Math.min(100, Math.round((14 / labels.length) * 100))
-    : 100;
-  const sliderStart = enableZoom ? Math.max(0, 100 - sliderWindow) : 0;
+  const sliderStart = 0; // 默认显示全范围
 
   return {
     color: ["#6366f1", "#f97316"],

@@ -107,22 +107,26 @@
 }
 
 .progress-ring-circle {
-  stroke: #667eea;
+  /* 默认：蓝色 */
+  stroke: #2563eb;
+  stroke: url(#gradient-normal);
   transition: stroke-dashoffset 0.3s ease;
   stroke-linecap: round;
 }
 
+.status-normal .progress-ring-circle {
+  stroke: #2563eb;
+  stroke: url(#gradient-normal);
+}
+
 .status-warning .progress-ring-circle {
-  stroke: #ec4899;
+  stroke: #f59e0b;
+  stroke: url(#gradient-warning);
 }
 
 .status-urgent .progress-ring-circle {
-  stroke: #f59e0b;
-}
-
-/* 渐变定义 - 需要在 SVG 中定义 */
-.progress-ring-svg defs {
-  display: none;
+  stroke: #dc2626;
+  stroke: url(#gradient-urgent);
 }
 
 /* 进度文字 */
@@ -173,30 +177,39 @@
   flex-shrink: 0;
 }
 
+.status-normal .card-header {
+  background: #f0f5ff;
+  color: #1d4ed8;
+}
+
 .status-warning .card-header {
-  background: #fff7fb;
-  color: #be185d;
+  background: #fff7e6;
+  color: #c2410c;
 }
 
 .status-urgent .card-header {
-  background: #fff7ed;
-  color: #b45309;
-}
-
-.status-warning .progress-ring-circle {
-  stroke: #ec4899;
-}
-
-.status-urgent .progress-ring-circle {
-  stroke: #f59e0b;
+  background: #fff1f2;
+  color: #b91c1c;
 }
 
 .status-warning .progress-ring-text .days-remaining {
-  color: #be185d;
+  color: #c2410c;
 }
 
 .status-urgent .progress-ring-text .days-remaining {
-  color: #b45309;
+  color: #be123c;
+}
+
+.status-normal .progress-ring-text .days-remaining {
+  color: #1d4ed8;
+}
+
+.status-warning .progress-ring-circle {
+  stroke: url(#gradient-warning);
+}
+
+.status-urgent .progress-ring-circle {
+  stroke: url(#gradient-urgent);
 }
 
 /* 已过期卡片 */
@@ -301,9 +314,9 @@
 }
 
 .status-warning.countdown-card::before {
-  background: linear-gradient(90deg, #ec4899, rgba(236, 72, 153, 0));
+  background: linear-gradient(90deg, #f59e0b, rgba(245, 158, 11, 0));
 }
 
 .status-urgent.countdown-card::before {
-  background: linear-gradient(90deg, #f59e0b, rgba(245, 158, 11, 0));
+  background: linear-gradient(90deg, #ef4444, rgba(239, 68, 68, 0));
 }
