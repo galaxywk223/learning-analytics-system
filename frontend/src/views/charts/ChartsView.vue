@@ -168,8 +168,40 @@
           <KpiCard label="近30天波动" color="purple">
             <template #icon>🛡️</template>
             <template #value>
-              <div class="kpi-value-main">{{ stabilityTitle }}</div>
-              <div class="kpi-value-sub">{{ stabilityDetail }}</div>
+              <div class="volatility-kpi-layout">
+                <div class="volatility-main">
+                  <div class="kpi-value-main">{{ stabilityTitleWithScore }}</div>
+                  <div class="kpi-value-sub">
+                    平均时长：{{ stabilityAverageText }}
+                  </div>
+                </div>
+                <div class="volatility-extremes">
+                  <div class="extreme-line">
+                    <span class="extreme-label">最高</span>
+                    <span class="extreme-value">
+                      {{ durationExtremeDisplay.max.valueText }}
+                    </span>
+                    <span
+                      v-if="durationExtremeDisplay.max.dateText"
+                      class="extreme-date"
+                    >
+                      {{ durationExtremeDisplay.max.dateText }}
+                    </span>
+                  </div>
+                  <div class="extreme-line">
+                    <span class="extreme-label">最低</span>
+                    <span class="extreme-value">
+                      {{ durationExtremeDisplay.min.valueText }}
+                    </span>
+                    <span
+                      v-if="durationExtremeDisplay.min.dateText"
+                      class="extreme-date"
+                    >
+                      {{ durationExtremeDisplay.min.dateText }}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </template>
           </KpiCard>
         </div>
@@ -511,68 +543,165 @@ const yesterdayEfficiencyExceedText = computed(
   () => yesterdayEfficiencyStat.value.exceedText
 );
 
-// 稳定性档位（近30天）
-const stabilityGradeValue = computed(() => {
+// 近30天时长序列（补齐缺失日期，方便统一计算；包含效率用于极值的日期选择）
+const last30DurationSeries = computed(() => {
   const daily = charts.trends.daily_duration_data;
   const labels: string[] = (daily?.labels as string[]) || [];
   const values: number[] = (daily?.actuals as number[]) || [];
-  if (!labels.length || !values.length) return "--";
+  const effLabels: string[] =
+    (charts.trends.daily_efficiency_data?.labels as string[]) || [];
+  const effValues: number[] =
+    (charts.trends.daily_efficiency_data?.actuals as number[]) || [];
+  if (!labels.length || !values.length) return [];
   const today = dayjs();
   const start = today.subtract(29, "day");
-  const seq: number[] = [];
+  const series: {
+    date: string;
+    hours: number;
+    hasRecord: boolean;
+    efficiency: number | null;
+  }[] = [];
   for (let i = 0; i < 30; i++) {
     const d = start.add(i, "day").format("YYYY-MM-DD");
     const idx = labels.indexOf(d);
-    seq.push(idx >= 0 ? Number(values[idx] || 0) : 0);
+    const hasRecord = idx >= 0;
+    const val = hasRecord ? Number(values[idx] || 0) : 0;
+    const effIdx = effLabels.indexOf(d);
+    const eff = effIdx >= 0 ? Number(effValues[effIdx] || 0) : null;
+    series.push({ date: d, hours: val, hasRecord, efficiency: eff });
   }
-  const mean = seq.reduce((a, b) => a + b, 0) / seq.length;
-  if (mean <= 0) return "--";
-  const variance = seq.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / seq.length;
+  return series;
+});
+
+const averageDuration30d = computed(() => {
+  const series = last30DurationSeries.value;
+  if (!series.length) {
+    return { value: 0, text: "--" };
+  }
+  const total = series.reduce((acc, item) => acc + item.hours, 0);
+  const avg = total / series.length;
+  return { value: avg, text: `${avg.toFixed(1)}h` };
+});
+
+const durationExtremes30d = computed(() => {
+  const series = last30DurationSeries.value;
+  if (!series.length) {
+    return {
+      max: null as null | { value: number; date: string | null },
+      min: null as null | { value: number; date: string | null },
+    };
+  }
+  const values = series.map((item) => item.hours);
+  const maxValue = Math.max(...values);
+  const minValue = Math.min(...values);
+  const pickDateByEfficiency = (
+    target: number,
+    chooseMaxEfficiency: boolean
+  ) => {
+    const candidates = series.filter((item) => item.hours === target);
+    if (!candidates.length) return null;
+    const best = candidates.reduce((acc, cur) => {
+      if (acc === null) return cur;
+      const accEff = acc.efficiency;
+      const curEff = cur.efficiency;
+      // 缺失效率视为最低优先级
+      if (curEff === null && accEff !== null) return acc;
+      if (curEff !== null && accEff === null) return cur;
+      if (curEff === null && accEff === null) return acc;
+      if (chooseMaxEfficiency) {
+        return (curEff as number) > (accEff as number) ? cur : acc;
+      }
+      return (curEff as number) < (accEff as number) ? cur : acc;
+    }, null as (typeof series)[number] | null);
+    return best ? dayjs(best.date).format("MM-DD") : null;
+  };
+  return {
+    max: { value: maxValue, date: pickDateByEfficiency(maxValue, true) },
+    min: { value: minValue, date: pickDateByEfficiency(minValue, false) },
+  };
+});
+
+// 稳定性档位（近30天）- 使用截尾后的变异系数 + 覆盖率惩罚，更平滑
+const stabilityStats = computed(() => {
+  const series = last30DurationSeries.value;
+  if (!series.length) {
+    return { grade: "--", score: 0, descriptor: "近30天暂无数据" };
+  }
+  const recorded = series.filter((item) => item.hasRecord);
+  const values = recorded.map((item) => item.hours);
+  if (!values.length) {
+    return { grade: "--", score: 0, descriptor: "近30天暂无数据" };
+  }
+  const sorted = [...values].sort((a, b) => a - b);
+  const trimCount = Math.min(
+    Math.floor(sorted.length * 0.1),
+    Math.max(sorted.length - 3, 0)
+  );
+  const trimmed =
+    trimCount > 0 && sorted.length - trimCount * 2 >= 3
+      ? sorted.slice(trimCount, sorted.length - trimCount)
+      : sorted;
+
+  const mean = trimmed.reduce((acc, v) => acc + v, 0) / trimmed.length;
+  if (mean <= 0) {
+    return { grade: "--", score: 0, descriptor: "近30天暂无数据" };
+  }
+
+  const variance =
+    trimmed.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / trimmed.length;
   const std = Math.sqrt(variance);
   const cv = std / mean;
-  if (cv <= 0.35) return "高";
-  if (cv <= 0.65) return "中";
-  return "低";
+
+  // 以 cv=0.8 作为极端波动上界，叠加记录覆盖率惩罚（缺失越多分数越低）
+  const normalizedCv = Math.min(cv / 0.8, 1);
+  const coveragePenalty = 1 - Math.min(recorded.length / series.length, 1);
+  const penalty = normalizedCv * 0.7 + coveragePenalty * 0.3;
+  const score = Math.round(Math.max(0, 1 - penalty) * 100);
+
+  const grade =
+    score >= 80
+      ? "很稳定"
+      : score >= 60
+        ? "较稳定"
+        : score >= 40
+          ? "波动中等"
+          : "波动较大";
+
+  const descriptor =
+    grade === "很稳定"
+      ? "日时长波动很小"
+      : grade === "较稳定"
+        ? "日时长波动较小"
+        : grade === "波动中等"
+          ? "日时长波动中等"
+          : "日时长波动较大";
+
+  return { grade, score, descriptor };
 });
 
-const stabilityTitle = computed(() => {
-  const grade = stabilityGradeValue.value;
-  if (grade === "高") return "很稳定";
-  if (grade === "中") return "较稳定";
-  if (grade === "低") return "波动较大";
-  return "--";
+const stabilityTitleWithScore = computed(() => {
+  const { grade, score } = stabilityStats.value;
+  if (grade === "--") return "近30天暂无数据";
+  return `${grade}（${score}/100）`;
 });
 
-const stabilityScore = computed(() => {
-  // 依据 CV -> 分数（0-100），低 CV 得高分
-  const daily = charts.trends.daily_duration_data;
-  const labels: string[] = (daily?.labels as string[]) || [];
-  const values: number[] = (daily?.actuals as number[]) || [];
-  if (!labels.length || !values.length) return 0;
-  const today = dayjs();
-  const start = today.subtract(29, "day");
-  const seq: number[] = [];
-  for (let i = 0; i < 30; i++) {
-    const d = start.add(i, "day").format("YYYY-MM-DD");
-    const idx = labels.indexOf(d);
-    seq.push(idx >= 0 ? Number(values[idx] || 0) : 0);
-  }
-  const mean = seq.reduce((a, b) => a + b, 0) / seq.length;
-  if (mean <= 0) return 0;
-  const variance = seq.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / seq.length;
-  const std = Math.sqrt(variance);
-  const cv = std / mean;
-  const score = Math.round(Math.max(0, Math.min(1, 1 - Math.min(cv, 1))) * 100);
-  return score;
-});
+const stabilityAverageText = computed(() => averageDuration30d.value.text);
 
-const stabilityDetail = computed(() => {
-  const grade = stabilityGradeValue.value;
-  const score = stabilityScore.value;
-  if (grade === "高") return `日时长波动很小（${score}/100）`;
-  if (grade === "中") return `日时长波动中等（${score}/100）`;
-  if (grade === "低") return `日时长波动较大（${score}/100）`;
-  return "近30天暂无数据";
+const durationExtremeDisplay = computed(() => {
+  const { max, min } = durationExtremes30d.value;
+  const format = (target: { value: number; date: string | null } | null) => {
+    if (!target) {
+      return { valueText: "--", dateText: "" };
+    }
+    const valueText = `${target.value.toFixed(1)}h`;
+    const dateText =
+      target.value > 0 && target.date ? target.date : "";
+    return { valueText, dateText };
+  };
+  return {
+    max: format(max),
+    min: format(min),
+  };
 });
 
 function onCategorySlice(cat) {

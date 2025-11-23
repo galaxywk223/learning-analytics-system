@@ -258,6 +258,68 @@
   }
 }
 
+.volatility-kpi-layout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  .volatility-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .volatility-extremes {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.2rem;
+    flex-shrink: 0;
+    min-width: 180px;
+  }
+
+  .extreme-line {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #6b7280; // 与前两张卡片右侧主文字一致
+    font-weight: 600;
+    font-size: 0.92rem;
+    white-space: nowrap;
+  }
+
+  .extreme-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #6b7280;
+  }
+
+  .extreme-value {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #6b7280;
+  }
+
+  .extreme-date {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #9ca3af; // 日期使用较浅的灰色，与右侧次文本一致
+  }
+}
+
+@media (max-width: 768px) {
+  .volatility-kpi-layout {
+    flex-direction: column;
+    gap: 0.6rem;
+
+    .volatility-extremes {
+      width: 100%;
+      align-items: flex-start;
+    }
+  }
+}
+
 .top-sub-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
