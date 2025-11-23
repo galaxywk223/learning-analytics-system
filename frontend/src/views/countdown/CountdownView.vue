@@ -107,7 +107,7 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
-import { useCountdownStore } from "@/stores";
+import { useCountdownStore } from "@/stores/modules/countdown";
 import CountdownItem from "@/components/business/countdown/CountdownItem.vue";
 
 const store = useCountdownStore();
