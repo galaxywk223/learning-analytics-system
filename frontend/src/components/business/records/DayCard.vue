@@ -110,13 +110,14 @@ const getProgressColor = (duration) => {
 <style scoped lang="scss">
 .day-card {
   margin-bottom: 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: none;
+  border-radius: 24px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
 
   :deep(.el-card__header) {
     padding: 12px 18px;
-    background: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
+    background: transparent;
+    border-bottom: 1px solid #f0f1f5;
   }
 
   :deep(.el-card__body) {
@@ -126,25 +127,25 @@ const getProgressColor = (duration) => {
   .day-card-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
 
     .date-badge {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       font-weight: 600;
-      color: #1f2937;
-      font-size: 15px;
+      color: #111827;
+      font-size: 14px;
       min-width: 190px;
 
       .weekday-icon {
-        font-size: 24px;
+        font-size: 20px;
       }
     }
 
     .daily-progress-container {
       flex: 1;
-      min-width: 100px;
+      min-width: 120px;
       max-width: 200px;
 
       :deep(.el-progress__text) {
@@ -158,7 +159,7 @@ const getProgressColor = (duration) => {
       gap: 0.25rem;
       font-weight: 600;
       color: #374151;
-      font-size: 15px;
+      font-size: 14px;
       min-width: 60px;
 
       .clock-icon {
@@ -168,22 +169,23 @@ const getProgressColor = (duration) => {
     }
 
     .el-tag {
-      height: 28px;
-      line-height: 26px;
-      padding: 0 12px;
-      font-size: 14px;
-      font-weight: 500;
+      height: 24px;
+      line-height: 22px;
+      padding: 0 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 12px;
     }
 
     .el-button {
-      width: 36px;
-      height: 36px;
+      width: 32px;
+      height: 32px;
       padding: 0;
-      font-size: 18px;
+      font-size: 16px;
 
       :deep(.iconify) {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
       }
     }
   }

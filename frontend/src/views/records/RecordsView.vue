@@ -4,39 +4,6 @@
     subtitle="在这里回顾每一次努力，见证成长的每一步。"
     :custom-class="'records-view'"
   >
-    <template #actions>
-      <div class="record-actions">
-        <el-button-group>
-          <el-button
-            :type="currentSort === 'desc' ? 'primary' : ''"
-            size="small"
-            @click="changeSort('desc')"
-          >
-            降序
-          </el-button>
-          <el-button
-            :type="currentSort === 'asc' ? 'primary' : ''"
-            size="small"
-            @click="changeSort('asc')"
-          >
-            升序
-          </el-button>
-        </el-button-group>
-        <el-tooltip
-          :disabled="canAddRecord"
-          content="请先创建或选择一个阶段"
-          placement="top"
-        >
-          <el-button
-            type="primary"
-            :disabled="!canAddRecord"
-            @click="openAddDialog()"
-          >
-            添加新记录
-          </el-button>
-        </el-tooltip>
-      </div>
-    </template>
 
     <el-skeleton v-if="loading" :rows="4" :animated="false" />
 
@@ -76,12 +43,33 @@
         @cancel="dialogVisible = false"
       />
     </el-dialog>
+
+    <div class="floating-actions">
+      <button
+        class="fab fab-sort"
+        type="button"
+        @click="toggleSort"
+        title="切换排序"
+      >
+        <Icon icon="lucide:arrow-up-down" />
+      </button>
+      <button
+        class="fab fab-add"
+        type="button"
+        :disabled="!canAddRecord"
+        @click="openAddDialog()"
+        title="添加记录"
+      >
+        <Icon icon="lucide:plus" />
+      </button>
+    </div>
   </PageContainer>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onActivated, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { Icon } from "@iconify/vue";
 import RecordForm from "@/components/business/records/RecordForm.vue";
 import EmptyState from "@/components/business/records/EmptyState.vue";
 import WeekAccordion from "@/components/business/records/WeekAccordion.vue";
@@ -159,6 +147,11 @@ const loadRecords = async (force = false) => {
 // 改变排序
 const changeSort = (sort) => {
   currentSort.value = sort;
+  loadRecords(true);
+};
+
+const toggleSort = () => {
+  currentSort.value = currentSort.value === "desc" ? "asc" : "desc";
   loadRecords(true);
 };
 
@@ -327,6 +320,71 @@ watch(
   :deep(.el-dialog__footer) {
     padding: 16px 24px;
     border-top: 1px solid #e5e7eb;
+  }
+}
+
+.floating-actions {
+  position: fixed;
+  right: clamp(18px, 3vw, 36px);
+  bottom: clamp(18px, 3vw, 36px);
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 14px;
+  z-index: 1200;
+}
+
+.fab {
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.fab-add {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6d7cff, #4f46e5);
+  color: #ffffff;
+  box-shadow: 0 18px 40px rgba(79, 70, 229, 0.35);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 48px rgba(79, 70, 229, 0.42);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  :deep(svg) {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+.fab-sort {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #1f2937;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16);
+  }
+
+  :deep(svg) {
+    width: 18px;
+    height: 18px;
   }
 }
 </style>

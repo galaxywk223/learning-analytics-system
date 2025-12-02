@@ -114,8 +114,8 @@ const moodEmoji = (mood) => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border: none;
+  border-radius: 18px;
   overflow: hidden;
   background: #ffffff;
 }
@@ -126,8 +126,8 @@ const moodEmoji = (mood) => {
   gap: 12px;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 0.95rem;
+  border-bottom: 1px solid #f0f1f5;
+  font-size: 0.96rem;
   color: #1f2937;
 
   .col {
@@ -137,10 +137,9 @@ const moodEmoji = (mood) => {
 
   &__header {
     background: #f9fafb;
-    font-weight: 600;
+    font-weight: 700;
     color: #475569;
-    text-transform: uppercase;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
 
     .col {
       justify-content: center;
@@ -164,9 +163,9 @@ const moodEmoji = (mood) => {
 
   .category-tag {
     font-size: 12px;
-    padding: 3px 8px;
+    padding: 3px 10px;
     border-radius: 999px;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
   }
@@ -185,7 +184,7 @@ const moodEmoji = (mood) => {
 .col.duration,
 .col.mood {
   color: #475569;
-  font-size: 0.9rem;
+  font-size: 0.94rem;
   justify-content: center;
 }
 
@@ -202,7 +201,8 @@ const moodEmoji = (mood) => {
 
 .action-btn {
   padding: 4px;
-  margin-left: 4px;
+  margin-left: 2px;
+  color: #9ca3af;
 
   :deep(.iconify) {
     width: 18px;
@@ -222,6 +222,10 @@ const moodEmoji = (mood) => {
     white-space: pre-wrap;
     word-break: break-word;
   }
+}
+
+.log-row:hover {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.04), rgba(99, 102, 241, 0.02));
 }
 
 @media (max-width: 900px) {

@@ -14,12 +14,11 @@
       <!-- 周标题 -->
       <template #title>
         <div class="week-header">
-          <span class="week-icon">📅</span>
           <span class="week-title">
-            {{ week.year }} 年 - 第 {{ week.week_num }} 周
+            📅 {{ week.year }} 年 · 第 {{ week.week_num }} 周
           </span>
           <span class="week-eff">
-            周平均效率: {{ Number(week.efficiency).toFixed(2) }}
+            平均效率 {{ Number(week.efficiency).toFixed(2) }}
           </span>
         </div>
       </template>
@@ -74,23 +73,21 @@ defineEmits([
 .weeks-accordion {
   :deep(.el-collapse-item) {
     margin-bottom: 0.75rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    border: none;
+    border-radius: 18px;
     overflow: hidden;
-    background: white;
+    background: #ffffff;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
   }
 
   :deep(.el-collapse-item__header) {
-    height: 52px;
-    line-height: 52px;
-    padding: 0 1.25rem;
-    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-    font-size: 16px;
-    border-bottom: none;
-
-    &:hover {
-      background: linear-gradient(135deg, #667eea25 0%, #764ba225 100%);
-    }
+    height: 44px;
+    line-height: 44px;
+    padding: 0 1.2rem;
+    background: transparent;
+    font-size: 14px;
+    border-bottom: 1px solid #f0f1f5;
+    color: #6b7280;
 
     .el-collapse-item__arrow {
       display: none;
@@ -108,30 +105,26 @@ defineEmits([
   .week-header {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 10px;
     width: 100%;
-    font-size: 16px;
-    color: #1f2937;
-
-    .week-icon {
-      font-size: 24px;
-      flex-shrink: 0;
-    }
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 600;
 
     .week-title {
-      font-weight: 600;
-      font-size: 16px;
+      font-weight: 700;
+      color: #374151;
     }
 
     .week-eff {
-      font-size: 14px;
       font-weight: 500;
-      color: rgba(17, 24, 39, 0.72);
+      color: #9ca3af;
     }
   }
 
   .week-days {
     padding: 0.75rem;
+    background: #ffffff;
   }
 }
 </style>
