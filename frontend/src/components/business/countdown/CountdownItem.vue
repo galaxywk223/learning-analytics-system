@@ -8,10 +8,18 @@
     <div class="card-header">
       <span class="event-title">{{ event.title }}</span>
       <div class="actions">
-        <el-button link size="small" @click="$emit('edit')">编辑</el-button>
-        <el-button link size="small" type="danger" @click="$emit('delete')"
-          >删除</el-button
+        <el-button link size="small" @click="$emit('edit')" :title="'编辑'">
+          <Icon icon="lucide:edit-3" />
+        </el-button>
+        <el-button
+          link
+          size="small"
+          type="danger"
+          @click="$emit('delete')"
+          :title="'删除'"
         >
+          <Icon icon="lucide:trash-2" />
+        </el-button>
       </div>
     </div>
     <div class="card-body">
@@ -86,16 +94,25 @@
     <h5 class="expired-title">{{ event.title }}</h5>
     <p class="text-muted">完成于 {{ beijingDateOnly }}</p>
     <div class="actions">
-      <el-button link size="small" @click="$emit('edit')">查看/编辑</el-button>
-      <el-button link size="small" type="danger" @click="$emit('delete')"
-        >删除</el-button
+      <el-button link size="small" @click="$emit('edit')" :title="'编辑'">
+        <Icon icon="lucide:edit-3" />
+      </el-button>
+      <el-button
+        link
+        size="small"
+        type="danger"
+        @click="$emit('delete')"
+        :title="'删除'"
       >
+        <Icon icon="lucide:trash-2" />
+      </el-button>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
+import { Icon } from "@iconify/vue";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";

@@ -12,10 +12,6 @@
           <p>{{ uiText.subtitle }}</p>
         </div>
       </div>
-      <div v-if="computedTotal > 0" class="doughnut-card__summary">
-        <span class="label">{{ uiText.totalLabel }}</span>
-        <strong>{{ computedTotal.toFixed(1) }}h</strong>
-      </div>
     </header>
     <v-chart
       ref="chartRef"
@@ -140,18 +136,68 @@ const option = computed(() => {
       left: "center",
       data: legendLabels.value,
       icon: "circle",
-      itemWidth: 10,
-      itemHeight: 10,
+      itemWidth: 8,
+      itemHeight: 8,
+      itemGap: 14,
       textStyle: {
-        color: "#1f2937",
+        color: "#6b7280",
         fontSize: 12,
       },
     },
+    graphic:
+      computedTotal.value > 0
+        ? {
+            elements: [
+              {
+                type: "group",
+                left: "center",
+                top: "42%",
+                children: [
+                  {
+                    type: "text",
+                    style: {
+                      text: uiText.totalLabel,
+                      fill: "#9ca3af",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      textAlign: "center",
+                    },
+                    left: "center",
+                  },
+                  {
+                    type: "text",
+                    top: 22,
+                    style: {
+                      text: `${computedTotal.value.toFixed(1)}`,
+                      fill: "#0f172a",
+                      fontSize: 26,
+                      fontWeight: 800,
+                      textAlign: "center",
+                    },
+                    left: "center",
+                  },
+                  {
+                    type: "text",
+                    top: 48,
+                    style: {
+                      text: uiText.hoursSuffix,
+                      fill: "#9ca3af",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      textAlign: "center",
+                    },
+                    left: "center",
+                  },
+                ],
+              },
+            ],
+          }
+        : undefined,
     series: [
       {
         name: uiText.pieName,
         type: "pie",
-        radius: ["56%", "84%"],
+        radius: ["68%", "86%"],
         center: ["50%", "48%"],
         avoidLabelOverlap: true,
         itemStyle: {
@@ -175,15 +221,34 @@ function handleSliceClick(params) {
   if (!params?.data?.name) return;
   emit("slice-click", params.data.name);
 }
+
+function highlightSlice(label) {
+  const chart = chartRef.value;
+  const series = seriesData.value;
+  if (!chart || !series?.length) return;
+  chart.dispatchAction({ type: "downplay", seriesIndex: 0 });
+  const idx = series.findIndex((item) => item.name === label);
+  if (idx >= 0) {
+    chart.dispatchAction({ type: "highlight", seriesIndex: 0, dataIndex: idx });
+  }
+}
+
+function clearHighlight() {
+  const chart = chartRef.value;
+  if (!chart) return;
+  chart.dispatchAction({ type: "downplay", seriesIndex: 0 });
+}
+
+defineExpose({ highlightSlice, clearHighlight });
 </script>
 
 <style scoped lang="scss">
 .doughnut-card {
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: 20px;
-  padding: 22px 22px 18px;
-  border: 1px solid rgba(148, 163, 235, 0.4);
-  box-shadow: 0 18px 48px rgba(99, 102, 241, 0.18);
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 22px 22px 22px;
+  border: none;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -230,50 +295,21 @@ function handleSliceClick(params) {
 
     h5 {
       margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: #1e1b4b;
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
     }
 
     p {
       margin: 4px 0 0;
       font-size: 12px;
-      color: rgba(79, 70, 229, 0.7);
-    }
-  }
-
-  &__summary {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    padding: 8px 14px;
-    border-radius: 12px;
-    background: linear-gradient(
-      135deg,
-      rgba(99, 102, 241, 0.12),
-      rgba(79, 70, 229, 0.12)
-    );
-    position: relative;
-    z-index: 1;
-
-    .label {
-      font-size: 11px;
       color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-
-    strong {
-      font-size: 18px;
-      color: #312e81;
-      font-weight: 700;
     }
   }
 
   &__chart {
     width: 100%;
-    height: 320px;
+    height: 340px;
     position: relative;
     z-index: 1;
 

@@ -4,48 +4,58 @@
     :subtitle="relativeTime"
     :custom-class="'countdown-page'"
   >
-    <template #actions>
-      <el-button type="primary" @click="openCreate" class="add-btn"
-        >添加新目标</el-button
-      >
-    </template>
-
     <el-skeleton v-if="store.loading" :rows="6" animated />
     <div v-else>
-      <h2 class="section-title">进行中</h2>
-      <div class="row-cards" id="active-events-container">
-        <template v-if="store.active.length">
-          <CountdownItem
-            v-for="ev in store.active"
-            :key="ev.id"
-            :event="ev"
-            @edit="edit(ev)"
-            @delete="confirmDelete(ev)"
-          />
-        </template>
-        <div v-else class="empty-state">
-          <i class="ll-icon flag" />
-          <h3>当前没有进行中的目标</h3>
-          <p class="text-muted">
-            点击右上角的 “添加新目标” 来创建你的第一个倒计时吧！
-          </p>
-        </div>
-      </div>
+      <el-collapse v-model="activePanels" class="countdown-collapse" accordion={false}>
+        <el-collapse-item name="active">
+          <template #title>
+            <div class="collapse-header">
+              <span class="collapse-title">进行中</span>
+              <span class="badge">{{ store.active.length }}</span>
+            </div>
+          </template>
+          <div class="row-cards" id="active-events-container">
+            <template v-if="store.active.length">
+              <CountdownItem
+                v-for="ev in store.active"
+                :key="ev.id"
+                :event="ev"
+                @edit="edit(ev)"
+                @delete="confirmDelete(ev)"
+              />
+            </template>
+            <div v-else class="empty-state">
+              <i class="ll-icon flag" />
+              <h3>当前没有进行中的目标</h3>
+              <p class="text-muted">
+                点击右下角 “+” 创建你的第一个倒计时吧！
+              </p>
+            </div>
+          </div>
+        </el-collapse-item>
 
-      <h2 class="section-title mt-40">已过期</h2>
-      <div class="row-cards" id="expired-events-container">
-        <template v-if="store.expired.length">
-          <CountdownItem
-            v-for="ev in store.expired"
-            :key="ev.id"
-            :event="ev"
-            expired
-            @edit="edit(ev)"
-            @delete="confirmDelete(ev)"
-          />
-        </template>
-        <p v-else class="text-center text-muted">还没有已完成的目标。</p>
-      </div>
+        <el-collapse-item name="expired">
+          <template #title>
+            <div class="collapse-header">
+              <span class="collapse-title">已过期</span>
+              <span class="badge muted">{{ store.expired.length }}</span>
+            </div>
+          </template>
+          <div class="row-cards" id="expired-events-container">
+            <template v-if="store.expired.length">
+              <CountdownItem
+                v-for="ev in store.expired"
+                :key="ev.id"
+                :event="ev"
+                expired
+                @edit="edit(ev)"
+                @delete="confirmDelete(ev)"
+              />
+            </template>
+            <p v-else class="text-center text-muted">还没有已完成的目标。</p>
+          </div>
+        </el-collapse-item>
+      </el-collapse>
     </div>
 
     <!-- 表单弹窗 -->
@@ -97,6 +107,9 @@
       </template>
     </el-dialog>
   </PageContainer>
+  <button class="fab-add" type="button" @click="openCreate">
+    <span class="fab-icon">+</span>
+  </button>
 </template>
 
 <script setup>
@@ -116,6 +129,7 @@ const dialogVisible = ref(false);
 const formRef = ref(null);
 const saving = ref(false);
 const relativeTime = ref(""); // 后续可由后端提供，目前占位
+const activePanels = ref(["active"]);
 
 const form = ref({
   id: null,

@@ -3,44 +3,39 @@
 /* 活跃状态卡片 */
 .countdown-card {
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 24px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid #e2e8f0;
+  border: none;
   width: 100%;
   min-height: 320px;
   position: relative;
-}
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 
-.countdown-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #2563eb, rgba(37, 99, 235, 0));
-  opacity: 0.7;
+  &:hover {
+    box-shadow: 0 22px 50px rgba(15, 23, 42, 0.12);
+  }
 }
 
 /* 卡片头部 */
 .card-header {
-  background: #f8fafc;
-  color: #1f2937;
-  padding: 14px 18px;
+  background: transparent;
+  color: #0f172a;
+  padding: 16px 18px 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 600;
-  min-height: 56px;
-  max-height: 56px;
+  font-weight: 700;
+  min-height: 40px;
+  max-height: 48px;
   flex-shrink: 0;
 }
 
 .event-title {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   line-height: 1.3;
   flex: 1;
   margin-right: 12px;
@@ -54,16 +49,30 @@
   display: flex;
   gap: 4px;
   flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.18s ease;
 }
 
-.countdown-card .actions .el-button {
-  color: #2563eb !important;
-  font-weight: 500;
+.countdown-card .actions .el-button,
+.expired-card .actions .el-button {
+  color: #111827 !important;
+  font-weight: 600;
   transition: background-color 0.2s ease;
+  padding: 6px;
+  border-radius: 10px;
 }
 
-.countdown-card .actions .el-button:hover {
-  background: rgba(37, 99, 235, 0.08) !important;
+.countdown-card .actions .el-button:hover,
+.expired-card .actions .el-button:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+.countdown-card:hover .actions {
+  opacity: 1;
+}
+
+.expired-card .actions {
+  opacity: 1;
 }
 
 .event-meta {
@@ -81,7 +90,7 @@
 
 /* 卡片主体 */
 .card-body {
-  padding: 18px 20px 20px;
+  padding: 12px 20px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -95,8 +104,8 @@
 /* 环形进度条 */
 .progress-ring-container {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 150px;
+  height: 150px;
   flex-shrink: 0;
 }
 
@@ -139,40 +148,42 @@
 }
 
 .progress-ring-text .days-remaining {
-  font-size: 36px;
-  font-weight: 700;
+  font-size: 38px;
+  font-weight: 800;
   line-height: 1;
-  color: #1f2937;
+  color: #0f172a;
+  letter-spacing: -0.5px;
 }
 
 .progress-ring-text .days-label {
-  font-size: 13px;
-  color: #64748b;
-  font-weight: 500;
-  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+  margin-top: 2px;
+  letter-spacing: 0.4px;
 }
 
 /* 实时计时器 */
 .live-timer {
   font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace;
-  letter-spacing: 1px;
-  font-size: 16px;
+  letter-spacing: 0.5px;
+  font-size: 13px;
   font-weight: 600;
-  color: #1f2937;
-  background: #f1f5f9;
-  padding: 8px 16px;
+  color: #6b7280;
+  background: transparent;
+  padding: 6px 10px;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e5e7eb;
 }
 
 /* 卡片底部 */
 .card-footer {
-  background: #f8fafc;
-  padding: 12px 18px;
-  font-size: 12px;
-  color: #475569;
+  background: transparent;
+  padding: 12px 18px 16px;
+  font-size: 13px;
+  color: #4b5563;
   text-align: center;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #f1f5f9;
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -264,26 +275,10 @@
 }
 
 .expired-card .actions .el-button {
-  font-weight: 500;
-  padding: 8px 16px;
-  border-radius: 8px;
+  font-weight: 600;
+  padding: 6px;
+  border-radius: 10px;
   transition: all 0.2s ease;
-}
-
-.expired-card .actions .el-button:not(.el-button--danger) {
-  color: #667eea !important;
-
-  &:hover {
-    background: rgba(102, 126, 234, 0.08);
-  }
-}
-
-.expired-card .actions .el-button--danger {
-  color: #ef4444 !important;
-
-  &:hover {
-    background: rgba(239, 68, 68, 0.08);
-  }
 }
 
 .status-expired {

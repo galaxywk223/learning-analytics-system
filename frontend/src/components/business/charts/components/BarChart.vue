@@ -7,7 +7,6 @@
         </svg>
         <h5>{{ title }}</h5>
       </div>
-      <span class="bar-card__badge">{{ badgeText }}</span>
     </header>
     <div class="bar-card__chart-wrapper" ref="scrollWrapper">
       <v-chart
@@ -17,6 +16,8 @@
         autoresize
         :style="chartStyle"
         @click="onChartClick"
+        @mouseover="onMouseOver"
+        @mouseout="onMouseOut"
       />
     </div>
   </div>
@@ -39,6 +40,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["bar-click"]);
+const hoverLabel = ref("");
 
 // 滚动容器，用于外部调用复位滚动位置
 const scrollWrapper = ref(null);
@@ -81,11 +83,9 @@ const sortedData = computed(() => {
 
 const displayCount = computed(() => sortedData.value.length);
 
-const badgeText = computed(() => `Total ${displayCount.value} items`);
-
 const chartHeight = computed(() => {
   const rows = Math.max(1, displayCount.value);
-  return Math.max(340, rows * 42 + 140);
+  return Math.max(340, rows * 46 + 140);
 });
 
 const chartStyle = computed(() => ({
@@ -168,6 +168,10 @@ const seriesData = computed(() =>
 
 const option = computed(() => {
   const categories = categoryNames.value;
+  const maxVal = Math.max(
+    0,
+    ...seriesData.value.map((item) => Number(item.value ?? 0))
+  );
 
   return {
     color: barColors.value,
@@ -217,8 +221,20 @@ const option = computed(() => {
       {
         type: "bar",
         barWidth: 18,
+        barGap: "-100%",
+        itemStyle: {
+          color: "rgba(148, 163, 184, 0.18)",
+          borderRadius: 999,
+        },
+        silent: true,
+        data: categories.map(() => maxVal || 1),
+        z: 1,
+      },
+      {
+        type: "bar",
+        barWidth: 18,
         barCategoryGap: "26%",
-        itemStyle: { borderRadius: [0, 12, 12, 0] },
+        itemStyle: { borderRadius: 999 },
         emphasis: {
           itemStyle: {
             opacity: 0.85,
@@ -247,15 +263,27 @@ function onChartClick(params) {
     emit("bar-click", name);
   }
 }
+
+function onMouseOver(params) {
+  if (params?.componentType !== "series" || params.seriesIndex !== 1) return;
+  const name = params.name;
+  hoverLabel.value = typeof name === "string" ? name : "";
+  if (hoverLabel.value) emit("bar-hover", hoverLabel.value);
+}
+
+function onMouseOut() {
+  hoverLabel.value = "";
+  emit("bar-leave");
+}
 </script>
 
 <style scoped>
 .bar-card {
   background: #ffffff;
-  border-radius: 18px;
-  border: 1px solid rgba(148, 163, 235, 0.35);
+  border-radius: 24px;
+  border: none;
   box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
-  padding: 18px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -283,17 +311,8 @@ function onChartClick(params) {
   h5 {
     margin: 0;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
   }
-}
-
-.bar-card__badge {
-  font-size: 12px;
-  color: #4f46e5;
-  background: rgba(99, 102, 241, 0.12);
-  border-radius: 999px;
-  padding: 4px 12px;
-  font-weight: 600;
 }
 
 .bar-card__chart-wrapper {

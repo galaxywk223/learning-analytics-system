@@ -2,6 +2,7 @@
   <div class="category-wrapper" v-if="hasData">
     <div class="main-grid">
       <DoughnutChart
+        ref="doughnutRef"
         :data="doughnutData"
         :title="currentTitle"
         :total-hours="totalHours"
@@ -29,6 +30,8 @@
             :title="barTitle"
             :colors="chartColors"
             @bar-click="handleSliceClick"
+            @bar-hover="handleBarHover"
+            @bar-leave="handleBarLeave"
           />
         </div>
       </div>
@@ -68,6 +71,7 @@ const emit = defineEmits(["sliceClick", "back"]);
 const view = ref("main");
 const currentCategory = ref("");
 const barRef = ref(null);
+const doughnutRef = ref(null);
 
 const TEXT = {
   mainTitle: "\u5b66\u4e60\u65f6\u957f\u5360\u6bd4",
@@ -150,6 +154,14 @@ function goBack() {
 }
 
 defineExpose({ goBack });
+
+function handleBarHover(label) {
+  doughnutRef.value?.highlightSlice?.(label);
+}
+
+function handleBarLeave() {
+  doughnutRef.value?.clearHighlight?.();
+}
 
 watch(
   () => [props.drilldown, currentCategory.value],
