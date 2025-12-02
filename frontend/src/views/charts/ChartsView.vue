@@ -1,57 +1,87 @@
 <template>
   <div class="charts-view">
+    <div class="floating-dock">
+      <button
+        class="dock-btn"
+        :class="{ active: charts.activeTab === 'trends' }"
+        @click="charts.setActiveTab('trends')"
+        title="趋势分析"
+      >
+        <Icon icon="lucide:line-chart" />
+        <span class="dock-tip">趋势分析</span>
+      </button>
+      <button
+        class="dock-btn"
+        :class="{ active: charts.activeTab === 'categories' }"
+        @click="charts.setActiveTab('categories')"
+        title="分类占比"
+      >
+        <Icon icon="lucide:pie-chart" />
+        <span class="dock-tip">分类占比</span>
+      </button>
+      <button
+        class="dock-btn"
+        :class="{ active: charts.activeTab === 'cattrend' }"
+        @click="charts.setActiveTab('cattrend')"
+        title="分类趋势"
+      >
+        <Icon icon="lucide:trending-up" />
+        <span class="dock-tip">分类趋势</span>
+      </button>
+    </div>
     <PageContainer
       title="📊 统计分析"
       subtitle="通过数据洞察学习模式，掌握成长轨迹"
     >
       <div class="toolbar-container">
         <div class="toolbar-left">
-        <!-- Tabs 按钮组 -->
-        <div class="btn-group tab-switch">
-          <button
-            :class="['btn', charts.activeTab === 'trends' && 'active']"
-            @click="charts.setActiveTab('trends')"
+          <div class="segmented tab-switch mobile-only">
+            <button
+              :class="['seg-btn', charts.activeTab === 'trends' && 'active']"
+              @click="charts.setActiveTab('trends')"
+            >
+              📈 趋势分析
+            </button>
+            <button
+              :class="['seg-btn', charts.activeTab === 'categories' && 'active']"
+              @click="charts.setActiveTab('categories')"
+            >
+              🎯 分类占比
+            </button>
+            <button
+              :class="['seg-btn', charts.activeTab === 'cattrend' && 'active']"
+              @click="charts.setActiveTab('cattrend')"
+            >
+              📉 分类趋势
+            </button>
+          </div>
+          <div
+            class="segmented view-switch"
+            v-if="charts.activeTab === 'trends'"
           >
-            📈 趋势分析
-          </button>
-          <button
-            :class="['btn', charts.activeTab === 'categories' && 'active']"
-            @click="charts.setActiveTab('categories')"
-          >
-            🎯 分类占比
-          </button>
-          <button
-            :class="['btn', charts.activeTab === 'cattrend' && 'active']"
-            @click="charts.setActiveTab('cattrend')"
-          >
-            📉 分类趋势
-          </button>
-        </div>
-        <!-- 周/日视图切换，仅在趋势分析 tab 显示 -->
-        <div class="btn-group view-switch" v-if="charts.activeTab === 'trends'">
-          <button
-            :class="['btn', charts.viewType === 'weekly' && 'active']"
-            @click="charts.setViewType('weekly')"
-          >
-            📅 周视图
-          </button>
-          <button
-            :class="['btn', charts.viewType === 'daily' && 'active']"
-            @click="charts.setViewType('daily')"
-          >
-            📆 日视图
-          </button>
-        </div>
+            <button
+              :class="['seg-btn', charts.viewType === 'weekly' && 'active']"
+              @click="charts.setViewType('weekly')"
+            >
+              📅 周视图
+            </button>
+            <button
+              :class="['seg-btn', charts.viewType === 'daily' && 'active']"
+              @click="charts.setViewType('daily')"
+            >
+              📆 日视图
+            </button>
+          </div>
         </div>
         <div
           class="category-filters"
           v-if="['categories', 'cattrend'].includes(charts.activeTab)"
         >
-          <div class="btn-group filter-switch">
+          <div class="segmented filter-switch">
             <button
               v-for="mode in categoryModes"
               :key="mode.value"
-              :class="['btn', rangeMode === mode.value && 'active']"
+              :class="['seg-btn', rangeMode === mode.value && 'active']"
               @click="onRangeModeChange(mode.value)"
             >
               {{ mode.label }}
@@ -60,7 +90,7 @@
           <div class="filter-inputs">
             <select
               v-if="rangeMode === 'stage'"
-              class="stage-select"
+              class="stage-select minimal-select"
               v-model="stageSelected"
               @change="onStageChange"
             >
@@ -121,42 +151,58 @@
         <!-- KPI 仅在趋势分析面板内部显示，符合旧项目布局 -->
         <div class="kpi-grid" v-loading="charts.loading">
           <KpiCard label="今天时长" color="amber">
-            <template #icon>🚀</template>
+            <template #icon>⏳</template>
             <template #value>
-              <div class="today-kpi-layout">
-                <div class="today-kpi-main">
-                  <div class="kpi-value-main">{{ todayHoursWithRank }}</div>
-                  <div class="kpi-value-sub">{{ todayExceedText }}</div>
-                </div>
-                <div class="today-kpi-yesterday">
-                  <div class="kpi-value-main">
-                    {{ yesterdayHoursWithRank }}
+              <div class="split-kpi">
+                <div class="split-col today">
+                  <div class="split-title today-title">今天</div>
+                  <div class="split-value large">{{ todayHoursOnly }}</div>
+                  <div class="split-meta">
+                    <span class="meta-text">{{ todayHoursRankText }}</span>
+                    <span class="pill muted">{{ todayExceedText }}</span>
                   </div>
-                  <div class="kpi-value-sub">
-                    {{ yesterdayExceedText }}
+                </div>
+                <div class="divider"></div>
+                <div class="split-col yesterday">
+                  <div class="split-title">昨日</div>
+                  <div class="split-value medium">
+                    {{ yesterdayHoursOnly }}
+                    <span class="trend">{{ yesterdayHoursTrend }}</span>
+                  </div>
+                  <div class="split-meta">
+                    <span class="meta-text">{{ yesterdayHoursRankText }}</span>
+                    <span class="pill accent">{{ yesterdayExceedText }}</span>
                   </div>
                 </div>
               </div>
             </template>
           </KpiCard>
           <KpiCard label="今天效率" color="green">
-            <template #icon>⚡</template>
+            <template #icon>⚡️</template>
             <template #value>
-              <div class="today-kpi-layout">
-                <div class="today-kpi-main">
-                  <div class="kpi-value-main">
-                    {{ todayEfficiencyWithRank }}
-                  </div>
-                  <div class="kpi-value-sub">
-                    {{ todayEfficiencyExceedText }}
+              <div class="split-kpi">
+                <div class="split-col today">
+                  <div class="split-title today-title">今天</div>
+                  <div class="split-value large">{{ todayEfficiencyOnly }}</div>
+                  <div class="split-meta">
+                    <span class="meta-text">{{ todayEfficiencyRankText }}</span>
+                    <span class="pill muted">{{ todayEfficiencyExceedText }}</span>
                   </div>
                 </div>
-                <div class="today-kpi-yesterday">
-                  <div class="kpi-value-main">
-                    {{ yesterdayEfficiencyWithRank }}
+                <div class="divider"></div>
+                <div class="split-col yesterday">
+                  <div class="split-title">昨日</div>
+                  <div class="split-value medium">
+                    {{ yesterdayEfficiencyOnly }}
+                    <span class="trend">{{ yesterdayEfficiencyTrend }}</span>
                   </div>
-                  <div class="kpi-value-sub">
-                    {{ yesterdayEfficiencyExceedText }}
+                  <div class="split-meta">
+                    <span class="meta-text">
+                      {{ yesterdayEfficiencyRankText }}
+                    </span>
+                    <span class="pill accent">
+                      {{ yesterdayEfficiencyExceedText }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -165,36 +211,27 @@
           <KpiCard label="近30天波动" color="purple">
             <template #icon>🛡️</template>
             <template #value>
-              <div class="volatility-kpi-layout">
-                <div class="volatility-main">
-                  <div class="kpi-value-main">{{ stabilityTitleWithScore }}</div>
-                  <div class="kpi-value-sub">
-                    平均时长：{{ stabilityAverageText }}
-                  </div>
+              <div class="volatility-card">
+                <div class="vol-main">
+                  <span class="vol-state">{{ stabilityTitle }}</span>
+                  <span class="vol-score">{{ stabilityScore }}</span>
                 </div>
-                <div class="volatility-extremes">
-                  <div class="extreme-line">
-                    <span class="extreme-label">最高</span>
-                    <span class="extreme-value">
+                <div class="vol-sub">平均时长：{{ stabilityAverageText }}</div>
+                <div class="vol-grid">
+                  <div class="vol-cell">
+                    <span class="vol-label">Avg</span>
+                    <span class="vol-value">{{ stabilityAverageText }}</span>
+                  </div>
+                  <div class="vol-cell">
+                    <span class="vol-label">Max</span>
+                    <span class="vol-value">
                       {{ durationExtremeDisplay.max.valueText }}
                     </span>
-                    <span
-                      v-if="durationExtremeDisplay.max.dateText"
-                      class="extreme-date"
-                    >
-                      {{ durationExtremeDisplay.max.dateText }}
-                    </span>
                   </div>
-                  <div class="extreme-line">
-                    <span class="extreme-label">最低</span>
-                    <span class="extreme-value">
+                  <div class="vol-cell">
+                    <span class="vol-label">Min</span>
+                    <span class="vol-value">
                       {{ durationExtremeDisplay.min.valueText }}
-                    </span>
-                    <span
-                      v-if="durationExtremeDisplay.min.dateText"
-                      class="extreme-date"
-                    >
-                      {{ durationExtremeDisplay.min.dateText }}
                     </span>
                   </div>
                 </div>
@@ -214,10 +251,15 @@
             color="indigo"
             dense
           >
-            <template #icon>🏷️</template>
+            <template #icon>{{ card.medal }}</template>
             <template #value>
-              <div class="kpi-value-main">{{ card.name }}</div>
-              <div class="kpi-value-sub">{{ card.percent }}</div>
+              <div class="rank-card">
+                <div class="rank-title">{{ card.name }}</div>
+                <div class="rank-percent">{{ card.percentText }}</div>
+                <div class="rank-bar">
+                  <span :style="{ width: card.barWidth, opacity: card.opacity }" />
+                </div>
+              </div>
             </template>
           </KpiCard>
         </div>
@@ -293,6 +335,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onActivated, computed, watch } from "vue";
+import { Icon } from "@iconify/vue";
 import dayjs from "dayjs";
 import { ArrowLeft } from "@element-plus/icons-vue";
 import { useChartsStore } from "@/stores/modules/charts";
@@ -355,6 +398,7 @@ const topSubCards = computed(() => {
   while (normalized.length < 3) {
     normalized.push({ label: "--", parent: "", percent: 0, hours: 0 });
   }
+  const medals = ["🥇", "🥈", "🥉"];
   return normalized.slice(0, 3).map((item, idx) => {
     const hasParent = !!item.parent;
     const name = item.label === "--"
@@ -362,11 +406,15 @@ const topSubCards = computed(() => {
       : hasParent
         ? `${item.parent}：${item.label}`
         : item.label;
+    const pctNum = Number(item.percent || 0);
     return {
       key: `${item.parent || "legacy"}-${item.label}-${idx}`,
       label: `TOP${idx + 1}（近30天）`,
       name,
-      percent: item.label === "--" ? "--" : `${item.percent}%`,
+      percentText: item.label === "--" ? "--" : `${pctNum}%`,
+      medal: medals[idx] || "🏅",
+      barWidth: `${Math.max(10, Math.min(100, pctNum || 0))}%`,
+      opacity: idx === 0 ? 1 : idx === 1 ? 0.75 : 0.6,
     };
   });
 });
@@ -444,6 +492,22 @@ const yesterdayHoursWithRank = computed(() => {
   rank = rank >= 0 ? rank + 1 : total;
   return `昨日 ${hoursStr}（${rank}/${total}）`;
 });
+
+const todayHoursOnly = computed(() =>
+  todayHoursText.value.replace("今日 ", "")
+);
+const yesterdayHoursOnly = computed(() =>
+  yesterdayHoursText.value.replace("昨日 ", "")
+);
+const todayHoursRankText = computed(() => {
+  const match = todayHoursWithRank.value.match(/（(.+?)）/);
+  return match ? match[1] : todayHoursWithRank.value;
+});
+const yesterdayHoursRankText = computed(() => {
+  const match = yesterdayHoursWithRank.value.match(/（(.+?)）/);
+  return match ? match[1] : yesterdayHoursWithRank.value;
+});
+const yesterdayHoursTrend = computed(() => "↑");
 
 // 今日超过历史百分比（友好文案）
 const todayExceedText = computed(() => {
@@ -541,6 +605,23 @@ const todayEfficiencyExceedText = computed(
 const yesterdayEfficiencyExceedText = computed(
   () => yesterdayEfficiencyStat.value.exceedText
 );
+const todayEfficiencyOnly = computed(() => {
+  const match = todayEfficiencyWithRank.value.match(/^(.+?)（/);
+  return match ? match[1] : todayEfficiencyWithRank.value;
+});
+const yesterdayEfficiencyOnly = computed(() => {
+  const match = yesterdayEfficiencyWithRank.value.match(/^(.+?)（/);
+  return match ? match[1] : yesterdayEfficiencyWithRank.value;
+});
+const todayEfficiencyRankText = computed(() => {
+  const match = todayEfficiencyWithRank.value.match(/（(.+?)）/);
+  return match ? match[1] : todayEfficiencyWithRank.value;
+});
+const yesterdayEfficiencyRankText = computed(() => {
+  const match = yesterdayEfficiencyWithRank.value.match(/（(.+?)）/);
+  return match ? match[1] : yesterdayEfficiencyWithRank.value;
+});
+const yesterdayEfficiencyTrend = computed(() => "↑");
 
 // 近30天时长序列（补齐缺失日期，方便统一计算；包含效率用于极值的日期选择）
 const last30DurationSeries = computed(() => {

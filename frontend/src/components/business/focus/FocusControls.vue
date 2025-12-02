@@ -12,7 +12,7 @@
         >
           开始专注
         </el-button>
-        <button class="return-link" @click="$emit('go-back')">返回上一页</button>
+        <button class="return-link" @click="$emit('go-back')">返回</button>
       </div>
     </template>
 
@@ -116,7 +116,9 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
   border: none;
   box-shadow: 0 16px 40px rgba(99, 102, 241, 0.22);
   padding: 0 1.2rem;
-  transition: transform 0.18s ease, background-color 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease;
   margin-left: 0 !important;
 
   .el-button__content {
@@ -157,22 +159,38 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
 }
 
 :deep(.pause-btn) {
-  background: linear-gradient(135deg, rgba(250, 189, 73, 0.95), rgba(245, 158, 11, 0.95));
+  background: linear-gradient(
+    135deg,
+    rgba(250, 189, 73, 0.95),
+    rgba(245, 158, 11, 0.95)
+  );
   color: var(--color-text-light);
   border: 1px solid rgba(245, 158, 11, 0.85);
 
   &:hover {
-    background: linear-gradient(135deg, rgba(234, 147, 6, 0.98), rgba(245, 158, 11, 0.98));
+    background: linear-gradient(
+      135deg,
+      rgba(234, 147, 6, 0.98),
+      rgba(245, 158, 11, 0.98)
+    );
   }
 }
 
 :deep(.stop-btn) {
-  background: linear-gradient(135deg, rgba(248, 113, 113, 0.92), rgba(244, 114, 182, 0.9));
+  background: linear-gradient(
+    135deg,
+    rgba(248, 113, 113, 0.92),
+    rgba(244, 114, 182, 0.9)
+  );
   color: var(--color-text-light);
   border: 1px solid rgba(248, 113, 113, 0.75);
 
   &:hover {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(236, 72, 153, 0.95));
+    background: linear-gradient(
+      135deg,
+      rgba(239, 68, 68, 0.95),
+      rgba(236, 72, 153, 0.95)
+    );
   }
 }
 
@@ -196,7 +214,9 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
   cursor: pointer;
   text-decoration: none;
   padding: 0.25rem 0;
-  transition: color 0.15s ease, transform 0.15s ease;
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease;
 
   &:hover {
     color: #374151;

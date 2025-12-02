@@ -1,18 +1,18 @@
 // KPI 卡片组件样式
 .kpi-card {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 0.85rem 1rem;
+  border-radius: 24px;
+  padding: 1rem 1.1rem;
   display: flex;
   align-items: flex-start;
   gap: 0.65rem;
-  border: 1px solid var(--color-border-card);
+  border: none;
   transition:
     background-color var(--transition-speed) ease,
     border-color var(--transition-speed) ease;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
   min-height: 0; // 紧凑：不强制高度
 
   .icon-wrapper {

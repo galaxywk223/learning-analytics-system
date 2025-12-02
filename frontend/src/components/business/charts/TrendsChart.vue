@@ -20,14 +20,9 @@
         <div class="trend-chart-card__titles">
           <span class="trend-chart-card__badge">{{ viewBadge }}</span>
           <h3>学习趋势洞察</h3>
-          <p>聚焦学习时长与效率的双轴走势，快速洞悉成长轨迹</p>
         </div>
       </header>
       <v-chart class="trend-chart-card__visual" :option="chartOption" autoresize />
-      <footer v-if="showStageHelper" class="trend-chart-card__footer">
-        <span class="trend-chart-card__footer-dot" />
-        <span>阶段划分已在图中浅色标注，悬停即可查看阶段名称</span>
-      </footer>
     </div>
   </div>
 </template>
@@ -196,7 +191,7 @@ const chartOption = computed(() => {
         color: "#475569",
         formatter: (value) => value.slice(5),
       },
-      axisLine: { lineStyle: { color: "rgba(148, 163, 184, 0.45)" } },
+      axisLine: { show: false },
       axisTick: { show: false },
     },
     yAxis: [
@@ -206,7 +201,7 @@ const chartOption = computed(() => {
         min: 0,
         nameTextStyle: { color: "#475569" },
         axisLabel: { color: "#475569" },
-        splitLine: { lineStyle: { type: "dashed", color: "rgba(148, 163, 184, 0.4)" } },
+        splitLine: { lineStyle: { type: "dashed", color: "rgba(148, 163, 184, 0.28)" } },
       },
       {
         type: "value",
