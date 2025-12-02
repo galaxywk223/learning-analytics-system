@@ -154,21 +154,70 @@
   padding: 16px 20px 20px 20px;
 }
 
-.countdown-page :deep(.el-form) {
+.countdown-page :deep(.countdown-form) {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
 
-.countdown-page :deep(.el-form-item__label) {
-  font-weight: 600;
-  color: #334155;
-}
+  .el-form-item {
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
 
-/* 输入框高度与宽度，日期/时间更大更易点选 */
-.countdown-page :deep(.el-input__wrapper) {
-  min-height: 48px;
-  border-radius: 12px;
+  .el-form-item__label {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 6px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+  }
+
+  .el-form-item__content {
+    width: 100%;
+  }
+
+  .el-row {
+    width: 100%;
+  }
+
+  /* 输入框统一高度与样式 */
+  .el-input__wrapper,
+  .el-select .el-input__wrapper,
+  .el-date-editor .el-input__wrapper,
+  .el-time-picker .el-input__wrapper {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: none;
+    min-height: 48px;
+    height: 48px;
+    padding: 0 14px;
+    transition: all 0.15s ease;
+  }
+
+  .el-input__inner { line-height: 48px; font-size: 15px; color: #111827; }
+
+  .el-date-editor .el-input__wrapper,
+  .el-time-picker .el-input__wrapper {
+    column-gap: 12px;
+  }
+
+  .el-input__wrapper.is-focus,
+  .el-select .el-input__wrapper.is-focus,
+  .el-date-editor.is-active .el-input__wrapper,
+  .el-time-picker.is-active .el-input__wrapper {
+    background: #ffffff;
+    border-color: #c4c8d2;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+  }
 }
 
 .countdown-collapse {
@@ -249,16 +298,43 @@
 
 
 /* 日期/时间输入：默认宽一些，图标与文本间距更宽松 */
-.countdown-page :deep(.el-date-editor) { width: 400px; }
+.countdown-page :deep(.el-date-editor) { width: 100%; }
 
-.countdown-page :deep(.el-date-editor .el-input__wrapper) { padding: 0 18px; column-gap: 12px; }
-
-.countdown-page :deep(.el-time-picker) { width: 300px; }
-
-.countdown-page :deep(.el-time-picker .el-input__wrapper) { padding: 0 18px; column-gap: 12px; }
+.countdown-page :deep(.el-time-picker) { width: 100%; }
 
 .countdown-page :deep(.el-dialog__footer) {
   padding: 10px 20px 18px 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+
+  .el-button {
+    min-width: 132px;
+    height: 48px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 14px;
+    border: none;
+  }
+
+  .el-button:not(.el-button--primary) {
+    background: #f8fafc;
+    color: #4b5563;
+  }
+
+  .el-button--primary {
+    background: #6366f1;
+    border: none;
+    box-shadow: none;
+  }
+
+  .el-button--primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+  }
 }
 
 @media (max-width: 600px) {

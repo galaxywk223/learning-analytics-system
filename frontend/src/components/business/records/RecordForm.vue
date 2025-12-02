@@ -162,25 +162,44 @@ defineExpose({
 
 <style scoped>
 .record-form {
-  max-width: 820px;
+  max-width: 840px;
   margin: 0 auto;
-  padding: 24px 8px 12px;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  :deep(.el-form-item) {
+    margin-bottom: 14px;
+  }
 
   :deep(.el-form-item__label) {
     font-weight: 600;
-    color: #0f172a;
-    margin-bottom: 8px;
+    color: #1f2937;
+    margin-bottom: 6px;
   }
 
   :deep(.el-input__wrapper),
   :deep(.el-select .el-input__wrapper),
   :deep(.el-date-editor .el-input__wrapper),
   :deep(.el-textarea__inner) {
-    background: #f3f4f6;
-    border: 1px solid transparent;
-    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
     box-shadow: none;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
+  }
+
+  :deep(.el-input__wrapper),
+  :deep(.el-select .el-input__wrapper),
+  :deep(.el-date-editor .el-input__wrapper) {
+    min-height: 48px;
+    height: 48px;
+    padding: 0 14px;
   }
 
   :deep(.el-input__inner),
@@ -189,25 +208,29 @@ defineExpose({
     color: #111827;
   }
 
+  :deep(.el-input__inner) {
+    line-height: 48px;
+  }
+
   :deep(.el-input__wrapper.is-focus),
   :deep(.el-select .el-input__wrapper.is-focus),
   :deep(.el-date-editor.is-active .el-input__wrapper),
   :deep(.el-textarea__inner:focus) {
     background: #ffffff;
-    border-color: #a5b4fc;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+    border-color: #c4c8d2;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
   }
 
   :deep(.el-input-number) {
     width: 100%;
-    background: #f3f4f6;
+    background: #f8fafc;
     border-radius: 14px;
-    border: 1px solid transparent;
+    border: 1px solid #e5e7eb;
     display: flex;
     align-items: center;
-    height: 46px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    padding: 0 14px;
+    height: 48px;
+    box-shadow: none;
+    padding: 0 12px;
     min-width: 0;
     position: relative;
     box-sizing: border-box;
@@ -223,7 +246,7 @@ defineExpose({
     color: #111827;
     text-align: center;
     height: 100%;
-    line-height: 46px;
+    line-height: 48px;
   }
 
   :deep(.el-rate) {
@@ -243,9 +266,9 @@ defineExpose({
   display: flex;
   justify-content: center;
   gap: 14px;
-  margin-top: 24px;
+  margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  border-top: 1px solid rgba(15, 23, 42, 0.05);
 }
 
 .form-actions .el-button {
@@ -256,24 +279,24 @@ defineExpose({
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 999px;
+  border-radius: 14px;
   border: none;
 }
 
 .form-actions .el-button:not(.el-button--primary) {
-  background: transparent;
-  color: #6b7280;
+  background: #f8fafc;
+  color: #4b5563;
 }
 
 .form-actions .el-button--primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: #6366f1;
   border: none;
-  box-shadow: 0 15px 30px rgba(99, 102, 241, 0.35);
+  box-shadow: none;
 }
 
 .form-actions .el-button--primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 18px 36px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
 }
 
 @media (max-width: 768px) {

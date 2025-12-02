@@ -3,7 +3,7 @@
     <!-- 分类、标签 -->
     <el-row :gutter="16">
       <el-col :span="12">
-        <el-form-item label="分类" prop="category_id">
+        <el-form-item prop="category_id" class="no-label">
           <el-select
             v-model="form.category_id"
             placeholder="请选择分类"
@@ -21,7 +21,7 @@
         </el-form-item>
       </el-col>
       <el-col :span="12">
-        <el-form-item label="标签" prop="subcategory_id">
+        <el-form-item prop="subcategory_id" class="no-label">
           <el-select
             v-model="form.subcategory_id"
             placeholder="请先选择分类"
@@ -70,5 +70,13 @@ function handleCategoryChange(value) {
 <style scoped lang="scss">
 .form-section {
   margin-bottom: 0;
+
+  .no-label {
+    margin-bottom: 4px;
+
+    :deep(.el-form-item__label) {
+      display: none;
+    }
+  }
 }
 </style>

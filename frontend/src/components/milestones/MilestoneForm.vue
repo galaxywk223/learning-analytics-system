@@ -2,65 +2,134 @@
   <el-dialog
     v-model="visible"
     :title="dialogTitle"
-    width="720px"
+    width="680px"
     destroy-on-close
     class="milestone-form-dialog"
+    :show-close="true"
+    top="8vh"
   >
-    <form @submit.prevent="handleSubmit" autocomplete="off">
-      <div class="form-grid">
-        <el-form-item label="标题" required>
-          <el-input v-model="form.title" maxlength="200" show-word-limit />
-        </el-form-item>
-        <el-form-item label="事件日期" required>
-          <el-date-picker
-            v-model="form.event_date"
-            type="date"
-            value-format="YYYY-MM-DD"
-          />
-        </el-form-item>
-        <el-form-item label="分类">
-          <el-select
-            v-model="form.category_id"
-            placeholder="-- 未分类 --"
-            clearable
-          >
-            <el-option :value="null" label="-- 未分类 --" />
-            <el-option
-              v-for="c in categories"
-              :key="c.id"
-              :label="c.name"
-              :value="c.id"
+    <form @submit.prevent="handleSubmit" autocomplete="off" class="milestone-form">
+      <div class="form-body">
+        <!-- Top Row: Title & Date -->
+        <div class="form-row split-row">
+          <div class="form-group flex-grow">
+            <label class="form-label">标题 <span class="required">*</span></label>
+            <el-input 
+              v-model="form.title" 
+              maxlength="200" 
+              show-word-limit 
+              placeholder="给这个成就起个名字"
+              class="record-input"
             />
-          </el-select>
-        </el-form-item>
+          </div>
+          <div class="form-group w-date">
+            <label class="form-label">日期 <span class="required">*</span></label>
+            <el-date-picker
+              v-model="form.event_date"
+              type="date"
+              value-format="YYYY-MM-DD"
+              placeholder="选择日期"
+              class="record-input"
+              :clearable="false"
+              style="width: 100%"
+            />
+          </div>
+        </div>
+        
+        <!-- Category -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">分类</label>
+            <el-select
+              v-model="form.category_id"
+              placeholder="选择分类"
+              clearable
+              class="record-select"
+              popper-class="record-dropdown"
+              style="width: 100%"
+            >
+              <el-option
+                v-for="c in categories"
+                :key="c.id"
+                :label="c.name"
+                :value="c.id"
+              />
+            </el-select>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">详细描述</label>
+            <el-input
+              type="textarea"
+              :rows="6"
+              v-model="form.description"
+              placeholder="记录这次成就的细节与感受..."
+              resize="none"
+              class="record-textarea"
+            />
+          </div>
+        </div>
+
+        <!-- Attachments -->
+        <div class="form-row">
+          <label class="form-label">附件</label>
+          <div 
+            class="upload-area" 
+            @click="fileInput?.click()"
+            :class="{ 'has-files': selectedFiles.length > 0 }"
+          >
+            <input
+              ref="fileInput"
+              type="file"
+              multiple
+              @change="handleFiles"
+              class="hidden-input"
+            />
+            
+            <div class="upload-placeholder" v-if="selectedFiles.length === 0">
+              <div class="icon-circle">
+                <span class="icon">📎</span>
+              </div>
+              <div class="text-content">
+                <span class="primary-text">点击或拖拽上传文件</span>
+                <span class="secondary-text">支持图片、文档等，最大 20MB</span>
+              </div>
+            </div>
+
+            <div class="file-list" v-else>
+              <div class="add-more-btn">
+                <span class="icon">＋</span>
+                <span>添加更多</span>
+              </div>
+              <div v-for="(f, i) in selectedFiles" :key="i" class="file-item" @click.stop>
+                <span class="file-icon">📄</span>
+                <span class="file-name">{{ f.name }}</span>
+                <button type="button" class="remove-btn" @click="removeFile(i)">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 3L3 9M3 3L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <el-form-item label="详细描述 (支持HTML)">
-        <el-input
-          type="textarea"
-          :rows="6"
-          v-model="form.description"
-          placeholder="可以粘贴部分简单 HTML 标记，如 <p><b><i> 等"
-        />
-      </el-form-item>
-      <el-form-item label="上传附件">
-        <input ref="fileInput" type="file" multiple @change="handleFiles" />
-        <small class="text-muted">可以按住 Ctrl 或 Shift 选择多个文件。</small>
-        <ul v-if="selectedFiles.length" class="selected-files">
-          <li v-for="(f, i) in selectedFiles" :key="i">{{ f.name }}</li>
-        </ul>
-      </el-form-item>
-      <div class="dialog-footer" slot="footer">
-        <el-button @click="close">取消</el-button>
-        <el-button type="primary" :loading="submitting" native-type="submit"
-          >保存</el-button
-        >
+
+      <div class="dialog-footer">
+        <button type="button" class="btn-cancel" @click="close">取消</button>
+        <button type="submit" class="btn-submit" :disabled="submitting">
+          {{ submitting ? "保存中..." : "保存成就" }}
+        </button>
       </div>
     </form>
   </el-dialog>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, toRaw } from "vue";
+import { ref, reactive, computed, watch } from "vue";
 import { milestoneAPI } from "@/api/modules/milestone";
 
 const props = defineProps({
@@ -117,7 +186,13 @@ function close() {
 }
 
 function handleFiles(e) {
-  selectedFiles.value = Array.from(e.target.files || []);
+  const newFiles = Array.from(e.target.files || []);
+  selectedFiles.value = [...selectedFiles.value, ...newFiles];
+  if (fileInput.value) fileInput.value.value = ""; 
+}
+
+function removeFile(idx) {
+  selectedFiles.value.splice(idx, 1);
 }
 
 async function handleSubmit() {
@@ -131,27 +206,13 @@ async function handleSubmit() {
         description: form.description,
         category_id: form.category_id,
       };
-      console.log("[MilestoneForm] 开始更新里程碑:", props.editData.id);
       await milestoneAPI.update(props.editData.id, payload);
 
-      // 上传新增附件
-      console.log(
-        "[MilestoneForm] 准备上传附件，数量:",
-        selectedFiles.value.length
-      );
       for (const f of selectedFiles.value) {
-        console.log("[MilestoneForm] 上传附件:", f.name);
-        const uploadRes = await milestoneAPI.uploadAttachment(
-          props.editData.id,
-          f
-        );
-        console.log("[MilestoneForm] 上传结果:", uploadRes);
+        await milestoneAPI.uploadAttachment(props.editData.id, f);
       }
 
-      // 重新获取完整数据（包含附件）
-      console.log("[MilestoneForm] 重新获取完整数据");
       const updatedRes = await milestoneAPI.get(props.editData.id);
-      console.log("[MilestoneForm] 获取到的完整数据:", updatedRes);
       emits("saved", { updated: updatedRes.milestone });
     } else {
       const payload = {
@@ -160,35 +221,20 @@ async function handleSubmit() {
         description: form.description,
         category_id: form.category_id,
       };
-      console.log("[MilestoneForm] 创建新里程碑");
       const res = await milestoneAPI.create(payload);
-      console.log("[MilestoneForm] 创建结果:", res);
 
-      // 上传附件
       if (selectedFiles.value.length) {
-        console.log(
-          "[MilestoneForm] 准备上传附件，数量:",
-          selectedFiles.value.length
-        );
         for (const f of selectedFiles.value) {
-          console.log("[MilestoneForm] 上传附件:", f.name);
-          const uploadRes = await milestoneAPI.uploadAttachment(
-            res.milestone.id,
-            f
-          );
-          console.log("[MilestoneForm] 上传结果:", uploadRes);
+          await milestoneAPI.uploadAttachment(res.milestone.id, f);
         }
       }
 
-      // 重新获取完整数据（包含附件）
-      console.log("[MilestoneForm] 重新获取完整数据");
       const createdRes = await milestoneAPI.get(res.milestone.id);
-      console.log("[MilestoneForm] 获取到的完整数据:", createdRes);
       emits("saved", { created: createdRes.milestone });
     }
     close();
   } catch (e) {
-    console.error("[MilestoneForm] 保存里程碑失败:", e);
+    console.error("[MilestoneForm] Failed to save:", e);
   } finally {
     submitting.value = false;
   }
@@ -196,23 +242,346 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-.milestone-form-dialog :deep(.el-dialog__body) {
-  padding-top: 4px;
+/* Dialog & Overlay */
+.milestone-form-dialog :deep(.el-overlay) {
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
 }
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-gap: 12px;
-  margin-bottom: 8px;
-}
-.selected-files {
-  margin: 6px 0 0;
+
+.milestone-form-dialog :deep(.el-dialog) {
+  border-radius: 20px;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
   padding: 0;
-  list-style: none;
-  font-size: 12px;
-  color: var(--color-text-medium);
+  overflow: hidden;
+  background: #ffffff;
 }
-.selected-files li {
-  margin: 2px 0;
+
+.milestone-form-dialog :deep(.el-dialog__header) {
+  margin: 0;
+  padding: 24px 32px 12px;
+  border-bottom: none;
+}
+
+.milestone-form-dialog :deep(.el-dialog__title) {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.milestone-form-dialog :deep(.el-dialog__headerbtn) {
+  top: 24px;
+  right: 24px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.milestone-form-dialog :deep(.el-dialog__headerbtn:hover) {
+  background: #f5f5f5;
+}
+
+.milestone-form-dialog :deep(.el-dialog__body) {
+  padding: 12px 32px 32px;
+}
+
+/* Form Layout */
+.milestone-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.split-row {
+  flex-direction: row;
+  gap: 20px;
+}
+
+.flex-grow {
+  flex: 1;
+}
+
+.w-date {
+  width: 180px;
+  flex-shrink: 0;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-left: 2px;
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+/* Record Form Style Inputs */
+.record-input :deep(.el-input__wrapper),
+.record-select :deep(.el-input__wrapper) {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: none !important;
+  padding: 0 14px;
+  height: 48px !important;
+  line-height: 48px;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.record-input :deep(.el-input__wrapper:hover),
+.record-select :deep(.el-input__wrapper:hover) {
+  background: #f1f5f9;
+}
+
+.record-input :deep(.el-input__wrapper.is-focus),
+.record-select :deep(.el-input__wrapper.is-focus) {
+  background: #ffffff;
+  border-color: #c4c8d2;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15) !important;
+}
+
+.record-input :deep(.el-input__inner) {
+  font-size: 15px;
+  color: #111827;
+  height: 100%;
+  line-height: normal;
+  display: flex;
+  align-items: center;
+}
+
+/* Textarea */
+.record-textarea :deep(.el-textarea__inner) {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 15px;
+  color: #111827;
+  box-shadow: none;
+  transition: all 0.15s ease;
+}
+
+.record-textarea :deep(.el-textarea__inner:focus) {
+  background: #ffffff;
+  border-color: #c4c8d2;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+/* Upload Area */
+.upload-area {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  min-height: 80px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-area:hover {
+  background: #ffffff;
+  border-color: #94a3b8;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.upload-area.has-files {
+  background: #ffffff;
+  border-style: solid;
+  border-color: #e2e8f0;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.upload-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-circle .icon {
+  font-size: 18px;
+}
+
+.text-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.primary-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.secondary-text {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.hidden-input {
+  display: none;
+}
+
+/* File List */
+.file-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+}
+
+.add-more-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.add-more-btn:hover {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.file-item:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.file-name {
+  font-size: 13px;
+  color: #334155;
+  font-weight: 500;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.remove-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+/* Footer */
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-cancel {
+  min-width: 100px;
+  height: 48px;
+  border-radius: 14px;
+  border: none;
+  background: #f8fafc;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #f1f5f9;
+  color: #374151;
+}
+
+.btn-submit {
+  min-width: 120px;
+  height: 48px;
+  border-radius: 14px;
+  border: none;
+  background: #6366f1;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 </style>

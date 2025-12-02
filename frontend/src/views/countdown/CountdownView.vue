@@ -71,7 +71,8 @@
         :model="form"
         :rules="rules"
         ref="formRef"
-        label-width="90px"
+        label-position="top"
+        class="countdown-form"
         @submit.prevent
       >
         <el-form-item label="目标名称" prop="title">

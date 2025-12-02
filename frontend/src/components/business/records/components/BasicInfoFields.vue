@@ -1,7 +1,7 @@
 <template>
   <div class="form-section">
     <!-- 任务名称 -->
-    <el-form-item label="任务" prop="task">
+    <el-form-item prop="task" class="no-label">
       <el-input
         v-model="form.task"
         placeholder="请输入任务名称"
@@ -83,6 +83,14 @@ defineProps({
     font-weight: 500;
     color: #333;
     margin-bottom: 8px;
+  }
+
+  .no-label {
+    margin-bottom: 4px;
+
+    :deep(.el-form-item__label) {
+      display: none;
+    }
   }
 }
 </style>

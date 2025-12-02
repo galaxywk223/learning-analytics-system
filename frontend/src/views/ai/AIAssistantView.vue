@@ -4,208 +4,186 @@
       :title="{ icon: '🤖', text: '智能规划' }"
       subtitle="按日、周、月或阶段梳理学习数据，生成易读的总结与下一步规划，并支持历史追溯。"
     >
-      <div class="meta-chips">
-        <span class="chip"><span class="dot" />{{ scopeLabel }}</span>
-        <span class="chip" v-if="!isStageScope">{{ currentPeriodLabel }}</span>
-        <span class="chip" v-else>{{ currentStageLabel }}</span>
+      <div class="glass-control">
+        <div class="meta-chips">
+          <span class="chip"><span class="dot" />{{ scopeLabel }}</span>
+          <span class="chip" v-if="!isStageScope">{{ currentPeriodLabel }}</span>
+          <span class="chip" v-else>{{ currentStageLabel }}</span>
+        </div>
+        <div class="control-row">
+          <div class="segment">
+            <span class="seg-label">分析范围</span>
+            <div class="segmented">
+              <button
+                v-for="item in scopeOptions"
+                :key="item.value"
+                :class="['seg-btn', scopeValue === item.value && 'active']"
+                @click="scopeValue = item.value"
+              >
+                {{ item.label }}
+              </button>
+            </div>
+          </div>
+          <div class="picker">
+            <template v-if="!isStageScope">
+              <button class="pill-picker" @click="datePicker?.focus?.()">
+                <span class="emoji-icon" aria-hidden="true">📅</span>
+                <span>{{ dateValue || datePlaceholder }}</span>
+                <span class="caret">▾</span>
+              </button>
+              <el-date-picker
+                ref="datePicker"
+                v-model="dateValue"
+                :type="datePickerType"
+                value-format="YYYY-MM-DD"
+                :placeholder="datePlaceholder"
+                :clearable="false"
+                style="display: none"
+              />
+            </template>
+            <template v-else>
+              <el-select
+                v-model="stageValue"
+                placeholder="请选择阶段"
+                filterable
+                class="minimal-select"
+              >
+                <el-option
+                  v-for="stage in stageOptions"
+                  :key="stage.value"
+                  :label="stage.label"
+                  :value="stage.value"
+                />
+              </el-select>
+            </template>
+          </div>
+          <div class="actions">
+            <button
+              class="btn-primary"
+              :disabled="analysisLoading || planLoading"
+              @click="handleGenerateAnalysis"
+            >
+              ✨ 生成分析
+            </button>
+            <button
+              class="btn-primary alt"
+              :disabled="analysisLoading || planLoading"
+              @click="handleGeneratePlan"
+            >
+              🤖 生成规划
+            </button>
+            <button class="btn-ghost" :disabled="!hasResult" @click="handleClear">
+              🗑️ 清空
+            </button>
+          </div>
+        </div>
       </div>
 
-      <el-card class="control-card" shadow="never">
-        <div class="control-grid">
-          <div class="control-grid__item">
-            <span class="control-label">分析范围</span>
-            <el-radio-group v-model="scopeValue" size="small">
+      <div class="insight-grid">
+        <section
+          class="glass-card insight-card"
+          :class="{ 'is-loading': analysisLoading }"
+        >
+          <header class="insight-card__header">
+            <div class="title-wrap">
+              <span class="icon">📊</span>
+              <div>
+                <span class="title">分析总结</span>
+                <small v-if="analysisMeta.period">{{ analysisMeta.period }}</small>
+              </div>
+            </div>
+            <span class="pill latest">最新</span>
+          </header>
+          <div class="insight-card__body" v-loading="analysisLoading">
+            <div v-if="analysisHtml" class="bubble">
+              <div class="markdown-body" v-html="analysisHtml"></div>
+              <p v-if="analysisMeta.generatedAt" class="insight-content__time">
+                生成时间：{{ formatDateTime(analysisMeta.generatedAt) }}
+              </p>
+            </div>
+            <div v-else class="empty-robot">
+              <span class="bot">🤔</span>
+              <p>等待输入数据...</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="glass-card insight-card" :class="{ 'is-loading': planLoading }">
+          <header class="insight-card__header">
+            <div class="title-wrap">
+              <span class="icon">🤖</span>
+              <div>
+                <span class="title">规划建议</span>
+                <div class="result-card__sub" v-if="planMeta.period">
+                  <small>{{ planMeta.period }}</small>
+                  <el-icon v-if="planMeta.nextPeriod" size="14" class="result-card__arrow">
+                    <ArrowRight />
+                  </el-icon>
+                  <small v-if="planMeta.nextPeriod">{{ planMeta.nextPeriod }}</small>
+                </div>
+              </div>
+            </div>
+            <span class="pill plan">规划</span>
+          </header>
+          <div class="insight-card__body" v-loading="planLoading">
+            <div v-if="planHtml" class="bubble bubble-ai">
+              <div class="markdown-body" v-html="planHtml"></div>
+              <p v-if="planMeta.generatedAt" class="insight-content__time">
+                生成时间：{{ formatDateTime(planMeta.generatedAt) }}
+              </p>
+            </div>
+            <div v-else class="empty-robot">
+              <span class="bot">💭</span>
+              <p>等待输入数据...</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="history-stream glass-card" v-loading="historyLoading">
+        <div class="history-stream__header">
+          <div class="title-wrap">
+            <span class="icon">🕒</span>
+            <div>
+              <h4>历史记录</h4>
+              <p>以时间序排列你的每次生成</p>
+            </div>
+          </div>
+          <div class="history-stream__controls">
+            <el-radio-group v-model="historyTypeValue" size="small">
               <el-radio-button
-                v-for="item in scopeOptions"
+                v-for="item in historyTypeOptions"
                 :key="item.value"
                 :label="item.value"
               >
                 {{ item.label }}
               </el-radio-button>
             </el-radio-group>
-          </div>
-
-          <div class="control-grid__item" v-if="!isStageScope">
-            <span class="control-label">选择日期</span>
-            <el-date-picker
-              v-model="dateValue"
-              :type="datePickerType"
-              value-format="YYYY-MM-DD"
-              :placeholder="datePlaceholder"
-              :clearable="false"
-            />
-          </div>
-
-          <div class="control-grid__item" v-else>
-            <span class="control-label">选择阶段</span>
-            <el-select v-model="stageValue" placeholder="请选择阶段" filterable>
-              <el-option
-                v-for="stage in stageOptions"
-                :key="stage.value"
-                :label="stage.label"
-                :value="stage.value"
-              />
-            </el-select>
-          </div>
-
-          <div class="control-grid__item control-grid__item--actions">
-            <el-button
-              type="primary"
-              :loading="analysisLoading"
-              @click="handleGenerateAnalysis"
-            >
-              生成分析
-            </el-button>
-            <el-button
-              type="success"
-              :loading="planLoading"
-              @click="handleGeneratePlan"
-            >
-              生成规划
-            </el-button>
-            <el-button
-              text
-              type="default"
-              :disabled="!hasResult"
-              @click="handleClear"
-            >
-              清空结果
-            </el-button>
+            <button class="btn-ghost" @click="handleRefreshHistory">刷新</button>
           </div>
         </div>
-      </el-card>
-
-      <div class="insight-grid">
-        <section
-          class="insight-card"
-          :class="{ 'is-loading': analysisLoading }"
-        >
-          <header class="insight-card__header">
-            <div>
-              <span class="title">分析总结</span>
-              <small v-if="analysisMeta.period">{{
-                analysisMeta.period
-              }}</small>
-            </div>
-            <div class="insight-card__actions">
-              <el-tag type="info" effect="plain" size="small">最新</el-tag>
-              <el-button
-                v-if="analysisHtml"
-                text
-                size="small"
-                @click="openPreviewFromResult('analysis')"
-              >
-                查看详情
-              </el-button>
-            </div>
-          </header>
-          <div class="insight-card__body" v-loading="analysisLoading">
-            <div v-if="analysisHtml" class="insight-content">
-              <div class="markdown-body" v-html="analysisHtml"></div>
-              <p v-if="analysisMeta.generatedAt" class="insight-content__time">
-                生成时间：{{ formatDateTime(analysisMeta.generatedAt) }}
-              </p>
-            </div>
-            <el-empty v-else description="暂无分析结果，点击上方按钮生成。" />
-          </div>
-        </section>
-
-        <section class="insight-card" :class="{ 'is-loading': planLoading }">
-          <header class="insight-card__header">
-            <div>
-              <span class="title">规划建议</span>
-              <div class="result-card__sub" v-if="planMeta.period">
-                <small>{{ planMeta.period }}</small>
-                <el-icon
-                  v-if="planMeta.nextPeriod"
-                  size="14"
-                  class="result-card__arrow"
-                >
-                  <ArrowRight />
-                </el-icon>
-                <small v-if="planMeta.nextPeriod">{{
-                  planMeta.nextPeriod
-                }}</small>
-              </div>
-            </div>
-            <div class="insight-card__actions">
-              <el-tag type="success" effect="plain" size="small">规划</el-tag>
-              <el-button
-                v-if="planHtml"
-                text
-                size="small"
-                @click="openPreviewFromResult('plan')"
-              >
-                查看详情
-              </el-button>
-            </div>
-          </header>
-          <div class="insight-card__body" v-loading="planLoading">
-            <div v-if="planHtml" class="insight-content">
-              <div class="markdown-body" v-html="planHtml"></div>
-              <p v-if="planMeta.generatedAt" class="insight-content__time">
-                生成时间：{{ formatDateTime(planMeta.generatedAt) }}
-              </p>
-            </div>
-            <el-empty v-else description="暂无规划结果，点击上方按钮生成。" />
-          </div>
-        </section>
-      </div>
-
-      <el-card class="history-card" shadow="never" v-loading="historyLoading">
-        <template #header>
-          <div class="history-card__header">
-            <span>历史记录</span>
-            <div class="history-card__controls">
-              <el-radio-group v-model="historyTypeValue" size="small">
-                <el-radio-button
-                  v-for="item in historyTypeOptions"
-                  :key="item.value"
-                  :label="item.value"
-                >
-                  {{ item.label }}
-                </el-radio-button>
-              </el-radio-group>
-              <el-button text size="small" @click="handleRefreshHistory"
-                >刷新</el-button
-              >
-            </div>
-          </div>
-        </template>
-
-        <el-empty v-if="!historyRows.length" description="暂无记录" />
-        <el-timeline v-else class="history-timeline">
-          <el-timeline-item
+        <div class="history-list" v-if="historyRows.length">
+          <div
+            class="history-card-lite"
             v-for="item in historyRows"
             :key="item.id"
-            :timestamp="item.createdAt"
-            :type="item.type === 'plan' ? 'success' : 'primary'"
+            @click="handlePreview(item)"
           >
-            <div class="history-item">
-              <div class="history-item__header">
-                <el-tag
-                  :type="item.type === 'plan' ? 'success' : 'info'"
-                  effect="plain"
-                  size="small"
-                >
-                  {{ item.typeLabel }}
-                </el-tag>
-                <span class="history-item__scope">{{ item.scopeLabel }}</span>
-              </div>
-              <div class="history-item__period">{{ item.period }}</div>
-              <div class="history-item__actions">
-                <el-button
-                  text
-                  type="primary"
-                  size="small"
-                  @click="handlePreview(item)"
-                >
-                  查看
-                </el-button>
-              </div>
+            <div class="history-meta">
+              <span class="pill" :class="item.type === 'plan' ? 'plan' : 'analysis'">
+                {{ item.typeLabel }}
+              </span>
+              <span class="scope">{{ item.scopeLabel }}</span>
             </div>
-          </el-timeline-item>
-        </el-timeline>
+            <div class="history-period">{{ item.period }}</div>
+            <div class="history-footer">
+              <span class="time">{{ item.createdAt }}</span>
+              <span class="arrow">›</span>
+            </div>
+          </div>
+        </div>
+        <el-empty v-else description="暂无记录" />
+      </div>
 
         <el-dialog
           v-model="previewDialogVisible"
@@ -230,7 +208,6 @@
           ></div>
           <el-empty v-else description="暂无内容" />
         </el-dialog>
-      </el-card>
     </PageContainer>
   </div>
 </template>
@@ -417,6 +394,7 @@ const planMeta = computed(() => ({
 const hasResult = computed(() => Boolean(analysisHtml.value || planHtml.value));
 
 const previewDialogVisible = ref(false);
+const datePicker = ref();
 const previewDialog = ref<PreviewDialogState>({
   title: "",
   html: "",
@@ -531,23 +509,35 @@ onMounted(async () => {
   isolation: isolate;
   background: transparent;
 
+.glass-control {
+  margin-top: 6px;
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 24px;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(14px);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
   .meta-chips {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    margin-top: 6px;
 
     .chip {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       padding: 4px 10px;
-      border: 1px solid var(--stroke-soft);
-      background: var(--surface-card-muted);
-      color: var(--color-text-secondary);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(255, 255, 255, 0.5);
+      color: #475569;
       border-radius: 999px;
       font-size: 12px;
       line-height: 1;
+      backdrop-filter: blur(8px);
     }
 
     .dot {
@@ -558,43 +548,141 @@ onMounted(async () => {
       box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
     }
   }
-}
 
-.control-card {
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(12px);
-  padding: 18px 20px;
-
-  .control-grid {
+  .control-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px 24px;
+    gap: 12px;
     align-items: center;
+  }
 
-    &__item {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+  .segment {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 
-      &--actions {
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
+  .seg-label {
+    color: #475569;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .segmented {
+    display: inline-flex;
+    background: #f1f3f5;
+    border-radius: 999px;
+    padding: 4px;
+    gap: 4px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  }
+
+  .seg-btn {
+    border: none;
+    background: transparent;
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 86px;
+  }
+
+  .seg-btn.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
+  }
+
+  .picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pill-picker {
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(255, 255, 255, 0.7);
+    color: #0f172a;
+    padding: 10px 14px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+
+    &:hover {
+      background: rgba(241, 245, 249, 0.9);
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
     }
 
-    .control-label {
-      font-size: 12px;
-      color: #64748b;
-      font-weight: 500;
-      letter-spacing: 0.2px;
+    .caret {
+      color: #94a3b8;
+      font-weight: 700;
     }
   }
+
+  .minimal-select {
+    min-width: 180px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .btn-primary {
+    border: none;
+    color: #ffffff;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    box-shadow: 0 14px 32px rgba(79, 70, 229, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &.alt {
+      background: linear-gradient(135deg, #22c55e, #06b6d4);
+      box-shadow: 0 14px 32px rgba(34, 197, 94, 0.28);
+    }
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+  }
+
+  .btn-ghost {
+    border: none;
+    background: rgba(248, 250, 252, 0.8);
+    color: #64748b;
+    padding: 10px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+
+    &:hover {
+      background: #ffffff;
+      color: #0f172a;
+    }
+  }
+}
 }
 
 .insight-grid {
@@ -603,14 +691,17 @@ onMounted(async () => {
   gap: 20px;
 }
 
-.insight-card {
+.glass-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.42);
+  border-radius: 24px;
   padding: 18px 20px;
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+}
+
+.insight-card {
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -629,9 +720,19 @@ onMounted(async () => {
   align-items: flex-start;
   gap: 16px;
 
+  .title-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .icon {
+    font-size: 18px;
+  }
+
   .title {
     font-size: 19px;
-    font-weight: 600;
+    font-weight: 700;
     display: block;
     color: #1f1d47;
   }
@@ -642,16 +743,57 @@ onMounted(async () => {
   }
 }
 
-.insight-card__actions {
-  display: flex;
+.pill {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  background: rgba(99, 102, 241, 0.14);
+  color: #4338ca;
+
+  &.latest {
+    background: rgba(59, 130, 246, 0.18);
+    color: #1d4ed8;
+  }
+
+  &.plan {
+    background: rgba(16, 185, 129, 0.16);
+    color: #047857;
+  }
 }
 
 .insight-card__body {
   min-height: 260px;
   display: flex;
   flex-direction: column;
+}
+
+.bubble {
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 18px;
+  padding: 14px 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.bubble-ai {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(37, 99, 235, 0.12));
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+.empty-robot {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
+  gap: 8px;
+
+  .bot {
+    font-size: 28px;
+  }
 }
 
 .history-card {
@@ -714,6 +856,105 @@ onMounted(async () => {
 .history-item__actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.history-stream {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    h4 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    p {
+      margin: 2px 0 0;
+      color: #6b7280;
+      font-size: 0.88rem;
+    }
+  }
+
+  .icon {
+    font-size: 18px;
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+}
+
+.history-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.history-card-lite {
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(226, 232, 240, 0.7);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+  }
+}
+
+.history-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .scope {
+    color: #475569;
+    font-weight: 600;
+    font-size: 13px;
+  }
+}
+
+.history-period {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.history-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #94a3b8;
+  font-size: 12px;
+
+  .arrow {
+    font-weight: 800;
+    color: #64748b;
+  }
 }
 
 .preview-dialog__meta {
