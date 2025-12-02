@@ -8,30 +8,35 @@
         <h5>{{ title }}</h5>
       </div>
     </header>
-    <div class="bar-card__chart-wrapper" ref="scrollWrapper">
-      <v-chart
-        class="bar-card__chart"
-        :option="option"
-        :update-options="chartUpdateOptions"
-        autoresize
-        :style="chartStyle"
-        @click="onChartClick"
-        @mouseover="onMouseOver"
-        @mouseout="onMouseOut"
-      />
+    <div class="bar-card__list" ref="scrollWrapper">
+      <div
+        v-for="(item, idx) in displayItems"
+        :key="item.name"
+        class="bar-item"
+        @click="emitClick(item.name)"
+        @mouseenter="emitHover(item.name)"
+        @mouseleave="emitLeave"
+      >
+        <div class="bar-info">
+          <span class="bar-name">{{ item.name }}</span>
+          <span class="bar-value">{{ formatValue(item.value) }}h</span>
+        </div>
+        <div class="bar-track">
+          <div
+            class="bar-fill"
+            :style="{
+              width: item.percent + '%',
+              backgroundColor: item.color,
+            }"
+          ></div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed, ref } from "vue";
-import { use } from "echarts/core";
-import { BarChart as EBarChart } from "echarts/charts";
-import { GridComponent, TooltipComponent } from "echarts/components";
-import { CanvasRenderer } from "echarts/renderers";
-import VChart from "vue-echarts";
-
-use([CanvasRenderer, EBarChart, GridComponent, TooltipComponent]);
 
 const props = defineProps({
   data: { type: Object, required: true },
@@ -39,11 +44,9 @@ const props = defineProps({
   colors: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(["bar-click"]);
-const hoverLabel = ref("");
-
-// 滚动容器，用于外部调用复位滚动位置
+const emit = defineEmits(["bar-click", "bar-hover", "bar-leave"]);
 const scrollWrapper = ref(null);
+
 function scrollToTop(smooth = true) {
   const el = scrollWrapper.value;
   if (!el) return;
@@ -55,16 +58,13 @@ function scrollToTop(smooth = true) {
 }
 defineExpose({ scrollToTop });
 
-// 当标签长度变化或布局变化时，需要同时更新 grid 和 yAxis
-const chartUpdateOptions = { replaceMerge: ["series", "yAxis", "grid"] };
-
 const normalized = computed(() => {
   const labels = Array.isArray(props.data?.labels) ? props.data.labels : [];
   const values = Array.isArray(props.data?.data) ? props.data.data : [];
 
   return labels.map((label, idx) => {
     const hasLabel = typeof label === "string" && label.trim().length > 0;
-    const name = hasLabel ? label.trim() : `Unnamed Category ${idx + 1}`;
+    const name = hasLabel ? label.trim() : `分类 ${idx + 1}`;
     const rawValue = values[idx];
     const numeric = Number(rawValue ?? 0);
     return { name, value: Number.isFinite(numeric) ? numeric : 0 };
@@ -81,21 +81,9 @@ const sortedData = computed(() => {
   });
 });
 
-const displayCount = computed(() => sortedData.value.length);
-
-const chartHeight = computed(() => {
-  const rows = Math.max(1, displayCount.value);
-  return Math.max(340, rows * 46 + 140);
-});
-
-const chartStyle = computed(() => ({
-  height: `${chartHeight.value}px`,
-  minHeight: "320px",
-}));
-
 const barColors = computed(() => {
   if (props.colors?.length) {
-    return props.colors.slice(0, displayCount.value);
+    return props.colors;
   }
   return [
     "#6366f1",
@@ -111,170 +99,34 @@ const barColors = computed(() => {
   ];
 });
 
-const categoryNames = computed(() => sortedData.value.map((item) => item.name));
-
-// 将标签按字符数截断，超出 4 个字符用 ...
-const truncateLabel = (text, limit = 4) => {
-  if (!text) return "";
-  let out = "";
-  let count = 0;
-  for (const ch of String(text)) {
-    if (count >= limit) break;
-    out += ch;
-    count += 1;
-  }
-  // 使用 code point 计算长度，避免多字节被截断
-  const len = Array.from(String(text)).length;
-  return len > limit ? `${out}...` : out;
-};
-
-const truncatedAxisLabels = computed(() =>
-  categoryNames.value.map((n) => truncateLabel(n))
+const maxValue = computed(() =>
+  Math.max(0, ...sortedData.value.map((item) => item.value))
 );
 
-// 估算标签文字宽度（px），用于计算 grid.left
-const estimateTextWidth = (text, fontSize = 12) => {
-  if (!text) return 0;
-  let units = 0;
-  for (const ch of String(text)) {
-    const code = ch.codePointAt(0) || 0;
-    // 粗略估算：ASCII 0.6 单位，CJK/其他 1.0 单位
-    units += code <= 0x7f ? 0.6 : 1.0;
-  }
-  return Math.ceil(units * fontSize);
+const displayItems = computed(() => {
+  const max = maxValue.value || 1;
+  return sortedData.value.map((item, idx) => {
+    const percent = Math.max(
+      0,
+      Math.min(100, (Number(item.value || 0) / max) * 100)
+    );
+    return {
+      ...item,
+      color: barColors.value[idx % barColors.value.length],
+      percent: Number(percent.toFixed(2)),
+    };
+  });
+});
+
+const formatValue = (val) => Number(val ?? 0).toFixed(1);
+
+const emitClick = (name) => {
+  if (typeof name === "string" && name.trim()) emit("bar-click", name);
 };
-
-const maxLabelWidth = computed(() => {
-  // 网格左边距基于截断后的标签宽度，避免长名称把柱子挤到右侧
-  const names = truncatedAxisLabels.value;
-  if (!names.length) return 0;
-  const size = 12; // 与 axisLabel.fontSize 保持一致
-  return Math.max(...names.map((n) => estimateTextWidth(n, size)));
-});
-
-// grid.left 为标签预留空间：基本间距 8px + 估算宽度，限制最大 160px
-const gridLeft = computed(() => {
-  const base = 8;
-  const cap = 160;
-  return Math.min(Math.max(base, maxLabelWidth.value + base), cap);
-});
-
-const seriesData = computed(() =>
-  sortedData.value.map((item, idx) => ({
-    value: Number.parseFloat(Number(item.value ?? 0).toFixed(2)),
-    itemStyle: { color: barColors.value[idx % barColors.value.length] },
-  }))
-);
-
-const option = computed(() => {
-  const categories = categoryNames.value;
-  const maxVal = Math.max(
-    0,
-    ...seriesData.value.map((item) => Number(item.value ?? 0))
-  );
-
-  return {
-    color: barColors.value,
-    grid: {
-      // 为左侧分类名称预留空间，避免与柱子重叠且不被裁切
-      left: gridLeft.value,
-      right: 40,
-      top: 24,
-      bottom: 24,
-      containLabel: false,
-    },
-    tooltip: {
-      trigger: "axis",
-      axisPointer: { type: "shadow" },
-      formatter: (params) => {
-        const item = Array.isArray(params) ? params[0] : params;
-        if (!item) return "";
-        const value = Number(item.value ?? 0);
-        return `${item.name}<br/>${value.toFixed(1)} 小时`;
-      },
-    },
-    xAxis: {
-      type: "value",
-      splitLine: { show: false },
-      axisLabel: { color: "#475569" },
-    },
-    yAxis: {
-      type: "category",
-      inverse: true,
-      // 使用原始名称作为数据，工具提示仍可显示完整名称
-      data: categories,
-      axisTick: { show: false },
-      axisLine: { show: false },
-      // 左侧显示分类名称，放在网格之外，避免与柱子重叠
-      axisLabel: {
-        show: true,
-        inside: false,
-        color: "#1f2937",
-        fontSize: 12,
-        // 在左轴上将文字右对齐，这样文本位于轴线左侧
-        align: "right",
-        margin: 4,
-        formatter: (val) => truncateLabel(val, 4),
-      },
-    },
-    series: [
-      {
-        type: "bar",
-        barWidth: 18,
-        barGap: "-100%",
-        itemStyle: {
-          color: "rgba(148, 163, 184, 0.18)",
-          borderRadius: 999,
-        },
-        silent: true,
-        data: categories.map(() => maxVal || 1),
-        z: 1,
-      },
-      {
-        type: "bar",
-        barWidth: 18,
-        barCategoryGap: "16%",
-        itemStyle: { borderRadius: 999 },
-        emphasis: {
-          itemStyle: {
-            opacity: 0.85,
-          },
-        },
-        data: seriesData.value,
-        label: {
-          show: true,
-          position: "right",
-          formatter: ({ value }) => `${Number(value ?? 0).toFixed(1)}h`,
-          color: "#1f2937",
-          fontSize: 12,
-        },
-      },
-    ],
-  };
-});
-
-function onChartClick(params) {
-  // 仅响应柱子点击
-  if (!params || params.componentType !== "series" || params.seriesType !== "bar") {
-    return;
-  }
-  const name = params.name;
-  if (typeof name === "string" && name.trim()) {
-    emit("bar-click", name);
-  }
-}
-
-function onMouseOver(params) {
-  if (params?.componentType !== "series" || params.seriesIndex !== 1) return;
-  const name = params.name;
-  hoverLabel.value = typeof name === "string" ? name : "";
-  if (hoverLabel.value) emit("bar-hover", hoverLabel.value);
-}
-
-function onMouseOut() {
-  hoverLabel.value = "";
-  emit("bar-leave");
-}
+const emitHover = (name) => {
+  if (typeof name === "string" && name.trim()) emit("bar-hover", name);
+};
+const emitLeave = () => emit("bar-leave");
 </script>
 
 <style scoped>
@@ -315,25 +167,74 @@ function onMouseOut() {
   }
 }
 
-.bar-card__chart-wrapper {
-  flex: 1;
+.bar-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   max-height: 420px;
   overflow-y: auto;
   margin-right: -6px;
   padding-right: 6px;
 }
 
-.bar-card__chart-wrapper::-webkit-scrollbar {
+.bar-card__list::-webkit-scrollbar {
   width: 6px;
 }
 
-.bar-card__chart-wrapper::-webkit-scrollbar-thumb {
+.bar-card__list::-webkit-scrollbar-thumb {
   background: rgba(99, 102, 241, 0.3);
   border-radius: 999px;
 }
 
-.bar-card__chart {
-  width: 100%;
+.bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+}
+
+.bar-item:hover {
+  background: #f8fafc;
+  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.9);
+}
+
+.bar-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bar-name {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-value {
+  font-weight: 600;
+  color: #475569;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.bar-track {
+  width: 100%;
+  height: 16px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 1s ease-out;
 }
 </style>

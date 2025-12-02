@@ -189,9 +189,13 @@ watch(
 
 .main-grid {
   display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(0, 1fr);
+  grid-template-columns: 3fr 7fr;
   gap: 16px;
   align-items: stretch;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .right-panel {
