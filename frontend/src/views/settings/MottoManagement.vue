@@ -108,7 +108,7 @@ import { ref, computed, onMounted } from "vue";
 import { Icon } from "@iconify/vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useMottoStore } from "@/stores/modules/motto";
-import MottoItem from "@/components/business/motto/MottoItem.vue";
+import MottoItem from "@/components/motto/MottoItem.vue";
 import PageContainer from "@/components/layout/PageContainer.vue";
 
 const mottoStore = useMottoStore();

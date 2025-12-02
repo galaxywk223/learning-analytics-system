@@ -5,48 +5,27 @@
     :custom-class="'milestones-view'"
     :max-width="1400"
   >
-    <template #actions>
-      <div class="header-actions">
-        <el-button
-          size="small"
-          @click="openCategoryManager"
-          class="btn-outline-light"
-        >
-          <Icon icon="lucide:folder-cog" class="me-1" /> 管理分类
-        </el-button>
-        <el-button type="primary" @click="openCreate" class="btn-primary">
-          <Icon icon="lucide:plus-circle" class="me-2" />记录新成就
-        </el-button>
-      </div>
-    </template>
-
     <div class="layout-grid">
       <aside class="sidebar-filter">
-        <div class="card">
-          <div class="card-header">
-            <h5 class="card-title mb-0">
-              <Icon icon="lucide:filter" class="me-2" />筛选
-            </h5>
-          </div>
-          <div class="list-group">
-            <a
-              href="#"
-              @click.prevent="selectCategory(null)"
-              :class="['list-group-item', !state.category_id ? 'active' : '']"
-              >全部成就</a
-            >
-            <a
-              v-for="c in categories"
-              :key="c.id"
-              href="#"
-              @click.prevent="selectCategory(c.id)"
-              :class="[
-                'list-group-item',
-                state.category_id === c.id ? 'active' : '',
-              ]"
-              >{{ c.name }}</a
-            >
-          </div>
+        <div class="filter-list">
+          <button
+            type="button"
+            class="filter-item"
+            :class="{ active: !state.category_id }"
+            @click="selectCategory(null)"
+          >
+            全部成就
+          </button>
+          <button
+            v-for="c in categories"
+            :key="c.id"
+            type="button"
+            class="filter-item"
+            :class="{ active: state.category_id === c.id }"
+            @click="selectCategory(c.id)"
+          >
+            {{ c.name }}
+          </button>
         </div>
       </aside>
       <main class="timeline-wrapper">
@@ -107,6 +86,14 @@
       @saved="onSaved"
     />
   </PageContainer>
+  <div class="milestone-fab">
+    <button class="fab fab-secondary" @click="openCategoryManager" title="管理分类">
+      <Icon icon="lucide:folder-cog" />
+    </button>
+    <button class="fab fab-primary" @click="openCreate" title="记录新成就">
+      <Icon icon="lucide:plus" />
+    </button>
+  </div>
 </template>
 
 <script setup>

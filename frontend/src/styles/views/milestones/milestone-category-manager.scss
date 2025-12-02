@@ -6,24 +6,6 @@
   gap: clamp(1.5rem, 3vw, 2rem);
 }
 
-.milestone-category-manager .btn-outline-light {
-  border-radius: 12px;
-  padding: 0.65rem 1.3rem;
-  font-weight: 500;
-  border: 1px solid var(--stroke-soft);
-  background: transparent;
-  color: var(--color-text-secondary);
-  box-shadow: none;
-  transition: background-color var(--transition-speed) ease,
-    color var(--transition-speed) ease,
-    border-color var(--transition-speed) ease;
-}
-
-.milestone-category-manager .btn-outline-light:hover {
-  background: var(--surface-card-muted);
-  color: var(--color-text-heading);
-}
-
 .layout-grid {
   display: grid;
   grid-template-columns: minmax(300px, 360px) 1fr;
@@ -195,5 +177,45 @@
   .header-actions .btn-outline-light {
     width: 100%;
     text-align: center;
+  }
+}
+
+/* Floating back button */
+.milestone-fab {
+  position: fixed;
+  right: clamp(18px, 3vw, 32px);
+  bottom: clamp(18px, 3vw, 32px);
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 14px;
+  z-index: 1400;
+}
+
+.milestone-fab .fab {
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.milestone-fab .fab-primary {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6d7cff, #4f46e5);
+  color: #ffffff;
+  box-shadow: 0 18px 40px rgba(79, 70, 229, 0.35);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 48px rgba(79, 70, 229, 0.42);
+  }
+
+  svg {
+    width: 26px;
+    height: 26px;
   }
 }

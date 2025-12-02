@@ -5,14 +5,6 @@
     :custom-class="'milestone-category-manager'"
     :max-width="1400"
   >
-    <template #actions>
-      <div class="header-actions">
-        <el-button @click="goBack" class="btn-outline-light">
-          <Icon icon="lucide:arrow-left" class="me-2" />返回时间线
-        </el-button>
-      </div>
-    </template>
-
     <div class="layout-grid">
       <div class="add-form-card card">
         <div class="card-header">
@@ -109,6 +101,11 @@
       </div>
     </div>
   </PageContainer>
+  <div class="milestone-fab">
+    <button class="fab fab-primary" @click="goBack" title="返回时间线">
+      <Icon icon="lucide:arrow-left" />
+    </button>
+  </div>
 </template>
 
 <script setup>
