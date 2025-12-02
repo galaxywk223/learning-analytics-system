@@ -1,5 +1,5 @@
 """
-AI planning and analysis service using Google Gemini.
+AI planning and analysis service using Qwen (DashScope OpenAI-compatible API).
 """
 
 from __future__ import annotations
@@ -10,12 +10,12 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from flask import current_app
 import time
-from google.api_core.exceptions import GoogleAPIError
 
 try:
-    from google import genai as genai_sdk
+    from openai import APIConnectionError, APIStatusError, OpenAI, RateLimitError
 except ImportError:  # pragma: no cover - handled at runtime
-    genai_sdk = None  # type: ignore[assignment]
+    OpenAI = None  # type: ignore[assignment]
+    APIConnectionError = APIStatusError = RateLimitError = Exception  # type: ignore[assignment]
 
 from app import db
 from app.models import AIInsight, DailyData, LogEntry, Stage, SubCategory
@@ -28,8 +28,8 @@ SCOPE_LABELS = {
     "stage": "阶段",
 }
 
-# Cache a single client per API key to avoid re-instantiating the SDK on every call.
-_gemini_client_cache: Dict[str, Any] = {}
+# Cache a single client per API key/base_url to avoid re-instantiating the SDK on every call.
+_qwen_client_cache: Dict[str, Any] = {}
 
 
 class AIPlannerError(Exception):
@@ -415,21 +415,24 @@ def _aggregate_learning_data(
 
 
 
-def _configure_gemini():
-    if genai_sdk is None:
+def _configure_qwen():
+    if OpenAI is None:
         raise AIPlannerError(
-            "δ��װ google-genai SDK��"
-            "���Ȱ� pip install google-genai �������ִ�� pip install -r requirements.txt ��װ����"
+            "未安装 openai SDK，请先 pip install openai 或运行 pip install -r requirements.txt 安装依赖"
         )
-    api_key = current_app.config.get("GEMINI_API_KEY")
+    api_key = current_app.config.get("QWEN_API_KEY")
     if not api_key:
-        raise AIPlannerError("未配置 Gemini API 密钥")
-    client = _gemini_client_cache.get(api_key)
+        raise AIPlannerError("未配置 Qwen API 密钥")
+    base_url = current_app.config.get(
+        "QWEN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    )
+    cache_key = f"{api_key}@{base_url}"
+    client = _qwen_client_cache.get(cache_key)
     if client is None:
-        client = genai_sdk.Client(api_key=api_key)
-        _gemini_client_cache.clear()
-        _gemini_client_cache[api_key] = client
-    model_name = current_app.config.get("GEMINI_MODEL", "gemini-2.5-flash")
+        client = OpenAI(api_key=api_key, base_url=base_url)
+        _qwen_client_cache.clear()
+        _qwen_client_cache[cache_key] = client
+    model_name = current_app.config.get("QWEN_MODEL", "qwen-plus-2025-07-28")
     return client, model_name
 
 
@@ -599,24 +602,27 @@ def _build_plan_prompt(
     return "\n".join(lines)
 
 
-def _call_gemini(prompt: str) -> str:
-    client, model_name = _configure_gemini()
+def _call_qwen(prompt: str) -> str:
+    client, model_name = _configure_qwen()
     max_retries = int(current_app.config.get("AI_MAX_RETRIES", 2) or 0)
     backoff = float(current_app.config.get("AI_RETRY_BACKOFF", 1.25) or 1.25)
     attempt = 0
     last_error: Exception | None = None
     while attempt <= max_retries:
         try:
-            response = client.models.generate_content(
+            response = client.chat.completions.create(
                 model=model_name,
-                contents=prompt,
+                messages=[{"role": "user", "content": prompt}],
             )
-            if not response or not getattr(response, "text", None):
+            if not response or not getattr(response, "choices", None):
                 raise AIPlannerError("未能生成有效的模型输出")
-            return response.text.strip()
-        except GoogleAPIError as exc:
+            message = response.choices[0].message.content if response.choices else None
+            if not message:
+                raise AIPlannerError("模型未返回内容，请稍后重试")
+            return str(message).strip()
+        except (APIStatusError, RateLimitError) as exc:
             last_error = exc
-            detail = getattr(exc, "message", str(exc))
+            detail = getattr(exc, "message", None) or getattr(exc, "response", None) or str(exc)
             # 对临时性错误做重试
             transient = any(
                 key in str(detail).lower()
@@ -636,8 +642,15 @@ def _call_gemini(prompt: str) -> str:
                 attempt += 1
                 continue
             raise AIPlannerError(
-                f"调用 Gemini 接口失败：{detail}（模型：{model_name}）"
+                f"调用通义千问接口失败：{detail}（模型：{model_name}）"
             ) from exc
+        except APIConnectionError as exc:
+            last_error = exc
+            if attempt < max_retries:
+                time.sleep(max(0.2, 0.6 * (backoff ** attempt)))
+                attempt += 1
+                continue
+            raise AIPlannerError("连接通义千问失败，请检查网络后重试") from exc
         except Exception as exc:
             last_error = exc
             # 常见 SSL/连接错误
@@ -808,7 +821,7 @@ def generate_analysis(
     period_label = _format_period_label(scope, start, end)
     prompt = _build_analysis_prompt(scope, stats, stage, period_label, prev_stats)
     try:
-        output_text = _call_gemini(prompt)
+        output_text = _call_qwen(prompt)
     except AIPlannerError as exc:
         # 兜底：允许用模板生成，避免前端空结果
         if current_app.config.get("AI_ENABLE_FALLBACK", True):
@@ -862,7 +875,7 @@ def generate_plan(
         scope, stats, stage, period_label, next_period_label or "后续阶段", next_days
     )
     try:
-        output_text = _call_gemini(prompt)
+        output_text = _call_qwen(prompt)
     except AIPlannerError as exc:
         if current_app.config.get("AI_ENABLE_FALLBACK", True):
             output_text = _fallback_plan_text(scope, stats, period_label, next_period_label or "后续阶段", next_days)

@@ -106,9 +106,11 @@ SECRET_KEY=dev-secret-key
 JWT_SECRET_KEY=dev-jwt-secret-key
 CORS_ORIGINS=http://localhost:5173
 
-# 智能规划（可选）
-GEMINI_API_KEY=your_google_api_key
-# GEMINI_MODEL=gemini-2.5-flash
+# 智能规划（可选，通义千问 OpenAI 兼容接口）
+QWEN_API_KEY=your_dashscope_api_key
+# 或者使用 DASHSCOPE_API_KEY=your_dashscope_api_key
+# QWEN_MODEL=qwen-plus-2025-07-28
+# QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 AI_ENABLE_FALLBACK=1       # 模型不可用时返回基于真实数据的模板分析/规划
 AI_MAX_RETRIES=2
 AI_RETRY_BACKOFF=1.25
@@ -185,7 +187,7 @@ npm run build
 
 ## 三、智能规划（AI）说明
 
-- 后端会聚合日/周/月/阶段的真实学习数据，再调用 Gemini 生成中文分析与规划。
+- 后端会聚合日/周/月/阶段的真实学习数据，再调用通义千问（DashScope OpenAI 兼容接口）生成中文分析与规划。
 - 如果网络/证书问题导致模型不可用，后端会返回“基于真实数据的模板结果”（可在 `.env` 通过 `AI_ENABLE_FALLBACK=0` 关闭）。
 - 常见 SSL 错误（如 `SSL: UNEXPECTED_EOF_WHILE_READING`）通常是网络抖动或代理导致；系统已做自动重试与兜底。
 
@@ -202,8 +204,8 @@ npm run build
   - 确认服务已启动；连接串使用 `postgresql+psycopg2://user:pass@host:port/db`
 - CORS 报错
   - 将前端地址加入后端 `.env` 的 `CORS_ORIGINS`，使用逗号分隔多个来源
-- Gemini 报错/超时
-  - 检查 `GEMINI_API_KEY`；必要时设置 `HTTP(S)_PROXY`；或者暂时依赖兜底模板结果
+- 通义千问报错/超时
+  - 检查 `QWEN_API_KEY`/`DASHSCOPE_API_KEY`；必要时设置 `HTTP(S)_PROXY`；或者暂时依赖兜底模板结果
 
 ---
 

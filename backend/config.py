@@ -52,10 +52,13 @@ class Config:
 
     SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-secret-key-change-in-production"
 
-    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or os.environ.get(
-        "GOOGLE_API_KEY"
+    QWEN_API_KEY = os.environ.get("QWEN_API_KEY") or os.environ.get(
+        "DASHSCOPE_API_KEY"
     )
-    GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+    QWEN_MODEL = os.environ.get("QWEN_MODEL", "qwen-plus-2025-07-28")
+    QWEN_BASE_URL = os.environ.get(
+        "QWEN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    )
     # AI健壮性配置
     AI_ENABLE_FALLBACK = os.environ.get("AI_ENABLE_FALLBACK", "1") not in {"0", "false", "False"}
     AI_MAX_RETRIES = int(os.environ.get("AI_MAX_RETRIES", "2"))
