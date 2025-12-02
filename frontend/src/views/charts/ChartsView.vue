@@ -1,14 +1,11 @@
 <template>
   <div class="charts-view">
-    <div class="page-header">
-      <div class="header-content">
-        <h1>📊 统计分析</h1>
-        <p class="lead">通过数据洞察学习模式，掌握成长轨迹</p>
-      </div>
-    </div>
-
-    <div class="toolbar-container">
-      <div class="toolbar-left">
+    <PageContainer
+      title="📊 统计分析"
+      subtitle="通过数据洞察学习模式，掌握成长轨迹"
+    >
+      <div class="toolbar-container">
+        <div class="toolbar-left">
         <!-- Tabs 按钮组 -->
         <div class="btn-group tab-switch">
           <button
@@ -45,82 +42,82 @@
             📆 日视图
           </button>
         </div>
-      </div>
-      <div
-        class="category-filters"
-        v-if="['categories', 'cattrend'].includes(charts.activeTab)"
-      >
-        <div class="btn-group filter-switch">
-          <button
-            v-for="mode in categoryModes"
-            :key="mode.value"
-            :class="['btn', rangeMode === mode.value && 'active']"
-            @click="onRangeModeChange(mode.value)"
-          >
-            {{ mode.label }}
-          </button>
         </div>
-        <div class="filter-inputs">
-          <select
-            v-if="rangeMode === 'stage'"
-            class="stage-select"
-            v-model="stageSelected"
-            @change="onStageChange"
-          >
-            <option value="all">全部历史</option>
-            <option v-for="s in charts.stages" :key="s.id" :value="s.id">
-              {{ s.name }}
-            </option>
-          </select>
-          <el-date-picker
-            v-else-if="rangeMode === 'daily'"
-            v-model="datePoint"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="选择日期"
-            clearable
-            @clear="onFilterCleared"
-            :disabled="charts.loading"
-          />
-          <el-date-picker
-            v-else-if="rangeMode === 'weekly'"
-            v-model="datePoint"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="选择一周中的任意一天"
-            :first-day-of-week="1"
-            clearable
-            @clear="onFilterCleared"
-            :disabled="charts.loading"
-          />
-          <el-date-picker
-            v-else-if="rangeMode === 'monthly'"
-            v-model="datePoint"
-            type="month"
-            value-format="YYYY-MM"
-            placeholder="选择月份"
-            clearable
-            @clear="onFilterCleared"
-            :disabled="charts.loading"
-          />
-          <el-date-picker
-            v-else-if="rangeMode === 'custom'"
-            v-model="customRange"
-            type="daterange"
-            value-format="YYYY-MM-DD"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            unlink-panels
-            clearable
-            @clear="onFilterCleared"
-            :disabled="charts.loading"
-          />
+        <div
+          class="category-filters"
+          v-if="['categories', 'cattrend'].includes(charts.activeTab)"
+        >
+          <div class="btn-group filter-switch">
+            <button
+              v-for="mode in categoryModes"
+              :key="mode.value"
+              :class="['btn', rangeMode === mode.value && 'active']"
+              @click="onRangeModeChange(mode.value)"
+            >
+              {{ mode.label }}
+            </button>
+          </div>
+          <div class="filter-inputs">
+            <select
+              v-if="rangeMode === 'stage'"
+              class="stage-select"
+              v-model="stageSelected"
+              @change="onStageChange"
+            >
+              <option value="all">全部历史</option>
+              <option v-for="s in charts.stages" :key="s.id" :value="s.id">
+                {{ s.name }}
+              </option>
+            </select>
+            <el-date-picker
+              v-else-if="rangeMode === 'daily'"
+              v-model="datePoint"
+              type="date"
+              value-format="YYYY-MM-DD"
+              placeholder="选择日期"
+              clearable
+              @clear="onFilterCleared"
+              :disabled="charts.loading"
+            />
+            <el-date-picker
+              v-else-if="rangeMode === 'weekly'"
+              v-model="datePoint"
+              type="date"
+              value-format="YYYY-MM-DD"
+              placeholder="选择一周中的任意一天"
+              :first-day-of-week="1"
+              clearable
+              @clear="onFilterCleared"
+              :disabled="charts.loading"
+            />
+            <el-date-picker
+              v-else-if="rangeMode === 'monthly'"
+              v-model="datePoint"
+              type="month"
+              value-format="YYYY-MM"
+              placeholder="选择月份"
+              clearable
+              @clear="onFilterCleared"
+              :disabled="charts.loading"
+            />
+            <el-date-picker
+              v-else-if="rangeMode === 'custom'"
+              v-model="customRange"
+              type="daterange"
+              value-format="YYYY-MM-DD"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              unlink-panels
+              clearable
+              @clear="onFilterCleared"
+              :disabled="charts.loading"
+            />
+          </div>
         </div>
       </div>
-    </div>
-    <div class="tab-panels">
-      <div v-show="charts.activeTab === 'trends'" class="panel">
+      <div class="tab-panels">
+        <div v-show="charts.activeTab === 'trends'" class="panel">
         <!-- KPI 仅在趋势分析面板内部显示，符合旧项目布局 -->
         <div class="kpi-grid" v-loading="charts.loading">
           <KpiCard label="今天时长" color="amber">
@@ -290,6 +287,7 @@
         <CategoryTrend />
       </div>
     </div>
+    </PageContainer>
   </div>
 </template>
 
@@ -303,6 +301,7 @@ import TrendsChart from "@/components/business/charts/TrendsChart.vue";
 import CategoryComposite from "@/components/business/charts/CategoryComposite.vue";
 import CategoryTrend from "@/components/business/charts/CategoryTrend.vue";
 import KpiCard from "@/components/business/charts/KpiCard.vue";
+import PageContainer from "@/components/layout/PageContainer.vue";
 
 const charts = useChartsStore();
 const stageStore = useStageStore();

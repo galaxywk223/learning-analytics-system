@@ -116,26 +116,70 @@
   width: calc(100% - var(--sidebar-width));
 }
 
-/* ===== 为需要内边距的页面添加容器样式 ===== */
-/* Dashboard、登录页等全屏页面不需要 padding */
+/* ===== 功能页统一内边距（dashboard 等看板页保持原样） ===== */
 .records-view,
 .charts-view,
-.settings-view,
-.countdown-view,
+.leaderboard-view,
+.ai-view,
+.ai-assistant,
+.countdown-page,
 .milestones-view,
+.milestone-category-manager,
 .stages-view,
+.stage-management,
 .categories-view,
 .todos-view,
-.focus-view {
-  padding: 2rem;
-  min-height: 100vh;
-  background-color: var(--surface-section);
+.focus-view,
+.settings-layout-container {
+  padding: 24px;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
-/* 全屏页面保持无 padding */
-.dashboard-view {
-  padding: 0;
-  background-color: var(--surface-section);
+/* 设置中心子页面标题：比主标题略小，接近格言字号 */
+.settings-subpage .page-title {
+  font-size: 1.5rem !important;
+  line-height: 1.4;
+}
+
+.settings-subpage .page-subtitle {
+  font-size: 0.95rem !important;
+}
+
+/* ===== 标题与副标题统一样式 ===== */
+.page-header h1,
+.page-title,
+.header-content h1,
+.title-group h1,
+.ai-assistant__header h1,
+.focus-header h1,
+.countdown-page h1,
+.milestones-view h1,
+.milestone-category-manager h1,
+.settings-layout-container h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.page-header p,
+.page-subtitle,
+.header-content p,
+.title-group p,
+.ai-assistant__header p,
+.focus-header p,
+.countdown-page p,
+.milestones-view p,
+.milestone-category-manager p,
+.settings-layout-container p {
+  font-size: 16px;
+  color: #4b5563;
+  margin: 6px 0 0;
+  line-height: 1.5;
 }
 
 /* ===== Sidebar Components ===== */

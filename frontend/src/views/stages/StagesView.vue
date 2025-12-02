@@ -1,12 +1,9 @@
 <template>
-  <div class="stage-management settings-subview">
-    <!-- 页头 -->
-    <div class="page-header">
-      <h1>阶段管理</h1>
-      <p class="lead">
-        创建、切换、编辑和删除您的学习阶段（完全对齐旧版页面）。
-      </p>
-    </div>
+  <PageContainer
+    title="🚩 阶段管理"
+    subtitle="创建、切换、编辑和删除您的学习阶段（完全对齐旧版页面）。"
+    :custom-class="'stage-management'"
+  >
 
     <!-- 创建新阶段 -->
     <el-card class="stage-card">
@@ -172,7 +169,7 @@
         >
       </template>
     </el-dialog>
-  </div>
+  </PageContainer>
 </template>
 
 <script setup>
@@ -181,6 +178,7 @@ import { useStageStore } from "@/stores/modules/stage";
 import { useSettingsStore } from "@/stores/modules/settings";
 import { ElMessageBox, ElMessage } from "element-plus";
 import { Icon } from "@iconify/vue";
+import PageContainer from "@/components/layout/PageContainer.vue";
 
 const stageStore = useStageStore();
 const settingsStore = useSettingsStore();
@@ -294,21 +292,6 @@ function confirmDelete(stage) {
 </script>
 
 <style scoped>
-.settings-subview {
-  padding: 1rem 0 2rem;
-}
-.page-header {
-  margin-bottom: 1.25rem;
-}
-.page-header h1 {
-  margin: 0 0 0.5rem;
-  font-size: 1.5rem;
-}
-.lead {
-  color: #666;
-  font-size: 0.95rem;
-}
-
 .stage-card {
   margin-bottom: 0.5rem;
 }

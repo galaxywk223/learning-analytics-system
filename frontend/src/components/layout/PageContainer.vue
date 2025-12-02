@@ -1,0 +1,86 @@
+<template>
+  <div class="page-container" :class="customClass">
+    <header class="page-header" v-if="title || $slots.actions || $slots.header">
+      <div class="page-header__titles" v-if="!$slots.header">
+        <h1 class="page-title">{{ title }}</h1>
+        <p v-if="subtitle" class="page-subtitle">{{ subtitle }}</p>
+      </div>
+      <div v-else class="page-header__custom">
+        <slot name="header" />
+      </div>
+      <div class="page-header__actions" v-if="$slots.actions">
+        <slot name="actions" />
+      </div>
+    </header>
+    <div class="page-body">
+      <slot />
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+defineProps<{
+  title?: string;
+  subtitle?: string;
+  customClass?: string | string[] | Record<string, boolean>;
+}>();
+</script>
+
+<style scoped lang="scss">
+.page-container {
+  padding: 32px;
+  min-height: 100%;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: var(--page-header-height);
+  margin: 24px 0 20px;
+  text-align: center;
+}
+
+.page-header__titles,
+.page-header__custom {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.page-title {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-text-heading, #1f2937);
+}
+
+.page-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  min-height: 40px;
+}
+
+.page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+</style>

@@ -1,14 +1,14 @@
 <template>
-  <div class="countdown-page">
-    <div class="page-header">
-      <div>
-        <h1>目标倒计时</h1>
-        <p class="lead" v-if="relativeTime">{{ relativeTime }}</p>
-      </div>
+  <PageContainer
+    title="⏰ 目标倒计时"
+    :subtitle="relativeTime"
+    :custom-class="'countdown-page'"
+  >
+    <template #actions>
       <el-button type="primary" @click="openCreate" class="add-btn"
         >添加新目标</el-button
       >
-    </div>
+    </template>
 
     <el-skeleton v-if="store.loading" :rows="6" animated />
     <div v-else>
@@ -96,7 +96,7 @@
         }}</el-button>
       </template>
     </el-dialog>
-  </div>
+  </PageContainer>
 </template>
 
 <script setup>
@@ -109,6 +109,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 import { useCountdownStore } from "@/stores/modules/countdown";
 import CountdownItem from "@/components/business/countdown/CountdownItem.vue";
+import PageContainer from "@/components/layout/PageContainer.vue";
 
 const store = useCountdownStore();
 const dialogVisible = ref(false);

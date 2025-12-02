@@ -1,195 +1,237 @@
 <template>
   <div class="ai-assistant">
-    <header class="ai-assistant__header">
-      <h1>智能规划助手</h1>
-      <p>按日、周、月或阶段梳理学习数据，生成易读的总结与下一步规划，并支持历史追溯。</p>
+    <PageContainer
+      title="🤖 智能规划助手"
+      subtitle="按日、周、月或阶段梳理学习数据，生成易读的总结与下一步规划，并支持历史追溯。"
+    >
       <div class="meta-chips">
         <span class="chip"><span class="dot" />{{ scopeLabel }}</span>
         <span class="chip" v-if="!isStageScope">{{ currentPeriodLabel }}</span>
         <span class="chip" v-else>{{ currentStageLabel }}</span>
       </div>
-    </header>
 
-    <el-card class="control-card" shadow="never">
-      <div class="control-grid">
-        <div class="control-grid__item">
-          <span class="control-label">分析范围</span>
-          <el-radio-group v-model="scopeValue" size="small">
-            <el-radio-button v-for="item in scopeOptions" :key="item.value" :label="item.value">
-              {{ item.label }}
-            </el-radio-button>
-          </el-radio-group>
-        </div>
-
-        <div class="control-grid__item" v-if="!isStageScope">
-          <span class="control-label">选择日期</span>
-          <el-date-picker
-            v-model="dateValue"
-            :type="datePickerType"
-            value-format="YYYY-MM-DD"
-            :placeholder="datePlaceholder"
-            :clearable="false"
-          />
-        </div>
-
-        <div class="control-grid__item" v-else>
-          <span class="control-label">选择阶段</span>
-          <el-select v-model="stageValue" placeholder="请选择阶段" filterable>
-            <el-option
-              v-for="stage in stageOptions"
-              :key="stage.value"
-              :label="stage.label"
-              :value="stage.value"
-            />
-          </el-select>
-        </div>
-
-        <div class="control-grid__item control-grid__item--actions">
-          <el-button type="primary" :loading="analysisLoading" @click="handleGenerateAnalysis">
-            生成分析
-          </el-button>
-          <el-button type="success" :loading="planLoading" @click="handleGeneratePlan">
-            生成规划
-          </el-button>
-          <el-button text type="default" :disabled="!hasResult" @click="handleClear">
-            清空结果
-          </el-button>
-        </div>
-      </div>
-    </el-card>
-
-        <div class="insight-grid">
-      <section class="insight-card" :class="{ 'is-loading': analysisLoading }">
-        <header class="insight-card__header">
-          <div>
-            <span class="title">分析总结</span>
-            <small v-if="analysisMeta.period">{{ analysisMeta.period }}</small>
-          </div>
-          <div class="insight-card__actions">
-            <el-tag type="info" effect="plain" size="small">最新</el-tag>
-            <el-button
-              v-if="analysisHtml"
-              text
-              size="small"
-              @click="openPreviewFromResult('analysis')"
-            >
-              查看详情
-            </el-button>
-          </div>
-        </header>
-        <div class="insight-card__body" v-loading="analysisLoading">
-          <div v-if="analysisHtml" class="insight-content">
-            <div class="markdown-body" v-html="analysisHtml"></div>
-            <p v-if="analysisMeta.generatedAt" class="insight-content__time">
-              生成时间：{{ formatDateTime(analysisMeta.generatedAt) }}
-            </p>
-          </div>
-          <el-empty
-            v-else
-            description="暂无分析结果，点击上方按钮生成。"
-          />
-        </div>
-      </section>
-
-      <section class="insight-card" :class="{ 'is-loading': planLoading }">
-        <header class="insight-card__header">
-          <div>
-            <span class="title">规划建议</span>
-            <div class="result-card__sub" v-if="planMeta.period">
-              <small>{{ planMeta.period }}</small>
-              <el-icon v-if="planMeta.nextPeriod" size="14" class="result-card__arrow">
-                <ArrowRight />
-              </el-icon>
-              <small v-if="planMeta.nextPeriod">{{ planMeta.nextPeriod }}</small>
-            </div>
-          </div>
-          <div class="insight-card__actions">
-            <el-tag type="success" effect="plain" size="small">规划</el-tag>
-            <el-button
-              v-if="planHtml"
-              text
-              size="small"
-              @click="openPreviewFromResult('plan')"
-            >
-              查看详情
-            </el-button>
-          </div>
-        </header>
-        <div class="insight-card__body" v-loading="planLoading">
-          <div v-if="planHtml" class="insight-content">
-            <div class="markdown-body" v-html="planHtml"></div>
-            <p v-if="planMeta.generatedAt" class="insight-content__time">
-              生成时间：{{ formatDateTime(planMeta.generatedAt) }}
-            </p>
-          </div>
-          <el-empty
-            v-else
-            description="暂无规划结果，点击上方按钮生成。"
-          />
-        </div>
-      </section>
-    </div>
-
-    <el-card class="history-card" shadow="never" v-loading="historyLoading">
-      <template #header>
-        <div class="history-card__header">
-          <span>历史记录</span>
-          <div class="history-card__controls">
-            <el-radio-group v-model="historyTypeValue" size="small">
-              <el-radio-button v-for="item in historyTypeOptions" :key="item.value" :label="item.value">
+      <el-card class="control-card" shadow="never">
+        <div class="control-grid">
+          <div class="control-grid__item">
+            <span class="control-label">分析范围</span>
+            <el-radio-group v-model="scopeValue" size="small">
+              <el-radio-button
+                v-for="item in scopeOptions"
+                :key="item.value"
+                :label="item.value"
+              >
                 {{ item.label }}
               </el-radio-button>
             </el-radio-group>
-            <el-button text size="small" @click="handleRefreshHistory">刷新</el-button>
+          </div>
+
+          <div class="control-grid__item" v-if="!isStageScope">
+            <span class="control-label">选择日期</span>
+            <el-date-picker
+              v-model="dateValue"
+              :type="datePickerType"
+              value-format="YYYY-MM-DD"
+              :placeholder="datePlaceholder"
+              :clearable="false"
+            />
+          </div>
+
+          <div class="control-grid__item" v-else>
+            <span class="control-label">选择阶段</span>
+            <el-select v-model="stageValue" placeholder="请选择阶段" filterable>
+              <el-option
+                v-for="stage in stageOptions"
+                :key="stage.value"
+                :label="stage.label"
+                :value="stage.value"
+              />
+            </el-select>
+          </div>
+
+          <div class="control-grid__item control-grid__item--actions">
+            <el-button
+              type="primary"
+              :loading="analysisLoading"
+              @click="handleGenerateAnalysis"
+            >
+              生成分析
+            </el-button>
+            <el-button
+              type="success"
+              :loading="planLoading"
+              @click="handleGeneratePlan"
+            >
+              生成规划
+            </el-button>
+            <el-button
+              text
+              type="default"
+              :disabled="!hasResult"
+              @click="handleClear"
+            >
+              清空结果
+            </el-button>
           </div>
         </div>
-      </template>
+      </el-card>
 
-      <el-empty v-if="!historyRows.length" description="暂无记录" />
-      <el-timeline v-else class="history-timeline">
-        <el-timeline-item
-          v-for="item in historyRows"
-          :key="item.id"
-          :timestamp="item.createdAt"
-          :type="item.type === 'plan' ? 'success' : 'primary'"
+      <div class="insight-grid">
+        <section
+          class="insight-card"
+          :class="{ 'is-loading': analysisLoading }"
         >
-          <div class="history-item">
-            <div class="history-item__header">
-              <el-tag
-                :type="item.type === 'plan' ? 'success' : 'info'"
-                effect="plain"
-                size="small"
-              >
-                {{ item.typeLabel }}
-              </el-tag>
-              <span class="history-item__scope">{{ item.scopeLabel }}</span>
+          <header class="insight-card__header">
+            <div>
+              <span class="title">分析总结</span>
+              <small v-if="analysisMeta.period">{{
+                analysisMeta.period
+              }}</small>
             </div>
-            <div class="history-item__period">{{ item.period }}</div>
-            <div class="history-item__actions">
-              <el-button text type="primary" size="small" @click="handlePreview(item)">
-                查看
+            <div class="insight-card__actions">
+              <el-tag type="info" effect="plain" size="small">最新</el-tag>
+              <el-button
+                v-if="analysisHtml"
+                text
+                size="small"
+                @click="openPreviewFromResult('analysis')"
+              >
+                查看详情
               </el-button>
             </div>
+          </header>
+          <div class="insight-card__body" v-loading="analysisLoading">
+            <div v-if="analysisHtml" class="insight-content">
+              <div class="markdown-body" v-html="analysisHtml"></div>
+              <p v-if="analysisMeta.generatedAt" class="insight-content__time">
+                生成时间：{{ formatDateTime(analysisMeta.generatedAt) }}
+              </p>
+            </div>
+            <el-empty v-else description="暂无分析结果，点击上方按钮生成。" />
           </div>
-        </el-timeline-item>
-      </el-timeline>
-    
-    <el-dialog
-      v-model="previewDialogVisible"
-      :title="previewDialog.title"
-      width="720px"
-      class="preview-dialog"
-      destroy-on-close
-    >
-      <div class="preview-dialog__meta">
-        <span v-if="previewDialog.period">{{ previewDialog.period }}</span>
-        <span v-if="previewDialog.generatedAt">生成时间：{{ previewDialog.generatedAt }}</span>
-        <span v-if="previewDialog.nextPeriod">下一阶段：{{ previewDialog.nextPeriod }}</span>
+        </section>
+
+        <section class="insight-card" :class="{ 'is-loading': planLoading }">
+          <header class="insight-card__header">
+            <div>
+              <span class="title">规划建议</span>
+              <div class="result-card__sub" v-if="planMeta.period">
+                <small>{{ planMeta.period }}</small>
+                <el-icon
+                  v-if="planMeta.nextPeriod"
+                  size="14"
+                  class="result-card__arrow"
+                >
+                  <ArrowRight />
+                </el-icon>
+                <small v-if="planMeta.nextPeriod">{{
+                  planMeta.nextPeriod
+                }}</small>
+              </div>
+            </div>
+            <div class="insight-card__actions">
+              <el-tag type="success" effect="plain" size="small">规划</el-tag>
+              <el-button
+                v-if="planHtml"
+                text
+                size="small"
+                @click="openPreviewFromResult('plan')"
+              >
+                查看详情
+              </el-button>
+            </div>
+          </header>
+          <div class="insight-card__body" v-loading="planLoading">
+            <div v-if="planHtml" class="insight-content">
+              <div class="markdown-body" v-html="planHtml"></div>
+              <p v-if="planMeta.generatedAt" class="insight-content__time">
+                生成时间：{{ formatDateTime(planMeta.generatedAt) }}
+              </p>
+            </div>
+            <el-empty v-else description="暂无规划结果，点击上方按钮生成。" />
+          </div>
+        </section>
       </div>
-      <div v-if="previewDialog.html" class="markdown-body" v-html="previewDialog.html"></div>
-      <el-empty v-else description="暂无内容" />
-    </el-dialog>
-</el-card>
+
+      <el-card class="history-card" shadow="never" v-loading="historyLoading">
+        <template #header>
+          <div class="history-card__header">
+            <span>历史记录</span>
+            <div class="history-card__controls">
+              <el-radio-group v-model="historyTypeValue" size="small">
+                <el-radio-button
+                  v-for="item in historyTypeOptions"
+                  :key="item.value"
+                  :label="item.value"
+                >
+                  {{ item.label }}
+                </el-radio-button>
+              </el-radio-group>
+              <el-button text size="small" @click="handleRefreshHistory"
+                >刷新</el-button
+              >
+            </div>
+          </div>
+        </template>
+
+        <el-empty v-if="!historyRows.length" description="暂无记录" />
+        <el-timeline v-else class="history-timeline">
+          <el-timeline-item
+            v-for="item in historyRows"
+            :key="item.id"
+            :timestamp="item.createdAt"
+            :type="item.type === 'plan' ? 'success' : 'primary'"
+          >
+            <div class="history-item">
+              <div class="history-item__header">
+                <el-tag
+                  :type="item.type === 'plan' ? 'success' : 'info'"
+                  effect="plain"
+                  size="small"
+                >
+                  {{ item.typeLabel }}
+                </el-tag>
+                <span class="history-item__scope">{{ item.scopeLabel }}</span>
+              </div>
+              <div class="history-item__period">{{ item.period }}</div>
+              <div class="history-item__actions">
+                <el-button
+                  text
+                  type="primary"
+                  size="small"
+                  @click="handlePreview(item)"
+                >
+                  查看
+                </el-button>
+              </div>
+            </div>
+          </el-timeline-item>
+        </el-timeline>
+
+        <el-dialog
+          v-model="previewDialogVisible"
+          :title="previewDialog.title"
+          width="720px"
+          class="preview-dialog"
+          destroy-on-close
+        >
+          <div class="preview-dialog__meta">
+            <span v-if="previewDialog.period">{{ previewDialog.period }}</span>
+            <span v-if="previewDialog.generatedAt"
+              >生成时间：{{ previewDialog.generatedAt }}</span
+            >
+            <span v-if="previewDialog.nextPeriod"
+              >下一阶段：{{ previewDialog.nextPeriod }}</span
+            >
+          </div>
+          <div
+            v-if="previewDialog.html"
+            class="markdown-body"
+            v-html="previewDialog.html"
+          ></div>
+          <el-empty v-else description="暂无内容" />
+        </el-dialog>
+      </el-card>
+    </PageContainer>
   </div>
 </template>
 
@@ -198,8 +240,13 @@ import { computed, onMounted, ref } from "vue";
 import dayjs from "dayjs";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import PageContainer from "@/components/layout/PageContainer.vue";
 import { ArrowRight } from "@element-plus/icons-vue";
-import { useAIAssistantStore, type HistoryType, type Scope } from "@/stores/modules/aiAssistant";
+import {
+  useAIAssistantStore,
+  type HistoryType,
+  type Scope,
+} from "@/stores/modules/aiAssistant";
 import { useStageStore } from "@/stores/modules/stage";
 marked.setOptions({ breaks: true, gfm: true });
 
@@ -246,7 +293,6 @@ const historyTypeOptions: Array<{ value: HistoryType; label: string }> = [
   { value: "plan", label: "规划" },
 ];
 
-
 const analysisLoading = computed(() => aiStore.analysisLoading);
 const planLoading = computed(() => aiStore.planLoading);
 const historyLoading = computed(() => aiStore.historyLoading);
@@ -285,7 +331,9 @@ const historyTypeValue = computed<HistoryType>({
 });
 
 const isStageScope = computed(() => scopeValue.value === "stage");
-const datePickerType = computed(() => (scopeValue.value === "month" ? "month" : "date"));
+const datePickerType = computed(() =>
+  scopeValue.value === "month" ? "month" : "date"
+);
 const datePlaceholder = computed(() => {
   switch (scopeValue.value) {
     case "day":
@@ -319,14 +367,21 @@ const currentPeriodLabel = computed(() => {
     const weekday = d.day();
     const monday = d.subtract((weekday + 6) % 7, "day");
     const sunday = monday.add(6, "day");
-    return buildPeriodLabel("week", monday.format("YYYY-MM-DD"), sunday.format("YYYY-MM-DD"));
+    return buildPeriodLabel(
+      "week",
+      monday.format("YYYY-MM-DD"),
+      sunday.format("YYYY-MM-DD")
+    );
   }
   // month
   const first = d.startOf("month");
   const last = d.endOf("month");
-  return buildPeriodLabel("month", first.format("YYYY-MM-DD"), last.format("YYYY-MM-DD"));
+  return buildPeriodLabel(
+    "month",
+    first.format("YYYY-MM-DD"),
+    last.format("YYYY-MM-DD")
+  );
 });
-
 
 function renderMarkdown(text?: string) {
   if (!text) return "";
@@ -343,7 +398,9 @@ const stageOptions = computed(() =>
 const analysisInsight = computed(() => aiStore.analysisResult as any | null);
 const planInsight = computed(() => aiStore.planResult as any | null);
 
-const analysisHtml = computed(() => renderMarkdown(analysisInsight.value?.text));
+const analysisHtml = computed(() =>
+  renderMarkdown(analysisInsight.value?.text)
+);
 const planHtml = computed(() => renderMarkdown(planInsight.value?.text));
 
 const analysisMeta = computed(() => ({
@@ -368,14 +425,15 @@ const previewDialog = ref<PreviewDialogState>({
   nextPeriod: "",
 });
 
-
-
 const historyRows = computed<HistoryRow[]>(() =>
   (aiStore.historyItems || []).map((item: any) => {
     const scope = (item.scope || "week") as Scope;
-    const period = item.input_snapshot?.period_label ?? buildPeriodLabel(scope, item.start_date, item.end_date);
+    const period =
+      item.input_snapshot?.period_label ??
+      buildPeriodLabel(scope, item.start_date, item.end_date);
     const nextPeriod =
-      item.input_snapshot?.next_period_label ?? buildPeriodLabel(scope, item.next_start_date, item.next_end_date);
+      item.input_snapshot?.next_period_label ??
+      buildPeriodLabel(scope, item.next_start_date, item.next_end_date);
     return {
       id: item.id,
       raw: item,
@@ -390,14 +448,16 @@ const historyRows = computed<HistoryRow[]>(() =>
   })
 );
 
-
-
 function formatDateTime(value?: string) {
   if (!value) return "";
   return dayjs(value).format("YYYY-MM-DD HH:mm");
 }
 
-function buildPeriodLabel(scope: Scope, start?: string | null, end?: string | null) {
+function buildPeriodLabel(
+  scope: Scope,
+  start?: string | null,
+  end?: string | null
+) {
   if (!start && !end) return "";
   if (start && end) {
     if (start === end) {
@@ -431,12 +491,15 @@ async function handleRefreshHistory() {
 }
 
 function openPreviewFromResult(type: "analysis" | "plan") {
-  const insight = type === "analysis" ? analysisInsight.value : planInsight.value;
+  const insight =
+    type === "analysis" ? analysisInsight.value : planInsight.value;
   if (!insight) return;
   previewDialog.value = {
     title: type === "analysis" ? "分析总结" : "规划建议",
     html: renderMarkdown(insight.text) || "",
-    generatedAt: insight.generated_at ? formatDateTime(insight.generated_at) : "",
+    generatedAt: insight.generated_at
+      ? formatDateTime(insight.generated_at)
+      : "",
     period: insight.period_label ?? "",
     nextPeriod: insight.next_period_label ?? "",
   };
@@ -464,47 +527,9 @@ onMounted(async () => {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 20px;
   min-height: 100%;
-  padding: 24px;
   isolation: isolate;
   background: linear-gradient(180deg, #fafbff 0%, #ffffff 100%);
-
-  &__header {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 16px 18px;
-    border-radius: 14px;
-    background: #fff;
-    border: 1px solid var(--color-border-card);
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-
-    h1 {
-      margin: 0;
-      font-size: 24px;
-      font-weight: 700;
-      color: #1f1d47;
-      display: flex;
-      align-items: center;
-    }
-
-    h1::before {
-      content: "";
-      width: 8px;
-      height: 22px;
-      border-radius: 4px;
-      margin-right: 10px;
-      background: linear-gradient(180deg, var(--color-primary), #8b5cf6);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-    }
-
-    p {
-      margin: 0;
-      color: #64748b;
-      font-size: 14px;
-    }
-  }
 
   .meta-chips {
     display: flex;
@@ -570,7 +595,6 @@ onMounted(async () => {
     }
   }
 }
-
 
 .insight-grid {
   display: grid;
@@ -657,7 +681,11 @@ onMounted(async () => {
 }
 
 .history-item {
-  background: linear-gradient(135deg, rgba(248, 250, 255, 0.96), rgba(237, 233, 254, 0.92));
+  background: linear-gradient(
+    135deg,
+    rgba(248, 250, 255, 0.96),
+    rgba(237, 233, 254, 0.92)
+  );
   border-radius: 16px;
   padding: 14px 18px;
   display: flex;
@@ -782,15 +810,3 @@ onMounted(async () => {
   }
 }
 </style>
-
-
-
-
-
-
-
-
-
-
-
-

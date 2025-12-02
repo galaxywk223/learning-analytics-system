@@ -1,23 +1,50 @@
 <template>
-  <div class="records-view">
-    <!-- 页面头部 -->
-    <RecordHeader
-      :current-sort="currentSort"
-      :can-add-record="canAddRecord"
-      @sort-change="changeSort"
-      @add-record="openAddDialog"
-    />
+  <PageContainer
+    title="📒 学习记录"
+    subtitle="在这里回顾每一次努力，见证成长的每一步。"
+    :custom-class="'records-view'"
+  >
+    <template #actions>
+      <div class="record-actions">
+        <el-button-group>
+          <el-button
+            :type="currentSort === 'desc' ? 'primary' : ''"
+            size="small"
+            @click="changeSort('desc')"
+          >
+            降序
+          </el-button>
+          <el-button
+            :type="currentSort === 'asc' ? 'primary' : ''"
+            size="small"
+            @click="changeSort('asc')"
+          >
+            升序
+          </el-button>
+        </el-button-group>
+        <el-tooltip
+          :disabled="canAddRecord"
+          content="请先创建或选择一个阶段"
+          placement="top"
+        >
+          <el-button
+            type="primary"
+            :disabled="!canAddRecord"
+            @click="openAddDialog()"
+          >
+            添加新记录
+          </el-button>
+        </el-tooltip>
+      </div>
+    </template>
 
-    <!-- 加载状态 -->
     <el-skeleton v-if="loading" :rows="4" :animated="false" />
 
-    <!-- 空状态 -->
     <EmptyState
       v-else-if="!structuredLogs.length"
       @add-record="openAddDialog"
     />
 
-    <!-- 周折叠面板 -->
     <WeekAccordion
       v-else
       :weeks="structuredLogs"
@@ -29,7 +56,6 @@
       @delete-record="handleDelete"
     />
 
-    <!-- 添加/编辑对话框 -->
     <el-dialog
       v-model="dialogVisible"
       :title="isEditing ? '✏️ 编辑记录' : '➕ 添加新记录'"
@@ -50,18 +76,18 @@
         @cancel="dialogVisible = false"
       />
     </el-dialog>
-  </div>
+  </PageContainer>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onActivated, watch } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import RecordForm from "@/components/business/records/RecordForm.vue";
-import RecordHeader from "@/components/business/records/RecordHeader.vue";
 import EmptyState from "@/components/business/records/EmptyState.vue";
 import WeekAccordion from "@/components/business/records/WeekAccordion.vue";
 import { useStageStore } from "@/stores/modules/stage";
 import request from "@/utils/request";
+import PageContainer from "@/components/layout/PageContainer.vue";
 
 const stagesStore = useStageStore();
 
@@ -145,7 +171,6 @@ const normalizeDate = (raw) => {
 
 // 打开添加对话框
 const openAddDialog = (date = null) => {
-  // 阶段未选择时直接提示
   if (!currentStage.value?.id) {
     ElMessage.warning("请先创建或选择一个学习阶段再添加记录");
     return;
@@ -189,30 +214,24 @@ const handleSubmit = async (formData) => {
   try {
     if (isEditing.value) {
       // 更新记录
-      const response = await request.put(
-        `/api/records/${currentRecord.value.id}`,
-        {
-          ...formData,
-          stage_id: currentStage.value.id,
-        }
-      );
-      ElMessage.success("记录更新成功!");
-    } else {
-      // 创建记录
-      const response = await request.post("/api/records", {
+      await request.put(`/api/records/${currentRecord.value.id}`, {
         ...formData,
         stage_id: currentStage.value.id,
       });
-      ElMessage.success("新纪录添加成功!");
+      ElMessage.success("记录更新成功!");
+    } else {
+      // 创建新记录
+      await request.post("/api/records", {
+        ...formData,
+        stage_id: currentStage.value.id,
+      });
+      ElMessage.success("记录添加成功!");
     }
-
     dialogVisible.value = false;
-    await loadRecords(true);
+    loadRecords(true);
   } catch (error) {
-    console.error("提交失败:", error);
-    const errorMsg =
-      error.response?.data?.message || error.message || "操作失败";
-    ElMessage.error(errorMsg);
+    console.error("保存失败:", error);
+    ElMessage.error("操作失败，请重试");
   } finally {
     submitting.value = false;
   }
@@ -221,42 +240,45 @@ const handleSubmit = async (formData) => {
 // 删除记录
 const handleDelete = async (record) => {
   try {
-    await ElMessageBox.confirm(`确定要删除"${record.task}"吗？`, "警告", {
-      confirmButtonText: "确定",
+    await ElMessageBox.confirm(`确定删除该条记录？`, "提示", {
+      confirmButtonText: "删除",
       cancelButtonText: "取消",
       type: "warning",
     });
-
-    await request.delete(`/api/records/${record.id}`);
-    ElMessage.success("记录已删除。");
-    loadRecords(true);
+    const response = await request.delete(`/api/records/${record.id}`);
+    if (response.success) {
+      ElMessage.success("删除成功");
+      loadRecords(true);
+    }
   } catch (error) {
+    console.error("删除失败:", error);
     if (error !== "cancel") {
-      console.error("删除失败:", error);
       ElMessage.error("删除失败");
     }
   }
 };
 
 // 切换笔记展开
-const toggleNotes = (logId) => {
-  const index = expandedNotes.value.indexOf(logId);
-  if (index > -1) {
-    expandedNotes.value.splice(index, 1);
+const toggleNotes = (recordId) => {
+  const index = expandedNotes.value.indexOf(recordId);
+  if (index === -1) {
+    expandedNotes.value.push(recordId);
   } else {
-    expandedNotes.value.push(logId);
+    expandedNotes.value.splice(index, 1);
   }
 };
 
 onMounted(async () => {
-  await stagesStore.ensureStages();
+  await stagesStore.fetchStages();
   initialized.value = true;
-  await loadRecords(true);
+  if (stagesStore.activeStage?.id) {
+    loadRecords(true);
+  }
 });
 
 onActivated(() => {
-  if (initialized.value) {
-    loadRecords();
+  if (!loading.value && currentStage.value?.id) {
+    loadRecords(false);
   }
 });
 
@@ -273,13 +295,10 @@ watch(
 </script>
 
 <style scoped lang="scss">
-@use "@/styles/views/records/RecordsView.module.scss";
-
-.records-view {
-  padding: 16px;
-  max-width: 1400px;
-  margin: 0 auto;
-  min-height: calc(100vh - 60px);
+.record-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .record-dialog {

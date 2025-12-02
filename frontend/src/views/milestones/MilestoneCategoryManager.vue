@@ -1,16 +1,17 @@
 ﻿<template>
-  <div class="milestone-category-manager">
-    <div
-      class="page-header d-flex justify-content-between align-items-center mb-4 flex-wrap"
-    >
-      <div>
-        <h1>成就分类管理</h1>
-        <p class="lead text-secondary mb-0">管理您的成就时刻分类标签。</p>
+  <PageContainer
+    title="🏷️ 成就分类管理"
+    subtitle="管理您的成就时刻分类标签。"
+    :custom-class="'milestone-category-manager'"
+    :max-width="1400"
+  >
+    <template #actions>
+      <div class="header-actions">
+        <el-button @click="goBack" class="btn-outline-light">
+          <Icon icon="lucide:arrow-left" class="me-2" />返回时间线
+        </el-button>
       </div>
-      <el-button @click="goBack" class="btn-outline-light">
-        <Icon icon="lucide:arrow-left" class="me-2" />返回时间线
-      </el-button>
-    </div>
+    </template>
 
     <div class="layout-grid">
       <div class="add-form-card card">
@@ -107,13 +108,14 @@
         </div>
       </div>
     </div>
-  </div>
+  </PageContainer>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { Icon } from "@iconify/vue";
+import PageContainer from "@/components/layout/PageContainer.vue";
 import { milestoneAPI } from "@/api/modules/milestone";
 
 const router = useRouter();

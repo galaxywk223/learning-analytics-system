@@ -121,6 +121,13 @@ body {
   flex-shrink: 0;
 }
 
+/* 所有图标不可选中复制 */
+svg,
+i {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 /* ===== 7. 玻璃态效果 (可选) ===== */
 .glass-effect {
   background-color: var(--surface-card);

@@ -1,9 +1,9 @@
 ﻿<template>
-  <section class="data-settings">
-    <header class="settings-section-header">
-      <h2>数据管理</h2>
-      <p>备份、恢复或清空您的学习数据</p>
-    </header>
+  <PageContainer
+    title="💾 数据管理"
+    subtitle="备份、恢复或清空您的学习数据"
+    :custom-class="'settings-subpage'"
+  >
 
     <!-- 导出数据卡片 -->
     <div class="settings-card">
@@ -136,7 +136,7 @@
         </button>
       </div>
     </div>
-  </section>
+  </PageContainer>
 </template>
 
 <script setup>
@@ -144,6 +144,7 @@ import { ref } from "vue";
 import { Icon } from "@iconify/vue";
 import axios from "axios";
 import { ElMessage, ElMessageBox } from "element-plus";
+import PageContainer from "@/components/layout/PageContainer.vue";
 
 const exporting = ref(false);
 const importing = ref(false);

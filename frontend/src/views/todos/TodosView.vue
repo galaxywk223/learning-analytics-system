@@ -1,15 +1,14 @@
 <template>
-  <div class="todos-view">
-    <div class="header">
-      <div>
-        <h1>待办事项</h1>
-        <p class="sub">集中管理日常任务，跟踪完成情况</p>
-      </div>
-      <div class="actions">
-        <el-button type="primary" @click="openCreate">新增</el-button>
-        <el-button @click="refresh" :loading="store.loading">刷新</el-button>
-      </div>
-    </div>
+  <PageContainer
+    title="✅ 待办事项"
+    subtitle="集中管理日常任务，跟踪完成情况"
+    :custom-class="'todos-view'"
+  >
+    <template #actions>
+      <el-button type="primary" @click="openCreate">新增</el-button>
+      <el-button @click="refresh" :loading="store.loading">刷新</el-button>
+    </template>
+
     <div class="filters">
       <el-segmented v-model="filter" :options="filterOptions" size="small" />
       <el-input
@@ -20,6 +19,7 @@
         style="width: 220px"
       />
     </div>
+
     <el-table
       :data="filtered"
       v-loading="store.loading"
@@ -59,20 +59,23 @@
         </template>
       </el-table-column>
     </el-table>
+
     <el-empty
       v-if="!store.loading && !filtered.length"
       description="暂无数据"
     />
 
     <TodoForm v-model="dialogVisible" :data="editing" @submit="submit" />
-  </div>
+  </PageContainer>
 </template>
+
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useTodoStore } from "@/stores/modules/todo";
 import { todoAPI } from "@/api/modules/todo";
 import TodoForm from "@/components/business/todo/TodoForm.vue";
 import { ElMessageBox, ElMessage } from "element-plus";
+import PageContainer from "@/components/layout/PageContainer.vue";
 
 const store = useTodoStore();
 const filter = ref("all");
@@ -140,7 +143,6 @@ async function remove(row) {
 
 async function toggle(row) {
   try {
-    // 若后端有单独 toggle 接口
     if (todoAPI.toggle) {
       await todoAPI.toggle(row.id);
       row.completed = !row.completed;
@@ -154,27 +156,8 @@ async function toggle(row) {
 
 onMounted(() => refresh());
 </script>
+
 <style scoped>
-.todos-view {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-}
-.header h1 {
-  margin: 0;
-  font-size: 24px;
-}
-.sub {
-  margin: 4px 0 0;
-  color: #666;
-  font-size: 13px;
-}
 .actions {
   display: flex;
   gap: 8px;

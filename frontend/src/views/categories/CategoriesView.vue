@@ -1,13 +1,15 @@
 <template>
-  <div class="categories-view">
-    <CategoryHeader
-      title="分类管理"
-      subtitle="维护学习分类与子分类层级结构"
-      add-button-text="新增分类"
-      :loading="store.loading"
-      @add="addRoot"
-      @refresh="refresh"
-    />
+  <PageContainer
+    title="📂 分类管理"
+    subtitle="维护学习分类与子分类层级结构"
+    :custom-class="'categories-view'"
+  >
+    <template #actions>
+      <div class="actions">
+        <el-button type="primary" @click="addRoot">新增分类</el-button>
+        <el-button :loading="store.loading" @click="refresh">刷新</el-button>
+      </div>
+    </template>
 
     <div class="content-section" v-loading="store.loading">
       <CategoryTree
@@ -32,16 +34,16 @@
       @close="closeForm"
       @submit="handleSubmit"
     />
-  </div>
+  </PageContainer>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useCategoryStore } from "@/stores/category";
-import CategoryHeader from "./components/CategoryHeader.vue";
 import CategoryTree from "./components/CategoryTree.vue";
 import CategoryForm from "./components/CategoryForm.vue";
+import PageContainer from "@/components/layout/PageContainer.vue";
 
 const store = useCategoryStore();
 const treeRef = ref(null);
@@ -189,23 +191,16 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.categories-view {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-height: 100vh;
-  background: transparent;
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-
 .content-section {
   margin-top: 24px;
 }
 
 @media (max-width: 768px) {
-  .categories-view {
-    padding: 16px;
-  }
-
   .content-section {
     margin-top: 16px;
   }

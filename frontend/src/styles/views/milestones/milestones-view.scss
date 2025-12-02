@@ -1,34 +1,9 @@
 /* Milestones View Styles - Flat theme alignment */
 
 .milestones-view {
-  min-height: 100vh;
-  background: var(--surface-section);
-  padding: clamp(1.5rem, 3vw, 2.5rem);
   display: flex;
   flex-direction: column;
   gap: clamp(1.5rem, 3vw, 2rem);
-}
-
-.page-header {
-  background: var(--surface-card);
-  border: 1px solid var(--color-border-card);
-  border-radius: 20px;
-  padding: clamp(1.5rem, 3vw, 2rem);
-  box-shadow: var(--box-shadow);
-  gap: 1.5rem;
-}
-
-.page-header h1 {
-  font-size: clamp(1.6rem, 3vw, 2.1rem);
-  font-weight: 700;
-  color: var(--color-text-heading);
-  margin: 0 0 0.5rem;
-}
-
-.page-header .lead {
-  color: var(--color-text-secondary);
-  font-size: 1rem;
-  margin: 0;
 }
 
 .header-actions {
@@ -249,15 +224,6 @@
 }
 
 @media (max-width: 768px) {
-  .milestones-view {
-    padding: 1rem;
-  }
-
-  .page-header {
-    border-radius: 16px;
-    padding: 1.5rem;
-  }
-
   .header-actions {
     width: 100%;
     justify-content: flex-start;

@@ -1,5 +1,9 @@
 <template>
-  <section class="account-settings">
+  <PageContainer
+    title="👤 账户设置"
+    subtitle="管理个人信息与账号安全"
+    :custom-class="'settings-subpage'"
+  >
     <!-- 用户头像区域 -->
     <div class="avatar-section">
       <div class="avatar-preview">
@@ -199,12 +203,13 @@
         </div>
       </div>
     </div>
-  </section>
+  </PageContainer>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { Icon } from "@iconify/vue";
+import PageContainer from "@/components/layout/PageContainer.vue";
 import { useAuthStore } from "@/stores/modules/auth";
 import { ElMessage } from "element-plus";
 import axios from "axios";

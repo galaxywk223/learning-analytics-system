@@ -1,11 +1,11 @@
 <template>
   <div class="leaderboard-view">
-    <section class="header">
-      <div class="title-group">
-        <h1>📈 社区排行</h1>
-        <p class="subtitle">实时查看社区学习时长与效率榜单，点选用户了解详情</p>
-      </div>
-      <div class="controls">
+    <PageContainer
+      title="📈 社区排行"
+      subtitle="实时查看社区学习时长与效率榜单，点选用户了解详情"
+    >
+      <section class="leaderboard-toolbar">
+        <div class="controls">
         <div class="control-group">
           <span class="label">周期</span>
           <div class="btn-group">
@@ -32,10 +32,10 @@
             </button>
           </div>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
 
-    <el-alert
+      <el-alert
       v-if="!leaderboard.optedIn"
       type="info"
       show-icon
@@ -52,7 +52,7 @@
       </template>
     </el-alert>
 
-    <div class="card">
+      <div class="card">
       <div class="card-header">
         <div>
           <h2>{{ currentMetricLabel }} · {{ currentPeriodLabel }}</h2>
@@ -115,7 +115,7 @@
       </div>
     </div>
 
-    <el-drawer
+      <el-drawer
       v-model="detailVisible"
       title="用户详细数据"
       size="45%"
@@ -176,6 +176,7 @@
         </template>
       </div>
     </el-drawer>
+    </PageContainer>
   </div>
 </template>
 
@@ -186,6 +187,7 @@ import { useLeaderboardStore } from "@/stores/modules/leaderboard";
 import dayjs from "dayjs";
 import UserTrendChart from "@/components/business/leaderboard/UserTrendChart.vue";
 import UserCategoryChart from "@/components/business/leaderboard/UserCategoryChart.vue";
+import PageContainer from "@/components/layout/PageContainer.vue";
 
 interface DetailSummary {
   totalHours: string;
@@ -334,7 +336,7 @@ async function handleLeave() {
 </script>
 
 <style scoped lang="scss">
- .leaderboard-view {
+.leaderboard-view {
   padding: 20px clamp(16px, 3vw, 32px) 32px;
   display: flex;
   flex-direction: column;
@@ -342,7 +344,7 @@ async function handleLeave() {
   background: var(--surface-page);
 }
 
-.header {
+.leaderboard-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -352,21 +354,6 @@ async function handleLeave() {
   border-radius: 14px;
   border: 1px solid #e2e8f0;
   padding: 18px 22px;
-
-  .title-group {
-    h1 {
-      margin: 0;
-      font-size: clamp(1.8rem, 3vw, 2.2rem);
-      font-weight: 600;
-      color: #111827;
-    }
-
-    .subtitle {
-      margin: 6px 0 0;
-      color: #6b7280;
-      font-size: 0.95rem;
-    }
-  }
 
   .controls {
     display: flex;

@@ -1,12 +1,9 @@
 <template>
   <div class="focus-view">
-    <div class="focus-container">
-      <!-- 头部 -->
-      <div class="focus-header">
-        <h1>{{ isTimerRunning ? "专注中" : "开始专注" }}</h1>
-        <p class="subtitle">保持专注，记录每一步的累积</p>
-      </div>
-
+    <PageContainer
+      :title="isTimerRunning ? '🎯 专注中' : '🎯 开始专注'"
+      subtitle="保持专注，记录每一步的累积"
+    >
       <div class="focus-layout">
         <div class="focus-layout__timer">
           <!-- 计时器显示 -->
@@ -49,10 +46,8 @@
           />
         </div>
       </div>
-    </div>
-
-    <!-- 结束专注弹窗 -->
-    <el-dialog
+      <!-- 结束专注弹窗 -->
+      <el-dialog
       v-model="stopDialogVisible"
       title="保存学习记录"
       width="600px"
@@ -110,7 +105,8 @@
           保存记录
         </el-button>
       </template>
-    </el-dialog>
+      </el-dialog>
+    </PageContainer>
   </div>
 </template>
 
@@ -130,6 +126,7 @@ import FocusTimer from "@/components/business/focus/FocusTimer.vue";
 import FocusForm from "@/components/business/focus/FocusForm.vue";
 import FocusInfo from "@/components/business/focus/FocusInfo.vue";
 import FocusControls from "@/components/business/focus/FocusControls.vue";
+import PageContainer from "@/components/layout/PageContainer.vue";
 
 const router = useRouter();
 const categoryStore = useCategoryStore();
@@ -466,42 +463,8 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .focus-view {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: clamp(1.5rem, 3vw, 3rem);
   background: var(--surface-page);
-}
-
-.focus-container {
-  width: min(1000px, 100%);
-  display: flex;
-  flex-direction: column;
-  gap: clamp(1.5rem, 2.8vw, 2.4rem);
-  padding: clamp(1.75rem, 3vw, 2.5rem);
-  border-radius: 22px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
-}
-
-.focus-header {
-  text-align: center;
-
-  h1 {
-    font-size: clamp(2rem, 3.5vw, 2.75rem);
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 0.35rem;
-    letter-spacing: 0.01em;
-  }
-
-  .subtitle {
-    font-size: 1rem;
-    color: #64748b;
-    margin: 0;
-  }
 }
 
 .focus-layout {

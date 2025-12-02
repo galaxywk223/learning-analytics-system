@@ -1,11 +1,11 @@
 <template>
-  <div class="settings-view">
-    <div class="settings-container">
-      <header class="settings-page-header">
-        <h1>⚙️ 设置中心</h1>
-        <p class="lead">个性化您的萤火集体验</p>
-      </header>
-
+  <div class="settings-shell">
+    <PageContainer
+      title="⚙️ 设置中心"
+      subtitle="个性化您的萤火集体验"
+      :custom-class="'settings-layout-container'"
+      :max-width="1400"
+    >
       <div class="settings-main-content">
         <aside class="settings-sidebar">
           <nav class="settings-nav">
@@ -39,12 +39,13 @@
           </router-view>
         </main>
       </div>
-    </div>
+    </PageContainer>
   </div>
 </template>
 
 <script setup>
 import { Icon } from "@iconify/vue";
+import PageContainer from "@/components/layout/PageContainer.vue";
 </script>
 
 <style scoped>

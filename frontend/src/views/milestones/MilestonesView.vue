@@ -1,12 +1,11 @@
 ﻿<template>
-  <div class="milestones-view">
-    <div
-      class="page-header d-flex justify-content-between align-items-center mb-4 flex-wrap"
-    >
-      <div>
-        <h1>成就时刻</h1>
-        <p class="lead text-secondary mb-0">记录下每一个值得纪念的闪光瞬间。</p>
-      </div>
+  <PageContainer
+    title="🏆 成就时刻"
+    subtitle="记录下每一个值得纪念的闪光瞬间。"
+    :custom-class="'milestones-view'"
+    :max-width="1400"
+  >
+    <template #actions>
       <div class="header-actions">
         <el-button
           size="small"
@@ -19,7 +18,7 @@
           <Icon icon="lucide:plus-circle" class="me-2" />记录新成就
         </el-button>
       </div>
-    </div>
+    </template>
 
     <div class="layout-grid">
       <aside class="sidebar-filter">
@@ -107,13 +106,14 @@
       :categories="categories"
       @saved="onSaved"
     />
-  </div>
+  </PageContainer>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, computed } from "vue";
 import { useRouter } from "vue-router";
 import { Icon } from "@iconify/vue";
+import PageContainer from "@/components/layout/PageContainer.vue";
 import MilestoneForm from "@/components/milestones/MilestoneForm.vue";
 import MilestoneItem from "@/components/milestones/MilestoneItem.vue";
 import { milestoneAPI } from "@/api/modules/milestone";
