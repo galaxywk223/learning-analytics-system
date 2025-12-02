@@ -15,7 +15,8 @@
       <template #title>
         <div class="week-header">
           <span class="week-title">
-            📅 {{ week.year }} 年 · 第 {{ week.week_num }} 周
+            <span class="emoji-icon" aria-hidden="true">📅</span>
+            <span>{{ week.year }} 年 · 第 {{ week.week_num }} 周</span>
           </span>
           <span class="week-eff">
             平均效率 {{ Number(week.efficiency).toFixed(2) }}
@@ -114,6 +115,9 @@ defineEmits([
     .week-title {
       font-weight: 700;
       color: #374151;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .week-eff {

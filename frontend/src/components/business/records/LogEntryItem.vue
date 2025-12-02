@@ -17,7 +17,9 @@
     </td>
     <td class="time-slot-cell">{{ log.time_slot || "N/A" }}</td>
     <td class="duration-cell">{{ log.actual_duration }} 分钟</td>
-    <td class="text-center mood-cell">{{ moodEmoji(log.mood) }}</td>
+    <td class="text-center mood-cell">
+      <span class="emoji-icon">{{ moodEmoji(log.mood) }}</span>
+    </td>
     <td class="text-end">
       <!-- 笔记按钮 -->
       <el-button

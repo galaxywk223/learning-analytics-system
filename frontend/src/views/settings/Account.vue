@@ -1,6 +1,6 @@
 <template>
   <PageContainer
-    title="👤 账户设置"
+    :title="{ icon: '👤', text: '账户设置' }"
     subtitle="管理个人信息与账号安全"
     :custom-class="'settings-subpage'"
   >

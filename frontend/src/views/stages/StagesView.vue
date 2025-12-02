@@ -1,6 +1,6 @@
 <template>
   <PageContainer
-    title="🚩 阶段管理"
+    :title="{ icon: '🚩', text: '阶段管理' }"
     subtitle="创建、切换、编辑和删除您的学习阶段（完全对齐旧版页面）。"
     :custom-class="'stage-management'"
   >

@@ -1,6 +1,6 @@
 ﻿<template>
   <PageContainer
-    title="📂 分类管理"
+    :title="{ icon: '📂', text: '分类管理' }"
     subtitle="管理学习记录的大类与子类。"
     :custom-class="'settings-subpage'"
   >

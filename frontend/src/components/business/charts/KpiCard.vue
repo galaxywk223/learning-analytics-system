@@ -2,7 +2,7 @@
   <div class="kpi-card" :class="[color, dense ? 'dense' : '']">
     <div class="icon-wrapper">
       <slot name="icon">
-        <span v-if="icon">{{ icon }}</span>
+        <span v-if="icon" class="emoji-icon" aria-hidden="true">{{ icon }}</span>
       </slot>
     </div>
     <div class="content">

@@ -28,7 +28,7 @@
           <div class="col timeslot">{{ log.time_slot || "N/A" }}</div>
           <div class="col duration">{{ log.actual_duration }} 分钟</div>
           <div class="col mood">
-            <span class="mood-emoji">{{ moodEmoji(log.mood) }}</span>
+            <span class="mood-emoji emoji-icon">{{ moodEmoji(log.mood) }}</span>
           </div>
           <div class="col actions">
             <el-button

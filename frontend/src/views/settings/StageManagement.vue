@@ -1,6 +1,6 @@
 <template>
   <PageContainer
-    title="🚩 阶段管理"
+    :title="{ icon: '🚩', text: '阶段管理' }"
     subtitle="管理学习阶段（与旧版导航对齐）"
     :custom-class="'settings-subpage'"
   >

@@ -1,6 +1,6 @@
 ﻿<template>
   <PageContainer
-    title="💾 数据管理"
+    :title="{ icon: '💾', text: '数据管理' }"
     subtitle="备份、恢复或清空您的学习数据"
     :custom-class="'settings-subpage'"
   >

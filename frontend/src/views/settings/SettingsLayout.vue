@@ -1,7 +1,7 @@
 <template>
   <div class="settings-shell">
     <PageContainer
-      title="⚙️ 设置中心"
+      :title="{ icon: '⚙️', text: '设置中心' }"
       subtitle="个性化您的萤火集体验"
       :custom-class="'settings-layout-container'"
       :max-width="1400"

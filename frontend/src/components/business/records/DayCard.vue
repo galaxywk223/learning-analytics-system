@@ -5,7 +5,7 @@
     <template #header>
       <div class="day-card-header">
         <span class="date-badge">
-          <span class="weekday-icon">{{ getWeekdayIcon(day.date) }}</span>
+          <span class="weekday-icon emoji-icon">{{ getWeekdayIcon(day.date) }}</span>
           {{ formatDate(day.date) }} (周{{ getWeekday(day.date) }})
         </span>
 

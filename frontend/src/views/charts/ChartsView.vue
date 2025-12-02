@@ -40,19 +40,22 @@
               :class="['seg-btn', charts.activeTab === 'trends' && 'active']"
               @click="charts.setActiveTab('trends')"
             >
-              📈 趋势分析
+              <span class="emoji-icon" aria-hidden="true">📈</span>
+              <span>趋势分析</span>
             </button>
             <button
               :class="['seg-btn', charts.activeTab === 'categories' && 'active']"
               @click="charts.setActiveTab('categories')"
             >
-              🎯 分类占比
+              <span class="emoji-icon" aria-hidden="true">🎯</span>
+              <span>分类占比</span>
             </button>
             <button
               :class="['seg-btn', charts.activeTab === 'cattrend' && 'active']"
               @click="charts.setActiveTab('cattrend')"
             >
-              📉 分类趋势
+              <span class="emoji-icon" aria-hidden="true">📉</span>
+              <span>分类趋势</span>
             </button>
           </div>
           <div
@@ -63,13 +66,15 @@
               :class="['seg-btn', charts.viewType === 'weekly' && 'active']"
               @click="charts.setViewType('weekly')"
             >
-              📅 周视图
+              <span class="emoji-icon" aria-hidden="true">📅</span>
+              <span>周视图</span>
             </button>
             <button
               :class="['seg-btn', charts.viewType === 'daily' && 'active']"
               @click="charts.setViewType('daily')"
             >
-              📆 日视图
+              <span class="emoji-icon" aria-hidden="true">📆</span>
+              <span>日视图</span>
             </button>
           </div>
         </div>
@@ -151,7 +156,9 @@
         <!-- KPI 仅在趋势分析面板内部显示，符合旧项目布局 -->
         <div class="kpi-grid" v-loading="charts.loading">
           <KpiCard label="今天时长" color="amber">
-            <template #icon>⏳</template>
+            <template #icon>
+              <span class="emoji-icon" aria-hidden="true">⏳</span>
+            </template>
             <template #value>
               <div class="split-kpi">
                 <div class="split-col today">
@@ -178,7 +185,9 @@
             </template>
           </KpiCard>
           <KpiCard label="今天效率" color="green">
-            <template #icon>⚡️</template>
+            <template #icon>
+              <span class="emoji-icon" aria-hidden="true">⚡️</span>
+            </template>
             <template #value>
               <div class="split-kpi">
                 <div class="split-col today">
@@ -209,7 +218,9 @@
             </template>
           </KpiCard>
           <KpiCard label="近30天波动" color="purple">
-            <template #icon>🛡️</template>
+            <template #icon>
+              <span class="emoji-icon" aria-hidden="true">🛡️</span>
+            </template>
             <template #value>
               <div class="volatility-card">
                 <div class="vol-main">
@@ -251,7 +262,9 @@
             color="indigo"
             dense
           >
-            <template #icon>{{ card.medal }}</template>
+            <template #icon>
+              <span class="emoji-icon" aria-hidden="true">{{ card.medal }}</span>
+            </template>
             <template #value>
               <div class="rank-card">
                 <div class="rank-title">{{ card.name }}</div>
