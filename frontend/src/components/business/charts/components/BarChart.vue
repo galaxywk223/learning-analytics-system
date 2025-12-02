@@ -233,7 +233,7 @@ const option = computed(() => {
       {
         type: "bar",
         barWidth: 18,
-        barCategoryGap: "26%",
+        barCategoryGap: "16%",
         itemStyle: { borderRadius: 999 },
         emphasis: {
           itemStyle: {

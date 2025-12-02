@@ -21,6 +21,11 @@
       autoresize
       @click="handleSliceClick"
     />
+    <div v-if="computedTotal > 0" class="doughnut-card__center">
+      <span class="center-label">{{ uiText.totalLabel }}</span>
+      <span class="center-value">{{ computedTotal.toFixed(1) }}</span>
+      <span class="center-unit">{{ uiText.hoursSuffix }}</span>
+    </div>
   </div>
 </template>
 
@@ -315,6 +320,38 @@ defineExpose({ highlightSlice, clearHighlight });
 
     @media (max-width: 768px) {
       height: 300px;
+    }
+  }
+
+  &__center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    text-align: center;
+    gap: 2px;
+    z-index: 2;
+
+    .center-label {
+      color: #9ca3af;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .center-value {
+      color: #0f172a;
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .center-unit {
+      color: #9ca3af;
+      font-size: 12px;
+      font-weight: 600;
     }
   }
 }

@@ -270,7 +270,7 @@ const option = computed(() => {
         name: "学习时长",
         data: values,
         barWidth,
-        barCategoryGap: "40%",
+        barCategoryGap: "26%",
         itemStyle: {
           borderRadius: [6, 6, 0, 0],
           color: new graphic.LinearGradient(0, 0, 0, 1, [

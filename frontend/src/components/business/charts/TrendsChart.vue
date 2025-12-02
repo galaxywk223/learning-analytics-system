@@ -18,11 +18,30 @@
     <div v-else class="trend-chart-card__panel" v-loading="loading">
       <header class="trend-chart-card__header">
         <div class="trend-chart-card__titles">
-          <span class="trend-chart-card__badge">{{ viewBadge }}</span>
-          <h3>学习趋势洞察</h3>
+          <h3>学习趋势</h3>
+        </div>
+        <div class="trend-chart-card__switch">
+          <button
+            :class="['seg-btn', currentView === 'weekly' && 'active']"
+            @click="switchView('weekly')"
+          >
+            <span class="emoji-icon" aria-hidden="true">📅</span>
+            <span>周视图</span>
+          </button>
+          <button
+            :class="['seg-btn', currentView === 'daily' && 'active']"
+            @click="switchView('daily')"
+          >
+            <span class="emoji-icon" aria-hidden="true">📆</span>
+            <span>日视图</span>
+          </button>
         </div>
       </header>
-      <v-chart class="trend-chart-card__visual" :option="chartOption" autoresize />
+      <v-chart
+        class="trend-chart-card__visual"
+        :option="chartOption"
+        autoresize
+      />
     </div>
   </div>
 </template>
@@ -62,6 +81,8 @@ const props = defineProps({
   initialView: { type: String, default: "weekly" },
 });
 
+const emit = defineEmits(["view-change"]);
+
 const currentView = ref(props.initialView === "daily" ? "daily" : "weekly");
 
 watch(
@@ -90,13 +111,22 @@ const viewBadge = computed(() =>
   currentView.value === "weekly" ? "周视图" : "日视图"
 );
 
+const switchView = (view) => {
+  const normalized = view === "daily" ? "daily" : "weekly";
+  if (normalized === currentView.value) return;
+  currentView.value = normalized;
+  emit("view-change", normalized);
+};
+
 const durationSeriesLabel = computed(() =>
   currentView.value === "weekly" ? "平均学习时长" : "学习时长"
 );
 
 const viewSource = computed(() => {
   const isWeekly = currentView.value === "weekly";
-  const duration = isWeekly ? props.weeklyDurationData : props.dailyDurationData;
+  const duration = isWeekly
+    ? props.weeklyDurationData
+    : props.dailyDurationData;
   const efficiency = isWeekly
     ? props.weeklyEfficiencyData
     : props.dailyEfficiencyData;
@@ -201,7 +231,9 @@ const chartOption = computed(() => {
         min: 0,
         nameTextStyle: { color: "#475569" },
         axisLabel: { color: "#475569" },
-        splitLine: { lineStyle: { type: "dashed", color: "rgba(148, 163, 184, 0.28)" } },
+        splitLine: {
+          lineStyle: { type: "dashed", color: "rgba(148, 163, 184, 0.28)" },
+        },
       },
       {
         type: "value",

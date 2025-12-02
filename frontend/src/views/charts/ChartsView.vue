@@ -33,55 +33,21 @@
       :title="{ icon: '📊', text: '统计分析' }"
       subtitle="通过数据洞察学习模式，掌握成长轨迹"
     >
-      <div class="toolbar-container">
-        <div class="toolbar-left">
-          <div class="segmented tab-switch mobile-only">
-            <button
-              :class="['seg-btn', charts.activeTab === 'trends' && 'active']"
-              @click="charts.setActiveTab('trends')"
-            >
-              <span class="emoji-icon" aria-hidden="true">📈</span>
-              <span>趋势分析</span>
-            </button>
-            <button
-              :class="['seg-btn', charts.activeTab === 'categories' && 'active']"
-              @click="charts.setActiveTab('categories')"
-            >
-              <span class="emoji-icon" aria-hidden="true">🎯</span>
-              <span>分类占比</span>
-            </button>
-            <button
-              :class="['seg-btn', charts.activeTab === 'cattrend' && 'active']"
-              @click="charts.setActiveTab('cattrend')"
-            >
-              <span class="emoji-icon" aria-hidden="true">📉</span>
-              <span>分类趋势</span>
-            </button>
-          </div>
-          <div
-            class="segmented view-switch"
-            v-if="charts.activeTab === 'trends'"
-          >
-            <button
-              :class="['seg-btn', charts.viewType === 'weekly' && 'active']"
-              @click="charts.setViewType('weekly')"
-            >
-              <span class="emoji-icon" aria-hidden="true">📅</span>
-              <span>周视图</span>
-            </button>
-            <button
-              :class="['seg-btn', charts.viewType === 'daily' && 'active']"
-              @click="charts.setViewType('daily')"
-            >
-              <span class="emoji-icon" aria-hidden="true">📆</span>
-              <span>日视图</span>
-            </button>
-          </div>
-        </div>
-        <div
-          class="category-filters"
-          v-if="['categories', 'cattrend'].includes(charts.activeTab)"
-        >
+      <button
+        v-if="charts.activeTab === 'categories' && isDrilldown"
+        class="floating-back"
+        type="button"
+        @click="handleBackClick"
+        aria-label="返回上一级分类"
+      >
+        <Icon icon="lucide:arrow-left" />
+      </button>
+      <div
+        class="toolbar-container"
+        v-if="['categories', 'cattrend'].includes(charts.activeTab)"
+      >
+        <div class="toolbar-left"></div>
+        <div class="category-filters">
           <div class="segmented filter-switch">
             <button
               v-for="mode in categoryModes"
@@ -294,39 +260,15 @@
           :has-data="charts.hasTrendsData"
           :loading="charts.loading"
           :initial-view="charts.viewType"
+          @view-change="charts.setViewType"
         />
       </div>
-      <div v-show="charts.activeTab === 'categories'" class="panel">
+      <div v-show="charts.activeTab === 'categories'" class="panel categories-panel">
         <div
           v-if="!charts.loading && !charts.hasCategoryData"
           class="category-empty-alert alert alert-info text-center"
         >
           当前筛选范围内没有找到任何带分类的学习记录。
-        </div>
-        <div
-          class="category-header"
-          :class="{ 'is-inactive': !isDrilldown }"
-        >
-          <el-button
-            class="category-back"
-            size="small"
-            type="primary"
-            plain
-            :icon="ArrowLeft"
-            :disabled="!isDrilldown"
-            @click="handleBackClick"
-          >
-            返回分类
-          </el-button>
-          <span class="path" v-if="isDrilldown">
-            <span class="path-label">当前层级：</span>
-            <span class="breadcrumbs">
-              <span class="crumb">{{ currentCategoryName }}</span>
-            </span>
-          </span>
-          <span class="path placeholder" v-else>
-            点击图表中的分类可查看子分类占比
-          </span>
         </div>
         <CategoryComposite
           ref="categoryCompositeRef"

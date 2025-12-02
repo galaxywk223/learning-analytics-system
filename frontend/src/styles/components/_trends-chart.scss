@@ -151,6 +151,36 @@
     line-height: 1.6;
     max-width: 320px;
   }
+
+  &__switch {
+    display: inline-flex;
+    gap: 10px;
+
+    .seg-btn {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      color: #334155;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: none;
+    }
+
+    .seg-btn.active {
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+  }
 }
 
 @media (max-width: 768px) {
