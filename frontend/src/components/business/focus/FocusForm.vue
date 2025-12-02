@@ -142,11 +142,11 @@ defineExpose({
     display: flex;
     flex-direction: column;
     gap: 1.2rem;
-    padding: clamp(1.5rem, 3vw, 1.9rem);
-    border-radius: 20px;
-    background: linear-gradient(150deg, rgba(249, 250, 255, 0.96), rgba(236, 243, 255, 0.93));
-    border: 1px solid rgba(203, 213, 225, 0.65);
-    box-shadow: 0 16px 36px rgba(148, 163, 235, 0.18);
+    padding: clamp(1.8rem, 3vw, 2.1rem);
+    border-radius: 24px;
+    background: #ffffff;
+    border: none;
+    box-shadow: 0 22px 50px rgba(15, 23, 42, 0.08);
   }
 
   .category-row {
@@ -176,21 +176,22 @@ defineExpose({
 
   :deep(.el-input__wrapper),
   :deep(.el-select .el-input__wrapper) {
-    background: rgba(248, 250, 252, 0.96) !important;
-    border: 1px solid rgba(148, 163, 184, 0.45);
-    border-radius: 12px;
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
     box-shadow: none !important;
-    padding: 8px 12px;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
+    padding: 12px 14px;
+    min-height: 48px;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 
     &:hover {
-      border-color: rgba(129, 140, 248, 0.65);
+      border-color: rgba(99, 102, 241, 0.65);
     }
 
     &.is-focus {
-      border-color: rgba(99, 102, 241, 0.82);
-      background: rgba(255, 255, 255, 0.98) !important;
-      box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.12) !important;
+      border-color: rgba(79, 70, 229, 0.95);
+      background: #ffffff !important;
+      box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.14) !important;
     }
   }
 

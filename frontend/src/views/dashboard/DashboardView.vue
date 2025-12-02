@@ -1,80 +1,143 @@
 <template>
   <div class="dashboard-view">
-    <!-- 顶部问候区域 -->
-    <div class="greeting-section">
-      <div class="greeting-content">
+    <!-- Header Section -->
+    <header class="dashboard-header">
+      <div class="header-stack">
         <h1 class="greeting-title">{{ greeting }}</h1>
-        <p class="greeting-subtitle">让每一天的学习都充满意义</p>
-      </div>
-    </div>
-
-    <!-- 格言卡片 -->
-    <div class="motto-section">
-      <div class="motto-card">
-        <div class="motto-icon">
-          <Icon icon="lucide:sparkles" />
-        </div>
-        <div class="motto-content">
-          <div
-            class="motto-track"
-            :class="{ 'is-animating': marqueeActive }"
+        <div class="motto-block">
+          <p class="motto-display" :title="mottoDisplay">{{ mottoDisplay }}</p>
+          <button
+            class="motto-refresh"
+            :disabled="mottoLoading"
+            @click="refreshMotto(true)"
+            aria-label="刷新格言"
           >
-            <div class="motto-track__inner">
-              <span
-                v-for="(text, idx) in marqueeItems"
-                :key="idx"
-                class="motto-text"
-              >
-                {{ text }}
-              </span>
+            <Icon icon="lucide:refresh-ccw" :class="{ spinning: mottoLoading }" />
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Grid Layout -->
+    <div class="dashboard-grid">
+      <!-- Row 1: Core Data (Wide Cards) -->
+      <div class="grid-row-1">
+        <!-- Card 1: Stats Analysis -->
+        <router-link to="/charts" class="bento-card wide-card stats-card">
+          <p class="card-title">学习趋势</p>
+          <div class="card-content">
+            <div class="chart-header">
+              <Icon icon="lucide:trending-up" class="card-icon" />
+              <span class="trend-label">近7天学习时长</span>
+            </div>
+            <div class="chart-preview">
+              <div class="bar-chart">
+                <div
+                  v-for="(bar, idx) in barHeights"
+                  :key="idx"
+                  class="bar"
+                  :title="`${barLabels[idx]} · ${barValues[idx]} 分钟`"
+                >
+                  <div
+                    class="bar-fill"
+                    :style="{ height: `${bar}%` }"
+                  ></div>
+                  <span class="bar-label">{{ barLabels[idx] }}</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <button
-          class="motto-refresh"
-          @click="refreshMotto(true)"
-          :disabled="mottoLoading"
-          :class="{ spinning: mottoLoading }"
-        >
-          <Icon icon="lucide:refresh-cw" />
-        </button>
+        </router-link>
+
+        <!-- Card 2: Learning Records -->
+        <router-link to="/records" class="bento-card wide-card record-card">
+          <p class="card-title">最近记录</p>
+          <div class="card-content">
+            <ul v-if="recentRecords.length" class="record-list">
+              <li v-for="item in recentRecords" :key="item.id" class="record-row">
+                <span class="record-name">{{ item.title || "未命名记录" }}</span>
+                <span class="record-sub">{{ item.subcategory }}</span>
+                <span class="record-date">{{ formatRecordDate(item.date) }}</span>
+                <span class="record-duration">{{ item.duration || "暂无时长" }}</span>
+                <span class="record-mood">{{ moodEmoji(item.mood) }}</span>
+              </li>
+            </ul>
+            <div v-else class="record-empty">
+              <span class="empty-emoji">📘</span>
+              <span class="empty-text">暂无记录</span>
+            </div>
+          </div>
+        </router-link>
+      </div>
+
+      <!-- Row 2: Function Matrix (Square Cards) -->
+      <div class="grid-row-2">
+        <!-- Card 3: Start Focus -->
+        <router-link to="/focus" class="bento-card square-card focus-card">
+          <p class="card-title">专注计时</p>
+          <div class="card-content centered">
+            <span class="big-number">{{ todayFocusDuration }}</span>
+            <span class="card-label">今日专注</span>
+          </div>
+        </router-link>
+
+        <!-- Card 4: Countdown -->
+        <router-link to="/countdown" class="bento-card square-card countdown-card">
+          <p class="card-title">距离目标</p>
+          <div class="card-content centered">
+            <span class="big-number">{{ countdownDays }}</span>
+            <span class="card-label">{{ countdownTitle }}</span>
+          </div>
+        </router-link>
+
+        <!-- Card 5: Achievements -->
+        <router-link to="/milestones" class="bento-card square-card achievement-card">
+          <p class="card-title">高光时刻</p>
+          <div class="card-content centered">
+            <Icon icon="lucide:trophy" class="big-icon" />
+            <span class="big-number-sm">{{ milestoneCount }}</span>
+            <span class="card-label">高光时刻</span>
+          </div>
+        </router-link>
+
+        <!-- Card 6: Ranking -->
+        <router-link to="/leaderboard" class="bento-card square-card ranking-card">
+          <p class="card-title">社区排行</p>
+          <div class="card-content centered">
+            <span class="rank-icon">👑</span>
+            <span class="status-text">{{ rankingLabel }}</span>
+          </div>
+        </router-link>
+
+        <!-- Card 6: AI Plan -->
+        <router-link to="/ai" class="bento-card square-card ai-card">
+          <p class="card-title">智能规划</p>
+          <div class="card-content centered">
+            <Icon icon="lucide:sparkles" class="big-icon" />
+            <span class="status-text">{{ aiPlanStatus }}</span>
+          </div>
+        </router-link>
       </div>
     </div>
 
-    <!-- 功能卡片网格 -->
-    <div class="cards-grid">
-      <router-link
-        v-for="card in cards"
-        :key="card.key"
-        :to="card.to"
-        class="feature-card"
-        :class="card.class"
-      >
-        <div class="card-content">
-          <div class="card-icon">
-            <Icon :icon="card.icon" />
-          </div>
-          <h3 class="card-title">{{ card.title }}</h3>
-          <p class="card-description">{{ card.summary }}</p>
-        </div>
-        <div class="card-arrow">
-          <Icon icon="lucide:arrow-right" />
-        </div>
-      </router-link>
-    </div>
+    <!-- Floating Action Button -->
+    <router-link to="/settings" class="fab-settings">
+      <Icon icon="lucide:settings" />
+    </router-link>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, onActivated } from "vue";
 import dayjs from "dayjs";
 import { Icon } from "@iconify/vue";
 import { useDashboardStore } from "@/stores/modules/dashboard";
-import { useAuthStore } from "@/stores/modules/auth";
-import axios from "axios";
+import { useMottoStore } from "@/stores/modules/motto";
+import { recordApi } from "@/api/modules/records";
 
 const dashboardStore = useDashboardStore();
-const authStore = useAuthStore();
+const mottoStore = useMottoStore();
+const allRecords = ref<any[]>([]);
 
 /** 顶部问候语 */
 const greeting = computed(() => {
@@ -88,7 +151,6 @@ const greeting = computed(() => {
   return "🌙 夜深了，早点休息";
 });
 
-/** 各卡片摘要（统一从 store.summary 取值，若无则给默认文案） */
 const formatDuration = (minutes) => {
   if (!minutes) return "0 分钟";
   const hrs = Math.floor(minutes / 60);
@@ -98,236 +160,202 @@ const formatDuration = (minutes) => {
   return `${mins} 分钟`;
 };
 
-const focusSummary = computed(() => {
-  const minutes = dashboardStore.summary?.today_duration_minutes ?? 0;
-  if (!minutes) return "还没有记录今日专注时长";
-  return `今日已专注 ${formatDuration(minutes)}`;
-});
-
-const recordSummary = computed(() => {
-  const total = dashboardStore.summary?.total_records ?? 0;
-  const latest = dashboardStore.summary?.latest_record_date;
-  if (!total) return "暂无学习记录，点击进入开始记录";
-  const latestText = latest ? dayjs(latest).format("YYYY/MM/DD") : "近期";
-  return `共 ${total} 条 · 最近更新 ${latestText}`;
-});
-
-const chartsSummary = computed(() => {
-  const total = dashboardStore.summary?.total_records ?? 0;
-  if (total >= 5) return "数据已同步，可查看趋势与对比";
-  if (total > 0) return "数据较少，再记录几次即可生成趋势";
-  return "暂无统计数据，先去记录几次学习吧";
-});
-
-const leaderboardSummary = computed(() => "实时查看社区排行动态");
-
-const countdownSummary = computed(() => {
-  const next = dashboardStore.summary?.next_countdown;
-  if (next?.title) {
-    const days = next.remaining_days ?? 0;
-    const dayText = days > 0 ? `${days} 天后` : "今天";
-    return `${next.title} · ${dayText}`;
-  }
-  const total = dashboardStore.summary?.countdown_total ?? 0;
-  return total > 0 ? `共有 ${total} 个倒计时事项` : "暂未添加倒计时提醒";
-});
-
-const milestoneSummary = computed(() => {
-  const count = dashboardStore.summary?.milestones_count ?? 0;
-  return count > 0 ? `已记录 ${count} 个高光瞬间` : "记录你的第一个高光瞬间";
-});
-
-const aiSummary = computed(() => {
-  const pending = dashboardStore.summary?.pending_todos ?? 0;
-  return pending > 0 ? `还有 ${pending} 项待办等待处理` : "待办已清空，轻松规划下一步";
-});
-
-/** 随机格言：统一走 store，避免与 fetch('/api/...') 冲突 */
-/* Motto logic */
+/** 格言：使用个人设置里的自定义列表 */
 const mottoText = ref("正在加载今日份的鸡汤...");
 const mottoLoading = ref(false);
 const lastMottoLoadedAt = ref(0);
-
 const MIN_REFRESH_INTERVAL = 5_000;
 
-const mottoDisplay = computed(() => mottoText.value || "");
-const marqueeItems = computed(() => {
-  const text = mottoDisplay.value;
-  return text ? [text, text] : ["", ""];
+const mottoPool = computed(() => {
+  const personalMottos = Array.isArray(mottoStore.items) ? mottoStore.items : [];
+  if (personalMottos.length) return personalMottos;
+  const summaryMotto = dashboardStore.summary?.random_motto;
+  return summaryMotto ? [summaryMotto] : [];
 });
-const marqueeActive = computed(() => marqueeItems.value[0].length > 0);
 
-
-
+const mottoDisplay = computed(
+  () => mottoText.value || "暂无格言，去设置里添加一句吧"
+);
 
 async function refreshMotto(force = false) {
-
-  if (!authStore.accessToken) {
-
-    mottoText.value = "δ��¼���޷���ȡ����";
-
-    return;
-
-  }
-
-  if (mottoLoading.value) {
-
-    return;
-
-  }
-
+  if (mottoLoading.value) return;
   if (!force && Date.now() - lastMottoLoadedAt.value < MIN_REFRESH_INTERVAL) {
-
     return;
-
   }
-
-
 
   mottoLoading.value = true;
-
   try {
-
-    // Pinia auth store ʹ�� accessToken ���ԣ������� token
-
-    const resp = await axios.get("/api/mottos/random", {
-
-      headers: { Authorization: `Bearer ${authStore.accessToken}` },
-
-    });
-
-    if (resp.data.success) {
-
-      // ��˼��ݾɸ�ʽ������ content �ֶΣ����� motto �������� content ��Ϊ fallback
-
-      if (resp.data.content) {
-
-        mottoText.value = resp.data.content;
-
-      } else if (resp.data.motto && resp.data.motto.content) {
-
-        mottoText.value = resp.data.motto.content;
-
-      } else {
-
-        mottoText.value = "û�п��õĸ���";
-
-      }
-
-      lastMottoLoadedAt.value = Date.now();
-
-    } else {
-
-      mottoText.value = "û�п��õĸ���";
-
+    if (!mottoStore.items.length) {
+      await mottoStore.fetch();
     }
-
+    const pool = mottoPool.value;
+    if (pool.length) {
+      const random = pool[Math.floor(Math.random() * pool.length)];
+      mottoText.value = random?.content || "保持热爱，奔赴山海";
+      lastMottoLoadedAt.value = Date.now();
+    } else {
+      mottoText.value = "暂无格言，去设置里添加一句吧";
+    }
   } catch (e) {
-
     console.error("Failed to load motto:", e);
-
-    mottoText.value = "����ʧ�ܣ����Ժ�����";
-
+    mottoText.value = "格言加载失败，请稍后再试";
   } finally {
-
     mottoLoading.value = false;
-
   }
-
 }
 
-
+async function fetchRecentRecords() {
+  try {
+    const resp = (await recordApi.getRecentRecords({ limit: 50 })) as any;
+    const items = resp?.data?.records || resp?.data || resp?.records || resp || [];
+    allRecords.value = Array.isArray(items) ? items : [];
+  } catch (e) {
+    console.error("Failed to fetch recent records", e);
+    allRecords.value = [];
+  }
+}
 
 onMounted(async () => {
   await dashboardStore.fetchSummary();
-  // 若 dashboard summary 已包含 random_motto 则直接展示以减少一次网络请求
-  const summaryMotto = dashboardStore.summary?.random_motto;
-  if (summaryMotto && summaryMotto.content) {
-    mottoText.value = summaryMotto.content;
-    lastMottoLoadedAt.value = Date.now();
-  } else {
-    await refreshMotto();
+  try {
+    await mottoStore.fetch();
+  } catch (e) {
+    console.error("Load mottos failed", e);
   }
+  await refreshMotto(true);
+  await fetchRecentRecords();
 });
 
 onActivated(async () => {
   await dashboardStore.fetchSummary();
-  const summaryMotto = dashboardStore.summary?.random_motto;
-  if (summaryMotto?.content) {
-    mottoText.value = summaryMotto.content;
-    lastMottoLoadedAt.value = Date.now();
-  } else {
-    await refreshMotto();
+  if (!mottoStore.items.length) {
+    try {
+      await mottoStore.fetch();
+    } catch (e) {
+      console.error("Load mottos failed", e);
+    }
   }
+  await fetchRecentRecords();
 });
 
-const cards = computed(() => [
-  {
-    key: "focus",
-    to: "/focus",
-    class: "card-focus",
-    icon: "lucide:timer",
-    title: "开始专注",
-    summary: focusSummary.value,
-  },
-  {
-    key: "records",
-    to: "/records",
-    class: "card-record",
-    icon: "lucide:book-open",
-    title: "学习记录",
-    summary: recordSummary.value,
-  },
-  {
-    key: "charts",
-    to: "/charts",
-    class: "card-chart",
-    icon: "lucide:trending-up",
-    title: "统计分析",
-    summary: chartsSummary.value,
-  },
-  {
-    key: "leaderboard",
-    to: "/leaderboard",
-    class: "card-leaderboard",
-    icon: "lucide:users",
-    title: "社区排行",
-    summary: leaderboardSummary.value,
-  },
-  {
-    key: "countdown",
-    to: "/countdown",
-    class: "card-countdown",
-    icon: "lucide:calendar-clock",
-    title: "倒计时",
-    summary: countdownSummary.value,
-  },
-  {
-    key: "milestones",
-    to: "/milestones",
-    class: "card-milestone",
-    icon: "lucide:award",
-    title: "成就时刻",
-    summary: milestoneSummary.value,
-  },
-  {
-    key: "ai",
-    to: "/ai",
-    class: "card-ai",
-    icon: "lucide:sparkles",
-    title: "智能规划",
-    summary: aiSummary.value,
-  },
-  {
-    key: "settings",
-    to: "/settings",
-    class: "card-settings",
-    icon: "lucide:settings",
-    title: "设置中心",
-    summary: "配置账户、数据与偏好设置",
-  },
-]);
+const sortedRecords = computed(() => {
+  const records = allRecords.value || [];
+  return records
+    .slice()
+    .sort((a, b) => {
+      const da = dayjs(a.log_date || a.date || a.created_at || 0);
+      const db = dayjs(b.log_date || b.date || b.created_at || 0);
+      if (db.isSame(da)) {
+        return dayjs(b.created_at || b.updated_at || 0).valueOf() -
+          dayjs(a.created_at || a.updated_at || 0).valueOf();
+      }
+      return db.valueOf() - da.valueOf();
+    });
+});
 
+const recentRecords = computed(() => {
+  const groupedByDay: Record<string, any[]> = {};
+  sortedRecords.value.forEach((item: any) => {
+    const key = dayjs(item.log_date || item.date || item.created_at).format("YYYY-MM-DD");
+    groupedByDay[key] = groupedByDay[key] || [];
+    groupedByDay[key].push(item);
+  });
+
+  const ordered: any[] = [];
+  Object.keys(groupedByDay)
+    .sort((a, b) => (dayjs(b).valueOf() - dayjs(a).valueOf()))
+    .forEach((day) => {
+      groupedByDay[day].forEach((item: any) => {
+        ordered.push(item);
+      });
+    });
+
+  return ordered.slice(0, 5).map((item: any) => ({
+    id: item.id ?? item.record_id ?? Math.random(),
+    title: item.task || item.title || item.content || item.category || "未命名记录",
+    date: item.log_date || item.date || item.created_at || item.updated_at,
+    duration: item.actual_duration
+      ? `${item.actual_duration} 分钟`
+      : item.duration
+        ? formatDuration(Math.round(item.duration))
+        : item.duration_text || "",
+    mood: item.mood,
+    subcategory: item.subcategory?.name || item.subcategory_name || "未分类",
+  }));
+});
+
+const formatRecordDate = (value?: string) =>
+  value ? dayjs(value).format("MM/DD HH:mm") : "时间未知";
+
+const todayFocusDuration = computed(() => {
+  const minutes = dashboardStore.summary?.today_duration_minutes ?? 0;
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hrs.toString().padStart(2, "0")}:${mins
+    .toString()
+    .padStart(2, "0")}`;
+});
+
+const countdownDays = computed(() => {
+  const next = dashboardStore.summary?.next_countdown;
+  return Math.max(next?.remaining_days ?? 0, 0);
+});
+const countdownTitle = computed(
+  () => dashboardStore.summary?.next_countdown?.title || "暂无目标"
+);
+
+const milestoneCount = computed(
+  () => dashboardStore.summary?.milestones_count ?? 0
+);
+
+const rankingLabel = computed(
+  () => dashboardStore.summary?.ranking_label || "Top 5%"
+);
+
+const aiPlanStatus = computed(() => {
+  const pending = dashboardStore.summary?.pending_todos ?? 0;
+  return pending > 0 ? `待办 ${pending} 项` : "已生成今日计划";
+});
+
+const last7Days = computed(() => {
+  const today = dayjs().startOf("day");
+  return Array.from({ length: 7 }, (_, i) => today.subtract(6 - i, "day"));
+});
+
+const barValues = computed(() => {
+  const map = new Map<string, number>();
+  last7Days.value.forEach((d) => map.set(d.format("YYYY-MM-DD"), 0));
+
+  sortedRecords.value.forEach((item: any) => {
+    const dayKey = dayjs(item.log_date || item.date || item.created_at).format("YYYY-MM-DD");
+    if (map.has(dayKey)) {
+      const current = map.get(dayKey) || 0;
+      const duration = Number(item.actual_duration || item.duration || 0);
+      map.set(dayKey, current + (Number.isFinite(duration) ? duration : 0));
+    }
+  });
+
+  return last7Days.value.map((d) => map.get(d.format("YYYY-MM-DD")) || 0);
+});
+
+const barLabels = computed(() => last7Days.value.map((d) => d.format("MM/DD")));
+
+const barHeights = computed(() => {
+  const data = barValues.value;
+  const max = Math.max(...data, 1);
+  return data.map((v: number) => Math.max(6, Math.round((v / max) * 100)));
+});
+
+const moodEmoji = (mood?: number) => {
+  const moods: Record<number, string> = {
+    5: "😃",
+    4: "😊",
+    3: "😐",
+    2: "😟",
+    1: "😠",
+  };
+  return moods[mood ?? 0] || "⚪️";
+};
 </script>
 
 <style scoped lang="scss">

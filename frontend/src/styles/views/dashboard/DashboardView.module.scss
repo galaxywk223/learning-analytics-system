@@ -5,3 +5,31 @@
 @use "./motto";
 @use "./cards";
 @use "./responsive";
+
+.fab-settings {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4b5563;
+    transition: all 0.3s ease;
+    z-index: 100;
+
+    &:hover {
+        transform: scale(1.1);
+        color: #111827;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+    }
+
+    svg {
+        width: 24px;
+        height: 24px;
+    }
+}

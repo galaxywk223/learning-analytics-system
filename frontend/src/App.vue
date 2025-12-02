@@ -48,7 +48,7 @@ body {
 
 #app {
   min-height: 100vh;
-  background: var(--surface-page);
+  background: #F5F7FA;
 }
 
 /* 当用户上传了自定义背景时，通过settings store动态设置 */

@@ -1,135 +1,274 @@
-/* 功能卡片网格 */
-.cards-grid {
-  padding: 0 30px 48px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
-}
-
-.feature-card {
-  position: relative;
-  --card-accent: var(--color-primary);
-  --card-accent-soft: rgba(85, 100, 216, 0.14);
-  background: var(--surface-card);
-  border-radius: 12px;
+/* Bento Grid Card Styles */
+.bento-card {
+  background: #FFFFFF;
+  border-radius: 24px;
   padding: 24px;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.06);
   text-decoration: none;
   color: inherit;
   overflow: hidden;
-  border: 1px solid var(--color-border-card);
-  border-top: 3px solid var(--card-accent);
-  transition:
-    background-color var(--transition-speed) ease,
-    border-color var(--transition-speed) ease;
-  box-shadow: var(--box-shadow);
-}
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(229, 231, 235, 0.8);
 
-.feature-card:hover {
-  background: var(--surface-card-muted);
-  border-color: var(--stroke-soft);
-  border-top-color: var(--card-accent);
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
+  }
 }
 
 .card-content {
-  position: relative;
-  z-index: 1;
-}
-
-.card-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+  flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 0 18px 0;
-  background: var(--card-accent-soft);
-  color: var(--card-accent);
-}
+  flex-direction: column;
 
-.card-icon i,
-.card-icon svg {
-  width: 30px;
-  height: 30px;
+  &.centered {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 6px;
+  }
 }
 
 .card-title {
-  font-size: 1.3rem;
+  margin: 0 0 12px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-heading);
-  margin: 0 0 10px 0;
-  font-family: var(--font-family-heading);
+  color: #9ca3af;
+  letter-spacing: 0.4px;
 }
 
-.card-description {
-  font-size: 0.95rem;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-  margin: 0;
-  min-height: 44px;
+.card-icon {
+  font-size: 1.25rem;
+  color: #6b7280;
 }
 
-.card-arrow {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(17, 24, 39, 0.05);
+/* Specific Card Styles */
+.stats-card {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--card-accent);
+  flex-direction: column;
+
+  .chart-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: #1f2937;
+    font-weight: 600;
+  }
+
+  .chart-preview {
+    flex: 1;
+    width: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.06) 0%, rgba(59, 130, 246, 0.02) 100%);
+    min-height: 220px;
+
+    .bar-chart {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 12px;
+      align-items: end;
+      padding: 18px 12px 12px;
+      height: 100%;
+    }
+
+    .bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .bar-fill {
+      width: 100%;
+      border-radius: 12px 12px 6px 6px;
+      background: linear-gradient(180deg, #2563eb 0%, #3b82f6 60%, #93c5fd 100%);
+      transition: height 0.3s ease;
+      min-height: 12px;
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
+    }
+
+    .bar-label {
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+  }
+
+  .trend-label {
+    font-size: 0.95rem;
+    color: #4b5563;
+    font-weight: 600;
+  }
 }
 
-.card-arrow i,
-.card-arrow svg {
-  width: 16px;
-  height: 16px;
+.record-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .record-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .record-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+      background: rgba(226, 232, 240, 0.5);
+      transform: translateY(-1px);
+    }
+  }
+
+  .record-name {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .record-sub {
+    color: #6b7280;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .record-date {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .record-duration {
+    color: #111827;
+    font-weight: 600;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .record-mood {
+    font-size: 1.2rem;
+    text-align: right;
+  }
+
+  .record-empty {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+
+  .empty-emoji {
+    font-size: 1.3rem;
+  }
 }
 
-.feature-card.card-focus {
-  --card-accent: #4ad991;
-  --card-accent-soft: rgba(74, 217, 145, 0.16);
+.focus-card {
+  .big-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .card-label {
+    margin-top: 4px;
+    color: #6b7280;
+  }
 }
 
-.feature-card.card-record {
-  --card-accent: #5564d8;
-  --card-accent-soft: rgba(85, 100, 216, 0.14);
+.countdown-card {
+  background: #FFF7ED;
+  /* Light orange bg */
+
+  .big-number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #EA580C;
+  }
+
+  .card-label {
+    color: #9A3412;
+    font-weight: 500;
+  }
 }
 
-.feature-card.card-chart {
-  --card-accent: #38bdf8;
-  --card-accent-soft: rgba(56, 189, 248, 0.16);
+.achievement-card {
+  .big-icon {
+    font-size: 2.5rem;
+    color: #F59E0B;
+    margin-bottom: 8px;
+  }
+
+  .big-number-sm {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .card-label {
+    color: #6b7280;
+    font-size: 0.9rem;
+  }
 }
 
-.feature-card.card-leaderboard {
-  --card-accent: #a855f7;
-  --card-accent-soft: rgba(168, 85, 247, 0.16);
+.ai-card {
+  .big-icon {
+    font-size: 2rem;
+    color: #8B5CF6;
+    margin-bottom: 12px;
+  }
+
+  .status-text {
+    color: #4B5563;
+    font-weight: 500;
+  }
 }
 
-.feature-card.card-countdown {
-  --card-accent: #f4b740;
-  --card-accent-soft: rgba(244, 183, 64, 0.18);
+.ranking-card {
+  .rank-icon {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+  }
+
+  .status-text {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1d4ed8;
+  }
 }
 
-.feature-card.card-milestone {
-  --card-accent: #f97316;
-  --card-accent-soft: rgba(249, 115, 22, 0.18);
+.square-card {
+  min-height: 200px;
 }
-
-.feature-card.card-ai {
-  --card-accent: #0ea5e9;
-  --card-accent-soft: rgba(14, 165, 233, 0.16);
-}
-
-.feature-card.card-settings {
-  --card-accent: #64748b;
-  --card-accent-soft: rgba(100, 116, 139, 0.18);
-}
-

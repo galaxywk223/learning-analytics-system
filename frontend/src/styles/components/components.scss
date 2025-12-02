@@ -139,27 +139,29 @@
   padding: 0.75rem 1rem;
   border-radius: var(--border-radius-md);
   text-decoration: none;
-  color: rgba(226, 232, 240, 0.85);
+  color: #555555;
   transition:
     background-color var(--transition-speed),
     color var(--transition-speed);
 }
 
 .nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: var(--color-text-light);
+  background-color: rgba(59, 130, 246, 0.08);
+  color: #1f2937;
 }
 
-.nav-link.active {
-  background-color: rgba(255, 255, 255, 0.12);
-  color: var(--color-text-light);
-  font-weight: 600;
-  box-shadow: none;
+.nav-link.active,
+.nav-link.router-link-exact-active {
+  background-color: rgba(59, 130, 246, 0.14);
+  color: #1d4ed8;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.16);
 }
 
 .nav-link svg {
   width: 24px;
   height: 24px;
+  color: inherit;
 }
 
 /* ===== Dashboard Cards ===== */
@@ -220,4 +222,3 @@
   margin-top: 0;
   margin-bottom: 12px;
 }
-

@@ -2,20 +2,20 @@
 <template>
   <div class="timer-display" :class="{ 'timer-active': isActive }">
     <div class="time-circle">
-      <svg class="progress-ring" width="280" height="280">
+      <svg class="progress-ring" width="340" height="340">
         <circle
           class="progress-ring-bg"
-          cx="140"
-          cy="140"
-          r="130"
+          cx="170"
+          cy="170"
+          r="155"
           fill="none"
           stroke-width="8"
         />
         <circle
           class="progress-ring-circle"
-          cx="140"
-          cy="140"
-          r="130"
+          cx="170"
+          cy="170"
+          r="155"
           fill="none"
           stroke-width="8"
           :stroke-dasharray="circumference"
@@ -46,7 +46,8 @@ const props = defineProps({
 });
 
 // 计算属性
-const circumference = 2 * Math.PI * 130;
+const RADIUS = 155;
+const circumference = 2 * Math.PI * RADIUS;
 
 const progressOffset = computed(() => {
   // 以1小时为一个周期
@@ -73,6 +74,17 @@ const timeLabel = computed(() => {
   justify-content: center;
   align-items: center;
   margin: 0;
+  position: relative;
+  min-height: 360px;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -24px;
+    background: radial-gradient(circle at 50% 40%, rgba(99, 102, 241, 0.16), rgba(99, 102, 241, 0));
+    filter: blur(32px);
+    z-index: 0;
+  }
 
   .time-circle {
     position: relative;
@@ -82,15 +94,16 @@ const timeLabel = computed(() => {
 
     .progress-ring {
       transform: rotate(-90deg);
+      filter: drop-shadow(0 12px 40px rgba(99, 102, 241, 0.12));
 
       &-bg {
-        stroke: rgba(129, 140, 248, 0.18);
-        stroke-width: 5;
+        stroke: rgba(99, 102, 241, 0.12);
+        stroke-width: 12;
       }
 
       &-circle {
-        stroke: #6366f1;
-        stroke-width: 5;
+        stroke: #4f46e5;
+        stroke-width: 12;
         stroke-linecap: round;
         transition: stroke-dashoffset 0.25s ease, stroke 0.25s ease;
       }
@@ -104,9 +117,9 @@ const timeLabel = computed(() => {
       justify-content: center;
 
       .time-value {
-        font-size: clamp(2.4rem, 4vw, 2.8rem);
-        font-weight: 600;
-        color: #1f2937;
+        font-size: clamp(2.8rem, 5.4vw, 3.4rem);
+        font-weight: 700;
+        color: #0f172a;
         letter-spacing: 0.08em;
         font-family: "SFMono-Regular", "JetBrains Mono", monospace;
       }
@@ -123,7 +136,7 @@ const timeLabel = computed(() => {
 
   &.timer-active {
     .progress-ring-circle {
-      stroke: #4c51bf;
+      stroke: #4338ca;
     }
   }
 }

@@ -7,7 +7,16 @@ export const recordApi = {
   // 获取记录列表
   getRecords(params) {
     return request({
-      url: "/api/records",
+      url: "/api/records/list",
+      method: "get",
+      params,
+    });
+  },
+
+  // 获取最近记录
+  getRecentRecords(params) {
+    return request({
+      url: "/api/records/recent",
       method: "get",
       params,
     });

@@ -1,5 +1,6 @@
 <template>
   <div class="focus-view">
+    <div class="bg-blobs"></div>
     <PageContainer
       :title="isTimerRunning ? '🎯 专注中' : '🎯 开始专注'"
       subtitle="保持专注，记录每一步的累积"
@@ -463,26 +464,46 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .focus-view {
+  position: relative;
+  min-height: 100vh;
   padding: clamp(1.5rem, 3vw, 3rem);
   background: var(--surface-page);
+  overflow: hidden;
+}
+
+.bg-blobs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(600px at 20% 20%, rgba(99, 102, 241, 0.08), transparent 55%),
+    radial-gradient(520px at 80% 70%, rgba(56, 189, 248, 0.08), transparent 55%);
+  z-index: 0;
 }
 
 .focus-layout {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: minmax(260px, 300px) 1fr;
-  gap: clamp(1.5rem, 3vw, 2.5rem);
-  align-items: start;
+  grid-template-columns: minmax(320px, 360px) minmax(420px, 1fr);
+  gap: clamp(1.8rem, 3vw, 3rem);
+  align-items: center;
+  justify-content: center;
+  margin-top: clamp(1rem, 3vw, 1.5rem);
 
   &__timer {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.5rem;
+    align-items: center;
   }
 
   &__details {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    max-width: 620px;
+    width: 100%;
   }
 }
 

@@ -12,13 +12,7 @@
         >
           开始专注
         </el-button>
-        <el-button
-          class="control-btn secondary-btn"
-          size="large"
-          @click="$emit('go-back')"
-        >
-          返回
-        </el-button>
+        <button class="return-link" @click="$emit('go-back')">返回上一页</button>
       </div>
     </template>
 
@@ -115,12 +109,12 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
 
 :deep(.control-btn) {
   width: 100%;
-  height: 48px;
-  font-size: 0.95rem;
+  height: 52px;
+  font-size: 1rem;
   font-weight: 600;
-  border-radius: 16px;
+  border-radius: 18px;
   border: none;
-  box-shadow: none;
+  box-shadow: 0 16px 40px rgba(99, 102, 241, 0.22);
   padding: 0 1.2rem;
   transition: transform 0.18s ease, background-color 0.18s ease;
   margin-left: 0 !important;
@@ -153,12 +147,12 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
 
 :deep(.primary-btn),
 :deep(.resume-btn) {
-  background: linear-gradient(135deg, rgba(98, 106, 230, 0.96), rgba(129, 140, 248, 0.96));
+  background: linear-gradient(135deg, #6d7cff, #4f46e5);
   color: var(--color-text-light);
-  border: 1px solid rgba(98, 106, 230, 0.9);
+  border: 1px solid rgba(79, 70, 229, 0.8);
 
   &:hover {
-    background: linear-gradient(135deg, rgba(79, 86, 220, 1), rgba(129, 140, 248, 1));
+    background: linear-gradient(135deg, #5c6cff, #4338ca);
   }
 }
 
@@ -190,6 +184,23 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
 
   &:hover {
     background: var(--surface-card);
+  }
+}
+
+.return-link {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0.25rem 0;
+  transition: color 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    color: #374151;
+    transform: translateY(-1px);
   }
 }
 
