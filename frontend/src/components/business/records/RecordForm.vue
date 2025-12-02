@@ -139,11 +139,9 @@ function initializeForm() {
 }
 
 // 监听器
-watch(
-  () => [props.initialData, props.defaultDate],
-  initializeForm,
-  { deep: true }
-);
+watch(() => [props.initialData, props.defaultDate], initializeForm, {
+  deep: true,
+});
 
 // 生命周期
 onMounted(async () => {
@@ -164,39 +162,118 @@ defineExpose({
 
 <style scoped>
 .record-form {
-  max-width: 800px;
+  max-width: 820px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px 8px 12px;
+
+  :deep(.el-form-item__label) {
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 8px;
+  }
+
+  :deep(.el-input__wrapper),
+  :deep(.el-select .el-input__wrapper),
+  :deep(.el-date-editor .el-input__wrapper),
+  :deep(.el-textarea__inner) {
+    background: #f3f4f6;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    box-shadow: none;
+    transition: all 0.2s ease;
+  }
+
+  :deep(.el-input__inner),
+  :deep(.el-textarea__inner) {
+    font-size: 15px;
+    color: #111827;
+  }
+
+  :deep(.el-input__wrapper.is-focus),
+  :deep(.el-select .el-input__wrapper.is-focus),
+  :deep(.el-date-editor.is-active .el-input__wrapper),
+  :deep(.el-textarea__inner:focus) {
+    background: #ffffff;
+    border-color: #a5b4fc;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  }
+
+  :deep(.el-input-number) {
+    width: 100%;
+    background: #f3f4f6;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    height: 46px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    padding: 0 14px;
+    min-width: 0;
+    position: relative;
+    box-sizing: border-box;
+  }
+
+  :deep(.el-input-number__increase),
+  :deep(.el-input-number__decrease) {
+    display: none;
+  }
+
+  :deep(.el-input-number__inner) {
+    font-weight: 700;
+    color: #111827;
+    text-align: center;
+    height: 100%;
+    line-height: 46px;
+  }
+
+  :deep(.el-rate) {
+    --el-rate-icon-size: 28px;
+  }
+
+  :deep(.el-rate__icon) {
+    color: #e5e7eb;
+  }
+
+  :deep(.el-rate__icon.is-active) {
+    color: #fbbf24;
+  }
 }
 
 .form-actions {
   display: flex;
   justify-content: center;
-  gap: 16px;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #e5e7eb;
+  gap: 14px;
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .form-actions .el-button {
-  min-width: 120px;
-  height: 44px;
-  font-weight: 600;
-  display: flex;
+  min-width: 132px;
+  height: 48px;
+  font-weight: 700;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  border-radius: 999px;
+  border: none;
+}
+
+.form-actions .el-button:not(.el-button--primary) {
+  background: transparent;
+  color: #6b7280;
 }
 
 .form-actions .el-button--primary {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   border: none;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 15px 30px rgba(99, 102, 241, 0.35);
 }
 
 .form-actions .el-button--primary:hover {
-  background: linear-gradient(135deg, #5855eb 0%, #7c3aed 100%);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 18px 36px rgba(99, 102, 241, 0.45);
 }
 
 @media (max-width: 768px) {

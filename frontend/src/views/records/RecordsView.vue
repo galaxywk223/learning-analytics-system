@@ -32,6 +32,7 @@
       :append-to-body="true"
       :destroy-on-close="false"
       :close-on-click-modal="false"
+      modal-class="record-dialog-overlay"
     >
       <RecordForm
         ref="recordFormRef"
@@ -295,31 +296,39 @@ watch(
 }
 
 .record-dialog {
+  :deep(.record-dialog-overlay) {
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+  }
+
   :deep(.el-dialog) {
-    border-radius: 12px;
+    border-radius: 24px;
     overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 8px;
   }
 
   :deep(.el-dialog__header) {
-    padding: 20px 24px;
+    padding: 16px 24px 8px;
     margin: 0;
-    border-bottom: 1px solid #e5e7eb;
-    background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    border-bottom: none;
+    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
   }
 
   :deep(.el-dialog__title) {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1f2937;
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
   }
 
   :deep(.el-dialog__body) {
-    padding: 20px 24px;
+    padding: 0 24px 8px;
   }
 
   :deep(.el-dialog__footer) {
-    padding: 16px 24px;
-    border-top: 1px solid #e5e7eb;
+    padding: 16px 24px 24px;
+    border-top: none;
   }
 }
 

@@ -12,12 +12,6 @@
       @mouseleave="handleMouseLeave"
     >
       <div class="sidebar-header">
-        <img
-          src="/logo.svg"
-          alt="萤火集 Logo"
-          class="logo-img"
-          loading="lazy"
-        />
         <span class="logo-text">萤火集</span>
       </div>
 

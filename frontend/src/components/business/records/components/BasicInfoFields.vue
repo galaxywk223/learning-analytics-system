@@ -38,27 +38,29 @@
         <el-form-item label="实际时长" prop="actual_duration">
           <el-row :gutter="8">
             <el-col :span="12">
-              <el-input-number
-                v-model="form.duration_hours"
-                :min="0"
-                :max="24"
-                placeholder="小时"
-                style="width: 100%"
-                size="large"
-              />
-            </el-col>
-            <el-col :span="12">
-              <el-input-number
-                v-model="form.duration_minutes"
-                :min="0"
-                :max="59"
-                placeholder="分钟"
-                style="width: 100%"
-                size="large"
-              />
-            </el-col>
-          </el-row>
-        </el-form-item>
+            <el-input-number
+              v-model="form.duration_hours"
+              :min="0"
+              :max="24"
+              placeholder="小时"
+              style="width: 100%"
+              size="large"
+              :controls="false"
+            />
+          </el-col>
+          <el-col :span="12">
+            <el-input-number
+              v-model="form.duration_minutes"
+              :min="0"
+              :max="59"
+              placeholder="分钟"
+              style="width: 100%"
+              size="large"
+              :controls="false"
+            />
+          </el-col>
+        </el-row>
+      </el-form-item>
       </el-col>
     </el-row>
   </div>

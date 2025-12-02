@@ -313,7 +313,7 @@ const recentRecords = computed(() => {
 });
 
 const formatRecordDate = (value?: string) =>
-  value ? dayjs(value).format("MM/DD HH:mm") : "时间未知";
+  value ? dayjs(value).format("YYYY-MM-DD") : "时间未知";
 
 const todayFocusDuration = computed(() => {
   const minutes = dashboardStore.summary?.today_duration_minutes ?? 0;
