@@ -144,9 +144,10 @@ defineExpose({
     gap: 1.2rem;
     padding: clamp(1.8rem, 3vw, 2.1rem);
     border-radius: 24px;
-    background: #ffffff;
-    border: none;
-    box-shadow: 0 22px 50px rgba(15, 23, 42, 0.08);
+    background: rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
   }
 
   .category-row {
@@ -176,8 +177,8 @@ defineExpose({
 
   :deep(.el-input__wrapper),
   :deep(.el-select .el-input__wrapper) {
-    background: #ffffff !important;
-    border: 1px solid #e5e7eb;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(226, 232, 240, 0.9);
     border-radius: 14px;
     box-shadow: none !important;
     padding: 12px 14px;

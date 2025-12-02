@@ -1,6 +1,6 @@
 <template>
   <PageContainer
-    title="📒 学习记录"
+    :title="{ icon: '📒', text: '学习记录' }"
     subtitle="在这里回顾每一次努力，见证成长的每一步。"
     :custom-class="'records-view'"
   >

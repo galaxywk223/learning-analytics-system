@@ -4,7 +4,7 @@
 .page-wrapper {
   display: flex;
   height: 100vh;
-  background-color: var(--surface-page);
+  background-color: transparent;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -92,7 +92,7 @@
   width: calc(100% - var(--sidebar-collapsed-width));
   overflow-y: auto;
   overflow-x: hidden;
-  background: var(--surface-page);
+  background: transparent;
 }
 
 /* 主内容区滚动条样式 */

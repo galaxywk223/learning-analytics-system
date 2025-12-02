@@ -1,8 +1,20 @@
 <template>
   <div class="page-container" :class="customClass">
-    <header class="page-header" v-if="title || $slots.actions || $slots.header">
+    <header
+      class="page-header"
+      v-if="normalizedTitle.text || normalizedTitle.icon || $slots.actions || $slots.header"
+    >
       <div class="page-header__titles" v-if="!$slots.header">
-        <h1 class="page-title">{{ title }}</h1>
+        <h1 class="page-title" v-if="normalizedTitle.text || normalizedTitle.icon">
+          <span
+            v-if="normalizedTitle.icon"
+            class="emoji-icon"
+            aria-hidden="true"
+          >
+            {{ normalizedTitle.icon }}
+          </span>
+          <span>{{ normalizedTitle.text }}</span>
+        </h1>
         <p v-if="subtitle" class="page-subtitle">{{ subtitle }}</p>
       </div>
       <div v-else class="page-header__custom">
@@ -19,11 +31,21 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  title?: string;
+import { computed } from "vue";
+
+const props = defineProps<{
+  title?: string | { icon?: string; text: string };
   subtitle?: string;
   customClass?: string | string[] | Record<string, boolean>;
 }>();
+
+const normalizedTitle = computed(() => {
+  if (!props.title) return { icon: "", text: "" };
+  if (typeof props.title === "string") {
+    return { icon: "", text: props.title };
+  }
+  return { icon: props.title.icon || "", text: props.title.text || "" };
+});
 </script>
 
 <style scoped lang="scss">
@@ -61,6 +83,9 @@ defineProps<{
   font-weight: 700;
   line-height: 1.25;
   color: var(--color-text-heading, #1f2937);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .page-subtitle {

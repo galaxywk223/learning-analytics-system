@@ -38,8 +38,8 @@
   /* Surface Palette */
   --surface-page: #f2f4f7;
   --surface-section: #edf1f6;
-  --surface-card: #ffffff;
-  --surface-card-muted: #f7f8fd;
+  --surface-card: rgba(255, 255, 255, 0.88);
+  --surface-card-muted: rgba(247, 248, 253, 0.86);
   --surface-card-strong: #e4e9fb;
   --surface-subtle: #f1f3fa;
   --surface-soft: #dfe5f7;
@@ -75,14 +75,12 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  width: 100%;
-  overflow: hidden;
-  position: fixed;
+  /* 基础底色 */
+  background-color: #f5f7fa;
 }
 
 body {
   font-family: var(--font-family-base);
-  background: var(--surface-page);
   color: var(--color-text-base);
   line-height: 1.6;
   font-size: 16px;
@@ -91,12 +89,47 @@ body {
 }
 
 #app {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
   position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background-color: transparent;
   z-index: 1;
+  overflow-x: hidden;
+}
+
+/* Mesh gradient backdrop on app */
+#app::before,
+#app::after {
+  content: "";
+  position: fixed;
+  pointer-events: none;
+  z-index: -1;
+}
+
+#app::before {
+  top: -200px;
+  left: -220px;
+  width: 720px;
+  height: 720px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(98, 102, 255, 0.32), transparent 55%),
+    radial-gradient(circle at 70% 20%, rgba(16, 185, 129, 0.28), transparent 55%),
+    radial-gradient(circle at 50% 55%, rgba(236, 72, 153, 0.26), transparent 60%),
+    radial-gradient(circle at 60% 70%, rgba(59, 130, 246, 0.22), transparent 60%);
+  filter: blur(110px);
+}
+
+#app::after {
+  bottom: -220px;
+  right: -220px;
+  width: 780px;
+  height: 780px;
+  background:
+    radial-gradient(circle at 40% 40%, rgba(250, 204, 21, 0.22), transparent 60%),
+    radial-gradient(circle at 80% 60%, rgba(59, 130, 246, 0.26), transparent 55%),
+    radial-gradient(circle at 35% 80%, rgba(139, 92, 246, 0.22), transparent 60%),
+    radial-gradient(circle at 55% 45%, rgba(14, 165, 233, 0.18), transparent 60%);
+  filter: blur(120px);
 }
 
 /* ===== 5. Utility Classes ===== */
@@ -126,6 +159,13 @@ svg,
 i {
   user-select: none;
   -webkit-user-select: none;
+}
+
+.emoji-icon {
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+  display: inline-block;
 }
 
 /* ===== 7. 玻璃态效果 (可选) ===== */

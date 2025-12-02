@@ -1,12 +1,16 @@
 <template>
   <PageContainer
-    title="⏰ 目标倒计时"
+    :title="{ icon: '⏰', text: '倒计时' }"
     :subtitle="relativeTime"
     :custom-class="'countdown-page'"
   >
     <el-skeleton v-if="store.loading" :rows="6" animated />
     <div v-else>
-      <el-collapse v-model="activePanels" class="countdown-collapse" accordion={false}>
+      <el-collapse
+        v-model="activePanels"
+        class="countdown-collapse"
+        accordion="{false}"
+      >
         <el-collapse-item name="active">
           <template #title>
             <div class="collapse-header">
@@ -27,9 +31,7 @@
             <div v-else class="empty-state">
               <i class="ll-icon flag" />
               <h3>当前没有进行中的目标</h3>
-              <p class="text-muted">
-                点击右下角 “+” 创建你的第一个倒计时吧！
-              </p>
+              <p class="text-muted">点击右下角 “+” 创建你的第一个倒计时吧！</p>
             </div>
           </div>
         </el-collapse-item>

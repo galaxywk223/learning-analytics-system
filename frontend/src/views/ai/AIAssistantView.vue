@@ -1,7 +1,7 @@
 <template>
   <div class="ai-assistant">
     <PageContainer
-      title="🤖 智能规划助手"
+      :title="{ icon: '🤖', text: '智能规划' }"
       subtitle="按日、周、月或阶段梳理学习数据，生成易读的总结与下一步规划，并支持历史追溯。"
     >
       <div class="meta-chips">
@@ -529,7 +529,7 @@ onMounted(async () => {
   flex-direction: column;
   min-height: 100%;
   isolation: isolate;
-  background: linear-gradient(180deg, #fafbff 0%, #ffffff 100%);
+  background: transparent;
 
   .meta-chips {
     display: flex;
@@ -561,10 +561,11 @@ onMounted(async () => {
 }
 
 .control-card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.4);
   border-radius: 14px;
-  border: 1px solid var(--color-border-card);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(12px);
   padding: 18px 20px;
 
   .control-grid {
@@ -604,11 +605,12 @@ onMounted(async () => {
 
 .insight-card {
   position: relative;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.4);
   border-radius: 16px;
   padding: 18px 20px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-  border: 1px solid var(--color-border-card);
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -653,10 +655,11 @@ onMounted(async () => {
 }
 
 .history-card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.4);
   border-radius: 14px;
-  border: 1px solid var(--color-border-card);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(12px);
   padding: 18px;
 
   &__header {
@@ -681,17 +684,14 @@ onMounted(async () => {
 }
 
 .history-item {
-  background: linear-gradient(
-    135deg,
-    rgba(248, 250, 255, 0.96),
-    rgba(237, 233, 254, 0.92)
-  );
+  background: rgba(255, 255, 255, 0.35);
   border-radius: 16px;
   padding: 14px 18px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border: 1px solid rgba(129, 140, 248, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
 }
 
 .history-item__header {

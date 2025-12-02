@@ -13,8 +13,16 @@
     color: #111827;
     margin: 0 0 8px;
     letter-spacing: -0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
   }
 
+}
+
+.emoji-icon {
+  user-select: none;
+  pointer-events: none;
 }
 
 .greeting-content {

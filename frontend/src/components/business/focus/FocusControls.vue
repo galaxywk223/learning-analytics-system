@@ -10,7 +10,7 @@
           @click="$emit('start')"
           :loading="loading"
         >
-          开始专注
+          专注计时
         </el-button>
         <button class="return-link" @click="$emit('go-back')">返回</button>
       </div>

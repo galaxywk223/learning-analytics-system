@@ -3,7 +3,10 @@
     <!-- Header Section -->
     <header class="dashboard-header">
       <div class="header-stack">
-        <h1 class="greeting-title">{{ greeting }}</h1>
+        <h1 class="greeting-title">
+          <span class="emoji-icon" aria-hidden="true">{{ greeting.icon }}</span>
+          <span class="greeting-text">{{ greeting.text }}</span>
+        </h1>
         <div class="motto-block">
           <p class="motto-display" :title="mottoDisplay">{{ mottoDisplay }}</p>
           <button
@@ -12,7 +15,10 @@
             @click="refreshMotto(true)"
             aria-label="刷新格言"
           >
-            <Icon icon="lucide:refresh-ccw" :class="{ spinning: mottoLoading }" />
+            <Icon
+              icon="lucide:refresh-ccw"
+              :class="{ spinning: mottoLoading }"
+            />
           </button>
         </div>
       </div>
@@ -24,7 +30,7 @@
       <div class="grid-row-1">
         <!-- Card 1: Stats Analysis -->
         <router-link to="/charts" class="bento-card wide-card stats-card">
-          <p class="card-title">学习趋势</p>
+          <p class="card-title">统计分析</p>
           <div class="card-content">
             <div class="chart-header">
               <Icon icon="lucide:trending-up" class="card-icon" />
@@ -38,10 +44,7 @@
                   class="bar"
                   :title="`${barLabels[idx]} · ${barValues[idx]} 分钟`"
                 >
-                  <div
-                    class="bar-fill"
-                    :style="{ height: `${bar}%` }"
-                  ></div>
+                  <div class="bar-fill" :style="{ height: `${bar}%` }"></div>
                   <span class="bar-label">{{ barLabels[idx] }}</span>
                 </div>
               </div>
@@ -51,14 +54,24 @@
 
         <!-- Card 2: Learning Records -->
         <router-link to="/records" class="bento-card wide-card record-card">
-          <p class="card-title">最近记录</p>
+          <p class="card-title">学习记录</p>
           <div class="card-content">
             <ul v-if="recentRecords.length" class="record-list">
-              <li v-for="item in recentRecords" :key="item.id" class="record-row">
-                <span class="record-name">{{ item.title || "未命名记录" }}</span>
+              <li
+                v-for="item in recentRecords"
+                :key="item.id"
+                class="record-row"
+              >
+                <span class="record-name">{{
+                  item.title || "未命名记录"
+                }}</span>
                 <span class="record-sub">{{ item.subcategory }}</span>
-                <span class="record-date">{{ formatRecordDate(item.date) }}</span>
-                <span class="record-duration">{{ item.duration || "暂无时长" }}</span>
+                <span class="record-date">{{
+                  formatRecordDate(item.date)
+                }}</span>
+                <span class="record-duration">{{
+                  item.duration || "暂无时长"
+                }}</span>
                 <span class="record-mood">{{ moodEmoji(item.mood) }}</span>
               </li>
             </ul>
@@ -82,8 +95,11 @@
         </router-link>
 
         <!-- Card 4: Countdown -->
-        <router-link to="/countdown" class="bento-card square-card countdown-card">
-          <p class="card-title">距离目标</p>
+        <router-link
+          to="/countdown"
+          class="bento-card square-card countdown-card"
+        >
+          <p class="card-title">倒计时</p>
           <div class="card-content centered">
             <span class="big-number">{{ countdownDays }}</span>
             <span class="card-label">{{ countdownTitle }}</span>
@@ -91,17 +107,23 @@
         </router-link>
 
         <!-- Card 5: Achievements -->
-        <router-link to="/milestones" class="bento-card square-card achievement-card">
-          <p class="card-title">高光时刻</p>
+        <router-link
+          to="/milestones"
+          class="bento-card square-card achievement-card"
+        >
+          <p class="card-title">成就时刻</p>
           <div class="card-content centered">
             <Icon icon="lucide:trophy" class="big-icon" />
             <span class="big-number-sm">{{ milestoneCount }}</span>
-            <span class="card-label">高光时刻</span>
+            <span class="card-label">成就时刻</span>
           </div>
         </router-link>
 
         <!-- Card 6: Ranking -->
-        <router-link to="/leaderboard" class="bento-card square-card ranking-card">
+        <router-link
+          to="/leaderboard"
+          class="bento-card square-card ranking-card"
+        >
           <p class="card-title">社区排行</p>
           <div class="card-content centered">
             <span class="rank-icon">👑</span>
@@ -142,13 +164,13 @@ const allRecords = ref<any[]>([]);
 /** 顶部问候语 */
 const greeting = computed(() => {
   const hour = new Date().getHours();
-  if (hour < 6) return "🌙 夜深了，注意休息哦";
-  if (hour < 9) return "🌅 早上好，新的一天开始了";
-  if (hour < 12) return "☀️ 上午好，保持专注";
-  if (hour < 14) return "🌞 中午好，记得休息";
-  if (hour < 18) return "🌤️ 下午好，继续加油";
-  if (hour < 22) return "🌆 晚上好，今天辛苦了";
-  return "🌙 夜深了，早点休息";
+  if (hour < 6) return { icon: "🌙", text: "夜深了，注意休息哦" };
+  if (hour < 9) return { icon: "🌅", text: "早上好，新的一天开始了" };
+  if (hour < 12) return { icon: "☀️", text: "上午好，保持专注" };
+  if (hour < 14) return { icon: "🌞", text: "中午好，记得休息" };
+  if (hour < 18) return { icon: "🌤️", text: "下午好，继续加油" };
+  if (hour < 22) return { icon: "🌆", text: "晚上好，今天辛苦了" };
+  return { icon: "🌙", text: "夜深了，早点休息" };
 });
 
 const formatDuration = (minutes) => {
@@ -167,7 +189,9 @@ const lastMottoLoadedAt = ref(0);
 const MIN_REFRESH_INTERVAL = 5_000;
 
 const mottoPool = computed(() => {
-  const personalMottos = Array.isArray(mottoStore.items) ? mottoStore.items : [];
+  const personalMottos = Array.isArray(mottoStore.items)
+    ? mottoStore.items
+    : [];
   if (personalMottos.length) return personalMottos;
   const summaryMotto = dashboardStore.summary?.random_motto;
   return summaryMotto ? [summaryMotto] : [];
@@ -207,7 +231,8 @@ async function refreshMotto(force = false) {
 async function fetchRecentRecords() {
   try {
     const resp = (await recordApi.getRecentRecords({ limit: 50 })) as any;
-    const items = resp?.data?.records || resp?.data || resp?.records || resp || [];
+    const items =
+      resp?.data?.records || resp?.data || resp?.records || resp || [];
     allRecords.value = Array.isArray(items) ? items : [];
   } catch (e) {
     console.error("Failed to fetch recent records", e);
@@ -240,30 +265,32 @@ onActivated(async () => {
 
 const sortedRecords = computed(() => {
   const records = allRecords.value || [];
-  return records
-    .slice()
-    .sort((a, b) => {
-      const da = dayjs(a.log_date || a.date || a.created_at || 0);
-      const db = dayjs(b.log_date || b.date || b.created_at || 0);
-      if (db.isSame(da)) {
-        return dayjs(b.created_at || b.updated_at || 0).valueOf() -
-          dayjs(a.created_at || a.updated_at || 0).valueOf();
-      }
-      return db.valueOf() - da.valueOf();
-    });
+  return records.slice().sort((a, b) => {
+    const da = dayjs(a.log_date || a.date || a.created_at || 0);
+    const db = dayjs(b.log_date || b.date || b.created_at || 0);
+    if (db.isSame(da)) {
+      return (
+        dayjs(b.created_at || b.updated_at || 0).valueOf() -
+        dayjs(a.created_at || a.updated_at || 0).valueOf()
+      );
+    }
+    return db.valueOf() - da.valueOf();
+  });
 });
 
 const recentRecords = computed(() => {
   const groupedByDay: Record<string, any[]> = {};
   sortedRecords.value.forEach((item: any) => {
-    const key = dayjs(item.log_date || item.date || item.created_at).format("YYYY-MM-DD");
+    const key = dayjs(item.log_date || item.date || item.created_at).format(
+      "YYYY-MM-DD"
+    );
     groupedByDay[key] = groupedByDay[key] || [];
     groupedByDay[key].push(item);
   });
 
   const ordered: any[] = [];
   Object.keys(groupedByDay)
-    .sort((a, b) => (dayjs(b).valueOf() - dayjs(a).valueOf()))
+    .sort((a, b) => dayjs(b).valueOf() - dayjs(a).valueOf())
     .forEach((day) => {
       groupedByDay[day].forEach((item: any) => {
         ordered.push(item);
@@ -272,7 +299,8 @@ const recentRecords = computed(() => {
 
   return ordered.slice(0, 5).map((item: any) => ({
     id: item.id ?? item.record_id ?? Math.random(),
-    title: item.task || item.title || item.content || item.category || "未命名记录",
+    title:
+      item.task || item.title || item.content || item.category || "未命名记录",
     date: item.log_date || item.date || item.created_at || item.updated_at,
     duration: item.actual_duration
       ? `${item.actual_duration} 分钟`
@@ -309,7 +337,7 @@ const milestoneCount = computed(
 );
 
 const rankingLabel = computed(
-  () => dashboardStore.summary?.ranking_label || "Top 5%"
+  () => (dashboardStore.summary as any)?.ranking_label || "Top 5%"
 );
 
 const aiPlanStatus = computed(() => {
@@ -327,7 +355,9 @@ const barValues = computed(() => {
   last7Days.value.forEach((d) => map.set(d.format("YYYY-MM-DD"), 0));
 
   sortedRecords.value.forEach((item: any) => {
-    const dayKey = dayjs(item.log_date || item.date || item.created_at).format("YYYY-MM-DD");
+    const dayKey = dayjs(item.log_date || item.date || item.created_at).format(
+      "YYYY-MM-DD"
+    );
     if (map.has(dayKey)) {
       const current = map.get(dayKey) || 0;
       const duration = Number(item.actual_duration || item.duration || 0);

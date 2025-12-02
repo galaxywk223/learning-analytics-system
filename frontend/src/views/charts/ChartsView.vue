@@ -30,7 +30,7 @@
       </button>
     </div>
     <PageContainer
-      title="📊 统计分析"
+      :title="{ icon: '📊', text: '统计分析' }"
       subtitle="通过数据洞察学习模式，掌握成长轨迹"
     >
       <div class="toolbar-container">

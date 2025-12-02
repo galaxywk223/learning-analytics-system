@@ -3,7 +3,7 @@
 
 .charts-view {
   min-height: 100vh;
-  background: #f6f7fb;
+  background: transparent;
   padding: 16px 24px 32px;
   position: relative;
 
@@ -405,7 +405,9 @@
   box-shadow: 0 10px 24px rgba(79, 70, 229, 0.08);
   flex-wrap: wrap;
   min-height: 64px;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 
   &.is-inactive {
     background: rgba(248, 250, 252, 0.9);
@@ -602,8 +604,8 @@
 
 .floating-dock {
   position: fixed;
-  left: clamp(70px, 5vw, 82px);
-  top: 40%;
+  left: clamp(110px, 8vw, 180px);
+  top: 38%;
   transform: translateY(-50%);
   background: #ffffff;
   border-radius: 32px;

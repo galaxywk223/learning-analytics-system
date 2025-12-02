@@ -1,7 +1,7 @@
 <template>
   <div class="leaderboard-view">
     <PageContainer
-      title="📈 社区排行"
+      :title="{ icon: '📈', text: '社区排行' }"
       subtitle="实时查看社区学习时长与效率榜单，点选用户了解详情"
     >
       <section class="leaderboard-toolbar">
@@ -341,7 +341,7 @@ async function handleLeave() {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: var(--surface-page);
+  background: transparent;
 }
 
 .leaderboard-toolbar {
@@ -350,10 +350,12 @@ async function handleLeave() {
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 16px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.42);
   border-radius: 14px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   padding: 18px 22px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
 
   .controls {
     display: flex;
@@ -409,8 +411,9 @@ async function handleLeave() {
   justify-content: space-between;
   align-items: center;
   border-radius: 12px;
-  border: 1px solid #c7d2fe;
-  background: #eef2ff;
+  border: 1px solid rgba(199, 210, 254, 0.6);
+  background: rgba(238, 242, 255, 0.4);
+  backdrop-filter: blur(10px);
 }
 
 .join-alert__body {
@@ -422,14 +425,15 @@ async function handleLeave() {
 }
 
 .card {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.42);
   border-radius: 14px;
   padding: 0;
-  border: 1px solid #e2e8f0;
-  box-shadow: none;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
   position: relative;
+  backdrop-filter: blur(14px);
 
   &::before {
     content: "";
@@ -510,9 +514,10 @@ async function handleLeave() {
     flex-direction: column;
     gap: 4px;
     padding: 12px 14px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.32);
     border-radius: 12px;
-    background: #f8fafc;
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(10px);
 
     .label {
       color: #475569;

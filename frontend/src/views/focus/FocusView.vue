@@ -2,7 +2,7 @@
   <div class="focus-view">
     <div class="bg-blobs"></div>
     <PageContainer
-      :title="isTimerRunning ? '🎯 专注中' : '🎯 开始专注'"
+      :title="{ icon: '🎯', text: isTimerRunning ? '专注中' : '专注计时' }"
       subtitle="保持专注，记录每一步的累积"
     >
       <div class="focus-layout">
@@ -49,63 +49,63 @@
       </div>
       <!-- 结束专注弹窗 -->
       <el-dialog
-      v-model="stopDialogVisible"
-      title="保存学习记录"
-      width="600px"
-      :close-on-click-modal="false"
-      class="stop-dialog"
-    >
-      <div class="dialog-content">
-        <div class="time-info">
-          <div class="info-item">
-            <span class="label">专注时长</span>
-            <span class="value">{{ formatDuration(elapsedSeconds) }}</span>
+        v-model="stopDialogVisible"
+        title="保存学习记录"
+        width="600px"
+        :close-on-click-modal="false"
+        class="stop-dialog"
+      >
+        <div class="dialog-content">
+          <div class="time-info">
+            <div class="info-item">
+              <span class="label">专注时长</span>
+              <span class="value">{{ formatDuration(elapsedSeconds) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">开始时间</span>
+              <span class="value">{{ startTimeDisplay }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">结束时间</span>
+              <span class="value">{{ endTimeDisplay }}</span>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="label">开始时间</span>
-            <span class="value">{{ startTimeDisplay }}</span>
-          </div>
-          <div class="info-item">
-            <span class="label">结束时间</span>
-            <span class="value">{{ endTimeDisplay }}</span>
-          </div>
+
+          <el-form :model="stopForm" label-position="top">
+            <el-form-item label="学习心情">
+              <el-rate
+                v-model="stopForm.mood"
+                :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
+                size="large"
+              />
+            </el-form-item>
+
+            <el-form-item label="备注（选填）">
+              <el-input
+                v-model="stopForm.notes"
+                type="textarea"
+                :rows="4"
+                placeholder="记录一下本次学习的收获或感想..."
+                maxlength="200"
+                show-word-limit
+              />
+            </el-form-item>
+          </el-form>
         </div>
 
-        <el-form :model="stopForm" label-position="top">
-          <el-form-item label="学习心情">
-            <el-rate
-              v-model="stopForm.mood"
-              :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
-              size="large"
-            />
-          </el-form-item>
-
-          <el-form-item label="备注（选填）">
-            <el-input
-              v-model="stopForm.notes"
-              type="textarea"
-              :rows="4"
-              placeholder="记录一下本次学习的收获或感想..."
-              maxlength="200"
-              show-word-limit
-            />
-          </el-form-item>
-        </el-form>
-      </div>
-
-      <template #footer>
-        <el-button @click="stopDialogVisible = false" size="large">
-          取消
-        </el-button>
-        <el-button
-          type="primary"
-          @click="saveRecord"
-          :loading="loading"
-          size="large"
-        >
-          保存记录
-        </el-button>
-      </template>
+        <template #footer>
+          <el-button @click="stopDialogVisible = false" size="large">
+            取消
+          </el-button>
+          <el-button
+            type="primary"
+            @click="saveRecord"
+            :loading="loading"
+            size="large"
+          >
+            保存记录
+          </el-button>
+        </template>
       </el-dialog>
     </PageContainer>
   </div>
@@ -467,17 +467,45 @@ onMounted(async () => {
   position: relative;
   min-height: 100vh;
   padding: clamp(1.5rem, 3vw, 3rem);
-  background: var(--surface-page);
+  background: transparent;
   overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(
+        circle at 45% 38%,
+        rgba(99, 102, 241, 0.18),
+        transparent 58%
+      ),
+      radial-gradient(
+        circle at 62% 60%,
+        rgba(14, 165, 233, 0.18),
+        transparent 60%
+      ),
+      radial-gradient(
+        circle at 40% 72%,
+        rgba(236, 72, 153, 0.16),
+        transparent 64%
+      ),
+      radial-gradient(
+        circle at 55% 48%,
+        rgba(250, 204, 21, 0.14),
+        transparent 65%
+      );
+    filter: blur(90px);
+    z-index: 0;
+    pointer-events: none;
+  }
 }
 
 .bg-blobs {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(600px at 20% 20%, rgba(99, 102, 241, 0.08), transparent 55%),
-    radial-gradient(520px at 80% 70%, rgba(56, 189, 248, 0.08), transparent 55%);
+  background: transparent;
   z-index: 0;
 }
 

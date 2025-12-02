@@ -1,6 +1,6 @@
 ﻿<template>
   <PageContainer
-    title="🏆 成就时刻"
+    :title="{ icon: '🏆', text: '成就时刻' }"
     subtitle="记录下每一个值得纪念的闪光瞬间。"
     :custom-class="'milestones-view'"
     :max-width="1400"
@@ -43,7 +43,7 @@
         <div v-else class="empty-box">
           <h3>还没有任何成就记录</h3>
           <p class="text-muted">
-            点击右上角的按钮，开始记录你的第一个高光时刻吧！
+            点击右上角的按钮，开始记录你的第一个成就时刻吧！
           </p>
         </div>
 
@@ -87,7 +87,11 @@
     />
   </PageContainer>
   <div class="milestone-fab">
-    <button class="fab fab-secondary" @click="openCategoryManager" title="管理分类">
+    <button
+      class="fab fab-secondary"
+      @click="openCategoryManager"
+      title="管理分类"
+    >
       <Icon icon="lucide:folder-cog" />
     </button>
     <button class="fab fab-primary" @click="openCreate" title="记录新成就">
@@ -133,7 +137,9 @@ const RENDER_CHUNK = 12;
 let renderHandle = null;
 
 const requestFrame = (cb) =>
-  typeof window !== "undefined" ? window.requestAnimationFrame(cb) : setTimeout(cb, 16);
+  typeof window !== "undefined"
+    ? window.requestAnimationFrame(cb)
+    : setTimeout(cb, 16);
 const cancelFrame = (handle) => {
   if (handle === null) return;
   if (typeof window !== "undefined") {
