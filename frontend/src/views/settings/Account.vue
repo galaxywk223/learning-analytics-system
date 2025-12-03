@@ -4,104 +4,84 @@
     subtitle="管理个人信息与账号安全"
     :custom-class="'settings-subpage'"
   >
-    <!-- 用户头像区域 -->
-    <div class="avatar-section">
-      <div class="avatar-preview">
-        {{ authStore.user?.username?.charAt(0)?.toUpperCase() || "U" }}
-      </div>
-      <div class="avatar-info">
-        <h3>{{ authStore.user?.username || "用户" }}</h3>
-        <p>{{ authStore.user?.email || "email@example.com" }}</p>
-      </div>
-    </div>
+    <div class="account-layout">
+      <aside class="profile-card">
+        <div class="profile-hero"></div>
+        <div class="avatar-shell">
+          <div class="avatar-preview">
+            {{ authStore.user?.username?.charAt(0)?.toUpperCase() || "U" }}
+          </div>
+          <div class="avatar-meta">
+            <h3>{{ authStore.user?.username || "用户" }}</h3>
+            <p>{{ authStore.user?.email || "email@example.com" }}</p>
+          </div>
+        </div>
+      </aside>
 
-    <!-- 个人资料卡片 -->
-    <div class="settings-card">
-      <div class="card-header">
-        <Icon icon="lucide:user-circle" />
-        <h5 class="card-title">个人资料</h5>
-      </div>
-      <div class="card-body">
-        <form @submit.prevent="handleProfileSubmit">
-          <div class="form-group">
+      <section class="settings-panel">
+        <div class="section">
+          <div class="section-header">
+            <h4>基本资料</h4>
+          </div>
+          <form @submit.prevent="handleProfileSubmit" class="compact-form">
             <div class="form-row">
-              <label for="username" class="form-label">用户名</label>
-              <div class="form-input-wrapper">
+              <label for="username">用户名</label>
+              <div class="input-col">
                 <input
-                  type="text"
-                  class="form-control"
                   id="username"
+                  type="text"
                   v-model="profileForm.username"
                   placeholder="输入您的用户名"
                   :disabled="profileLoading"
                 />
-                <p class="form-text">您的公开显示名称</p>
+                <p class="hint">您的公开显示名称</p>
               </div>
             </div>
-          </div>
-
-          <div class="form-group">
             <div class="form-row">
-              <label for="email" class="form-label">邮箱地址</label>
-              <div class="form-input-wrapper">
+              <label for="email">邮箱地址</label>
+              <div class="input-col">
                 <input
-                  type="email"
-                  class="form-control"
                   id="email"
+                  type="email"
                   :value="authStore.user?.email || ''"
                   readonly
                   disabled
                 />
-                <p class="form-text">
-                  <span class="badge badge-info">不可修改</span>
-                  邮箱地址用于登录，暂时无法修改
-                </p>
+                <p class="hint">邮箱用于登录，暂不支持修改</p>
               </div>
             </div>
-          </div>
+            <div class="form-actions">
+              <button
+                type="submit"
+                class="btn primary"
+                :disabled="profileLoading || !isProfileChanged"
+              >
+                {{ profileLoading ? "保存中..." : "保存更改" }}
+              </button>
+              <button
+                v-if="isProfileChanged"
+                type="button"
+                class="btn ghost"
+                @click="resetProfileForm"
+                :disabled="profileLoading"
+              >
+                取消
+              </button>
+            </div>
+          </form>
+        </div>
 
-          <div class="form-actions">
-            <button
-              type="submit"
-              class="btn btn-primary"
-              :disabled="profileLoading || !isProfileChanged"
-            >
-              <Icon
-                icon="lucide:save"
-                :style="{ width: '18px', height: '18px' }"
-              />
-              {{ profileLoading ? "保存中..." : "保存更改" }}
-            </button>
-            <button
-              v-if="isProfileChanged"
-              type="button"
-              class="btn btn-secondary"
-              @click="resetProfileForm"
-              :disabled="profileLoading"
-            >
-              取消
-            </button>
+        <div class="section">
+          <div class="section-header">
+            <h4>安全设置</h4>
           </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- 安全设置卡片 -->
-    <div class="settings-card">
-      <div class="card-header">
-        <Icon icon="lucide:shield-check" />
-        <h5 class="card-title">安全设置</h5>
-      </div>
-      <div class="card-body">
-        <form @submit.prevent="handlePasswordSubmit">
-          <div class="form-group">
+          <form @submit.prevent="handlePasswordSubmit" class="compact-form">
             <div class="form-row">
-              <label for="current-password" class="form-label">当前密码</label>
-              <div class="form-input-wrapper">
+              <label for="current-password">当前密码</label>
+              <div class="input-col">
                 <input
-                  type="password"
-                  class="form-control"
                   id="current-password"
+                  type="password"
                   v-model="passwordForm.currentPassword"
                   placeholder="输入您当前的密码"
                   autocomplete="current-password"
@@ -109,106 +89,83 @@
                 />
               </div>
             </div>
-          </div>
-
-          <div class="form-group">
             <div class="form-row">
-              <label for="new-password" class="form-label">新密码</label>
-              <div class="form-input-wrapper">
+              <label for="new-password">新密码</label>
+              <div class="input-col">
                 <input
-                  type="password"
-                  class="form-control"
                   id="new-password"
+                  type="password"
                   v-model="passwordForm.newPassword"
                   placeholder="输入您的新密码"
                   autocomplete="new-password"
                   :disabled="passwordLoading"
                   @input="validatePassword"
                 />
-                <p class="form-text" :class="{ error: passwordError }">
+                <p class="hint" :class="{ error: passwordError }">
                   {{
                     passwordError ||
-                    "密码长度至少8位，建议包含字母、数字和特殊字符"
+                    "至少 8 位，建议包含字母、数字和特殊字符"
                   }}
                 </p>
               </div>
             </div>
-          </div>
-
-          <div class="form-group">
             <div class="form-row">
-              <label for="confirm-password" class="form-label"
-                >确认新密码</label
-              >
-              <div class="form-input-wrapper">
+              <label for="confirm-password">确认新密码</label>
+              <div class="input-col">
                 <input
-                  type="password"
-                  class="form-control"
                   id="confirm-password"
+                  type="password"
                   v-model="passwordForm.confirmPassword"
                   placeholder="再次输入您的新密码"
                   autocomplete="new-password"
                   :disabled="passwordLoading"
                   @input="validateConfirmPassword"
                 />
-                <p class="form-text error" v-if="confirmPasswordError">
+                <p class="hint error" v-if="confirmPasswordError">
                   {{ confirmPasswordError }}
                 </p>
               </div>
             </div>
-          </div>
-
-          <div class="form-actions">
-            <button
-              type="submit"
-              class="btn btn-primary"
-              :disabled="passwordLoading || !isPasswordFormValid"
-            >
-              <Icon
-                icon="lucide:key-round"
-                :style="{ width: '18px', height: '18px' }"
-              />
-              {{ passwordLoading ? "修改中..." : "修改密码" }}
-            </button>
-            <button
-              v-if="isPasswordFormFilled"
-              type="button"
-              class="btn btn-secondary"
-              @click="resetPasswordForm"
-              :disabled="passwordLoading"
-            >
-              取消
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- 账号控制卡片 -->
-    <div class="settings-card danger-card">
-      <div class="card-header">
-        <Icon icon="lucide:power" />
-        <h5 class="card-title">账号控制</h5>
-      </div>
-      <div class="card-body">
-        <div class="logout-panel">
-          <div class="logout-text">
-            <h6>退出当前账号</h6>
-            <p>退出后将返回登录页，如需继续使用请重新登录。</p>
-          </div>
-          <button type="button" class="btn btn-danger" @click="handleLogout">
-            <Icon icon="lucide:log-out" :style="{ width: '18px', height: '18px' }" />
-            退出登录
-          </button>
+            <div class="form-actions">
+              <button
+                type="submit"
+                class="btn primary"
+                :disabled="passwordLoading || !isPasswordFormValid"
+              >
+                {{ passwordLoading ? "修改中..." : "修改密码" }}
+              </button>
+              <button
+                v-if="isPasswordFormFilled"
+                type="button"
+                class="btn ghost"
+                @click="resetPasswordForm"
+                :disabled="passwordLoading"
+              >
+                取消
+              </button>
+            </div>
+          </form>
         </div>
-      </div>
+
+        <div class="danger-row">
+          <div>
+            <h5>账号控制</h5>
+            <p>退出登录或注销账号，谨慎操作。</p>
+          </div>
+          <div class="danger-actions">
+            <button type="button" class="btn ghost danger" @click="handleLogout">
+              退出登录
+            </button>
+            <button type="button" class="btn danger">注销账号</button>
+          </div>
+        </div>
+      </section>
     </div>
   </PageContainer>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { Icon } from "@iconify/vue";
 import PageContainer from "@/components/layout/PageContainer.vue";
 import { useAuthStore } from "@/stores/modules/auth";
 import { ElMessage } from "element-plus";

@@ -4,135 +4,75 @@
     subtitle="备份、恢复或清空您的学习数据"
     :custom-class="'settings-subpage'"
   >
-
-    <!-- 导出数据卡片 -->
-    <div class="settings-card">
-      <div class="card-header">
-        <Icon icon="lucide:download" />
-        <h5 class="card-title">导出全部数据</h5>
-      </div>
-      <div class="card-body">
-        <p class="card-desc">
-          打包您账户下的所有内容为 <span class="code-tag">.zip</span>
-          文件：学习记录、阶段、分类、计划、成就、格言、倒计时等。
-        </p>
+    <div class="data-grid">
+      <!-- 导出数据卡片 -->
+      <div class="data-card export-card">
+        <div class="card-icon">🗂️</div>
+        <div class="card-text">
+          <h4>导出全部数据</h4>
+          <p>包含学习记录、阶段、分类、计划、成就、格言、倒计时等。</p>
+        </div>
         <button
           type="button"
-          class="btn btn-primary"
+          class="pill-btn primary"
           :disabled="exporting"
           @click="handleExport"
         >
-          <Icon
-            icon="lucide:archive"
-            :style="{ width: '18px', height: '18px' }"
-          />
-          <span v-if="!exporting">导出 ZIP 备份</span>
-          <span v-else>正在导出...</span>
+          <span>📦 导出 ZIP 备份</span>
         </button>
       </div>
-    </div>
 
-    <!-- 导入数据卡片 -->
-    <div class="settings-card">
-      <div class="card-header">
-        <Icon icon="lucide:upload" />
-        <h5 class="card-title">导入备份数据</h5>
-      </div>
-      <div class="card-body">
-        <p class="card-desc">
-          从之前生成的 <span class="code-tag">.zip</span> 备份恢复。
-          <span class="text-warning">此操作将覆盖当前所有数据且不可撤销。</span>
-        </p>
-
-        <label
-          class="upload-zone"
-          :class="{ dragging: dragging }"
-          @dragover.prevent="dragging = true"
-          @dragleave.prevent="dragging = false"
-          @drop.prevent="onDrop"
-        >
-          <input
-            ref="fileInput"
-            type="file"
-            accept=".zip"
-            class="file-input"
-            @change="onInputFile"
-          />
-          <div class="zone-content">
-            <Icon icon="lucide:file-archive" class="zone-icon" />
-            <p class="zone-title">点击或拖拽 ZIP 到此</p>
-            <p class="zone-hint">仅支持单个 .zip 备份文件</p>
-          </div>
-        </label>
-
+      <!-- 导入数据卡片 -->
+      <div
+        class="data-card import-card"
+        :class="{ dragging: dragging }"
+        @dragover.prevent="dragging = true"
+        @dragleave.prevent="dragging = false"
+        @drop.prevent="onDrop"
+      >
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".zip"
+          class="file-input"
+          @change="onInputFile"
+        />
+        <div class="import-content" @click="fileInput?.click()">
+          <div class="card-icon ghost">📦</div>
+          <h4>导入备份数据</h4>
+          <p class="desc">点击或拖拽 ZIP 文件到此处</p>
+          <p class="warn">将覆盖当前所有数据且不可恢复</p>
+        </div>
         <div v-if="selectedFile" class="file-info">
-          <Icon icon="lucide:file-check" class="file-icon" />
-          <div class="file-details">
-            <div class="file-name">{{ selectedFile.name }}</div>
-            <div class="file-size">
-              {{ (selectedFile.size / 1024).toFixed(1) }} KB
-            </div>
+          <div class="file-name">{{ selectedFile.name }}</div>
+          <div class="file-size">{{ (selectedFile.size / 1024).toFixed(1) }} KB</div>
+          <div class="file-actions">
+            <button class="pill-btn danger" type="button" :disabled="importing" @click="confirmImport">
+              {{ importing ? "正在导入..." : "导入并覆盖" }}
+            </button>
+            <button class="pill-btn ghost" type="button" :disabled="importing" @click="clearSelection">
+              取消
+            </button>
           </div>
-          <button
-            type="button"
-            class="btn-remove"
-            @click="clearSelection"
-            :disabled="importing"
-          >
-            <Icon icon="lucide:x" />
-          </button>
-        </div>
-
-        <div class="form-actions" v-if="selectedFile">
-          <button
-            type="button"
-            class="btn btn-danger"
-            :disabled="!selectedFile || importing"
-            @click="confirmImport"
-          >
-            <Icon
-              icon="lucide:upload"
-              :style="{ width: '18px', height: '18px' }"
-            />
-            {{ importing ? "正在导入..." : "导入并覆盖" }}
-          </button>
-          <button
-            type="button"
-            class="btn btn-secondary"
-            :disabled="!selectedFile || importing"
-            @click="clearSelection"
-          >
-            取消
-          </button>
         </div>
       </div>
-    </div>
 
-    <!-- 危险区域 -->
-    <div class="settings-card danger-card">
-      <div class="card-header danger-header">
-        <Icon icon="lucide:alert-triangle" />
-        <h5 class="card-title">危险区域</h5>
-      </div>
-      <div class="card-body">
-        <h6 class="danger-title">清空所有数据</h6>
-        <p class="card-desc">
-          该操作将<span class="text-danger">永久删除</span
-          >您账户下的全部内容（包括学习记录、阶段、分类、计划、成就、格言、倒计时等），
-          <span class="text-danger">且无法恢复</span>。
-        </p>
+      <!-- 危险区域 -->
+      <div class="danger-row">
+        <div class="danger-left">
+          <span class="danger-icon">🚨</span>
+          <div>
+            <div class="danger-title">清空所有数据</div>
+            <div class="danger-desc">此操作不可恢复，请谨慎操作。</div>
+          </div>
+        </div>
         <button
           type="button"
-          class="btn btn-danger"
+          class="pill-btn danger solid"
           :disabled="clearing"
           @click="confirmClear"
         >
-          <Icon
-            icon="lucide:trash-2"
-            :style="{ width: '18px', height: '18px' }"
-          />
-          <span v-if="!clearing">立即清空</span>
-          <span v-else>正在清空...</span>
+          🗑️ {{ clearing ? "正在清空..." : "立即清空" }}
         </button>
       </div>
     </div>
@@ -141,7 +81,6 @@
 
 <script setup>
 import { ref } from "vue";
-import { Icon } from "@iconify/vue";
 import axios from "axios";
 import { ElMessage, ElMessageBox } from "element-plus";
 import PageContainer from "@/components/layout/PageContainer.vue";
@@ -300,209 +239,208 @@ async function confirmClear() {
 </script>
 
 <style scoped>
-@import "@/styles/views/settings/account.scss";
-
-/* 数据管理特定样式 */
-.data-settings {
-  max-width: 900px;
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: stretch;
 }
 
-/* 上传区域 */
-.upload-zone {
-  border: 2px dashed #cbd5e1;
-  border-radius: 10px;
-  padding: 2rem;
-  text-align: center;
+.data-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 18px 18px 16px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 240px;
+}
+
+.data-card h4 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.data-card p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.card-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(59, 130, 246, 0.12);
+  font-size: 28px;
+  color: #2563eb;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.card-icon.ghost {
+  background: rgba(99, 102, 241, 0.08);
+  color: #4f46e5;
+}
+
+.card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.pill-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-weight: 800;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: block;
-  background: #fafafa;
-  margin: 1rem 0;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.15s ease;
+  align-self: stretch;
 }
 
-.upload-zone:hover {
-  border-color: #667eea;
-  background: #f8f9ff;
+.pill-btn.primary {
+  background: linear-gradient(135deg, #6d7cff, #4f46e5);
+  color: #ffffff;
+  box-shadow: 0 12px 26px rgba(79, 70, 229, 0.28);
 }
 
-.upload-zone.dragging {
-  border-color: #667eea;
-  background: #f0f2ff;
-  transform: scale(1.01);
+.pill-btn.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pill-btn.ghost {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e5e7eb;
+}
+
+.pill-btn.danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.pill-btn.danger.solid {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 10px 22px rgba(239, 68, 68, 0.25);
+}
+
+.import-card {
+  background: #f9fafb;
+  border: 2px dashed rgba(99, 102, 241, 0.35);
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.import-card.dragging {
+  border-color: #4f46e5;
+  background: rgba(79, 70, 229, 0.04);
 }
 
 .file-input {
-  display: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 
-.zone-content {
+.import-content {
+  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.zone-icon {
-  width: 48px;
-  height: 48px;
-  color: #94a3b8;
-  margin-bottom: 0.5rem;
-}
-
-.zone-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #334155;
-  margin: 0;
-}
-
-.zone-hint {
-  font-size: 0.825rem;
-  color: #64748b;
-  margin: 0;
-}
-
-/* 文件信息 */
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  padding: 0.875rem 1rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  margin: 1rem 0;
-}
-
-.file-icon {
-  width: 32px;
-  height: 32px;
-  color: #667eea;
-  flex-shrink: 0;
-}
-
-.file-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.file-name {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #1e293b;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.file-size {
-  font-size: 0.8rem;
-  color: #64748b;
-  margin-top: 0.125rem;
-}
-
-.btn-remove {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: #64748b;
-  border-radius: 6px;
+  gap: 8px;
   cursor: pointer;
+}
+
+.import-content h4 {
+  font-size: 17px;
+  margin: 0;
+}
+
+.import-content .desc {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.import-content .warn {
+  font-size: 12px;
+  color: #f59e0b;
+}
+
+.file-info {
+  margin-top: auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.file-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.danger-row {
+  grid-column: span 2;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.btn-remove:hover:not(:disabled) {
-  background: #e2e8f0;
-  color: #1e293b;
+.danger-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.btn-remove:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* 危险卡片 */
-.danger-card {
-  border-color: #fecaca;
-}
-
-.danger-header {
-  background: #fef2f2;
-  color: #991b1b;
-  border-bottom-color: #fecaca;
-}
-
-.danger-header .card-title {
-  color: #991b1b;
-}
-
-.danger-header svg {
-  color: #dc2626;
+.danger-icon {
+  font-size: 22px;
 }
 
 .danger-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #991b1b;
-  margin: 0 0 0.5rem 0;
+  font-weight: 800;
+  color: #b91c1c;
+  font-size: 15px;
 }
 
-.card-desc {
-  font-size: 0.875rem;
-  color: #64748b;
-  line-height: 1.6;
-  margin-bottom: 1.25rem;
+.danger-desc {
+  color: #6b7280;
+  font-size: 13px;
 }
 
-.code-tag {
-  background: #f1f5f9;
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
-  font-family: "Monaco", "Menlo", "Courier New", monospace;
-  font-size: 0.825rem;
-  color: #475569;
-  font-weight: 500;
-}
-
-.text-warning {
-  color: #f59e0b;
-  font-weight: 500;
-}
-
-.text-danger {
-  color: #dc2626;
-  font-weight: 500;
-}
-
-.btn-danger {
-  background: #dc2626;
-  color: white;
-  border: none;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: #b91c1c;
-}
-
-/* 响应式 */
-@media (max-width: 768px) {
-  .upload-zone {
-    padding: 1.5rem 1rem;
+@media (max-width: 900px) {
+  .data-grid {
+    grid-template-columns: 1fr;
   }
 
-  .zone-icon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .file-info {
-    flex-wrap: wrap;
+  .danger-row {
+    grid-column: span 1;
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>
