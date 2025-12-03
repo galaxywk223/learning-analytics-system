@@ -2,18 +2,10 @@
   <PageContainer
     :title="{ icon: '💬', text: '格言管理' }"
     subtitle="写下一句激励你的话语，启发每一天。"
-    :custom-class="'settings-subpage'"
+      :custom-class="'settings-subpage'"
   >
     <div class="motto-shell">
       <div class="motto-card">
-        <header class="motto-header">
-          <div class="header-icon">💬</div>
-          <div>
-            <h2>格言管理</h2>
-            <p>写下一句激励你的话语，启发每一天。</p>
-          </div>
-        </header>
-
         <div class="add-row" @keyup.enter="submitAdd">
           <input
             v-model="form.content"
@@ -180,36 +172,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 14px;
-}
-
-.motto-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: rgba(79, 70, 229, 0.1);
-  color: #4f46e5;
-  font-size: 22px;
-}
-
-.motto-header h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.motto-header p {
-  margin: 4px 0 0;
-  color: #6b7280;
-  font-size: 13px;
 }
 
 .add-row {
