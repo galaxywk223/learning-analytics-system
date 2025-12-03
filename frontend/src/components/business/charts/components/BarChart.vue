@@ -129,17 +129,23 @@ const emitHover = (name) => {
 const emitLeave = () => emit("bar-leave");
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .bar-card {
   background: #ffffff;
   border-radius: 24px;
   border: none;
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
-  padding: 20px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   min-height: 280px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+  }
 }
 
 .bar-card__header {
@@ -152,37 +158,38 @@ const emitLeave = () => emit("bar-leave");
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #1f1d47;
+  color: #1c1c1e;
 
   svg {
     width: 20px;
     height: 20px;
-    color: #6366f1;
+    color: #5856D6;
   }
 
   h5 {
     margin: 0;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 700;
+    letter-spacing: -0.5px;
   }
 }
 
 .bar-card__list {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
   max-height: 420px;
   overflow-y: auto;
-  margin-right: -6px;
-  padding-right: 6px;
+  margin-right: -8px;
+  padding-right: 8px;
 }
 
 .bar-card__list::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .bar-card__list::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.3);
+  background: rgba(142, 142, 147, 0.3);
   border-radius: 999px;
 }
 
@@ -190,15 +197,14 @@ const emitLeave = () => emit("bar-leave");
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 10px 12px;
   border-radius: 12px;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.2s ease;
   cursor: pointer;
 }
 
 .bar-item:hover {
-  background: #f8fafc;
-  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.9);
+  background: #f2f2f7;
 }
 
 .bar-info {
@@ -209,8 +215,8 @@ const emitLeave = () => emit("bar-leave");
 }
 
 .bar-name {
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 600;
+  color: #1c1c1e;
   font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -219,15 +225,15 @@ const emitLeave = () => emit("bar-leave");
 
 .bar-value {
   font-weight: 600;
-  color: #475569;
+  color: #8e8e93;
   font-size: 13px;
   flex-shrink: 0;
 }
 
 .bar-track {
   width: 100%;
-  height: 16px;
-  background: #f3f4f6;
+  height: 8px;
+  background: #f2f2f7;
   border-radius: 999px;
   overflow: hidden;
 }
@@ -235,6 +241,6 @@ const emitLeave = () => emit("bar-leave");
 .bar-fill {
   height: 100%;
   border-radius: 999px;
-  transition: width 1s ease-out;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>

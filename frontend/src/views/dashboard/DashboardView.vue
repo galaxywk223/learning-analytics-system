@@ -44,7 +44,7 @@
                   class="bar"
                   :title="`${barLabels[idx]} · ${barValues[idx]} 分钟`"
                 >
-                  <div class="bar-fill" :style="{ height: `${bar}%` }"></div>
+                  <div :class="['bar-fill', `fill-${idx}`]" :style="{ height: `${bar}%` }"></div>
                   <span class="bar-label">{{ barLabels[idx] }}</span>
                 </div>
               </div>

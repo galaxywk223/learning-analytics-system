@@ -72,24 +72,28 @@ defineEmits([
 
 <style scoped lang="scss">
 .weeks-accordion {
-  :deep(.el-collapse-item) {
-    margin-bottom: 0.75rem;
+  :deep(.el-collapse) {
     border: none;
-    border-radius: 18px;
-    overflow: hidden;
-    background: #ffffff;
-    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  }
+
+  :deep(.el-collapse-item) {
+    margin-bottom: 1.5rem;
+    border: none;
+    background: transparent;
+    
+    /* Remove default shadow/border */
+    box-shadow: none;
   }
 
   :deep(.el-collapse-item__header) {
-    height: 44px;
-    line-height: 44px;
-    padding: 0 1.2rem;
+    height: auto;
+    line-height: normal;
+    padding: 0 0 0.5rem 0;
     background: transparent;
-    font-size: 14px;
-    border-bottom: 1px solid #f0f1f5;
-    color: #6b7280;
-
+    border-bottom: none;
+    margin-bottom: 0.5rem;
+    
+    /* Disable default arrow rotation if we hide it, but we hide it below */
     .el-collapse-item__arrow {
       display: none;
     }
@@ -97,38 +101,45 @@ defineEmits([
 
   :deep(.el-collapse-item__wrap) {
     border-bottom: none;
+    background: transparent;
   }
 
   :deep(.el-collapse-item__content) {
     padding: 0;
+    background: transparent;
   }
 
   .week-header {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    align-items: baseline;
     width: 100%;
-    font-size: 14px;
-    color: #6b7280;
-    font-weight: 600;
-
+    
     .week-title {
+      font-size: 22px;
       font-weight: 700;
-      color: #374151;
-      display: inline-flex;
+      color: #000000;
+      letter-spacing: -0.5px;
+      display: flex;
       align-items: center;
       gap: 8px;
+      
+      .emoji-icon {
+        font-size: 20px;
+      }
     }
 
     .week-eff {
+      font-size: 17px;
+      color: #8e8e93;
       font-weight: 500;
-      color: #9ca3af;
     }
   }
 
   .week-days {
-    padding: 0.75rem;
-    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
 }
 </style>

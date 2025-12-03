@@ -251,28 +251,19 @@ defineExpose({ highlightSlice, clearHighlight });
 .doughnut-card {
   background: #ffffff;
   border-radius: 24px;
-  padding: 22px 22px 22px;
+  padding: 24px;
   border: none;
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   position: relative;
   overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 
-  &::after {
-    content: "";
-    position: absolute;
-    inset: -120px 40% auto -120px;
-    height: 280px;
-    border-radius: 50%;
-    background: radial-gradient(
-      circle,
-      rgba(129, 140, 248, 0.4) 0%,
-      rgba(255, 255, 255, 0) 60%
-    );
-    filter: blur(90px);
-    pointer-events: none;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
   }
 
   &__header {
@@ -290,25 +281,26 @@ defineExpose({ highlightSlice, clearHighlight });
     gap: 12px;
 
     svg {
-      width: 36px;
-      height: 36px;
-      color: #6366f1;
-      padding: 8px;
-      border-radius: 12px;
-      background: rgba(99, 102, 241, 0.12);
+      width: 32px;
+      height: 32px;
+      color: #5856D6; /* Indigo */
+      padding: 6px;
+      border-radius: 10px;
+      background: rgba(88, 86, 214, 0.1);
     }
 
     h5 {
       margin: 0;
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 700;
-      color: #0f172a;
+      color: #1c1c1e;
+      letter-spacing: -0.5px;
     }
 
     p {
-      margin: 4px 0 0;
-      font-size: 12px;
-      color: #6b7280;
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: #8e8e93;
     }
   }
 
@@ -336,20 +328,21 @@ defineExpose({ highlightSlice, clearHighlight });
     z-index: 2;
 
     .center-label {
-      color: #9ca3af;
+      color: #8e8e93;
       font-size: 13px;
       font-weight: 600;
     }
 
     .center-value {
-      color: #0f172a;
-      font-size: 26px;
+      color: #1c1c1e;
+      font-size: 28px;
       font-weight: 800;
       line-height: 1.2;
+      letter-spacing: -0.5px;
     }
 
     .center-unit {
-      color: #9ca3af;
+      color: #8e8e93;
       font-size: 12px;
       font-weight: 600;
     }
@@ -358,8 +351,8 @@ defineExpose({ highlightSlice, clearHighlight });
 
 @media (max-width: 768px) {
   .doughnut-card {
-    padding: 20px 16px;
+    padding: 20px;
   }
 }
 </style>
-
+```

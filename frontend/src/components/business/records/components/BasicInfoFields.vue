@@ -1,72 +1,66 @@
 <template>
-  <div class="form-section">
+  <div class="ios-form-group">
     <!-- 任务名称 -->
-    <el-form-item prop="task" class="no-label">
+    <el-form-item prop="task" class="ios-input-row">
       <el-input
         v-model="form.task"
-        placeholder="请输入任务名称"
-        size="large"
-        clearable
+        placeholder="任务名称"
+        class="ios-input"
       />
     </el-form-item>
 
-    <!-- 日期、时间段、时长 -->
-    <el-row :gutter="16">
-      <el-col :span="8">
-        <el-form-item label="日期" prop="log_date">
-          <el-date-picker
-            v-model="form.log_date"
-            type="date"
-            placeholder="选择日期"
-            value-format="YYYY-MM-DD"
-            style="width: 100%"
-            size="large"
+    <!-- 日期和时间段 (Split Row) -->
+    <div class="ios-split-row">
+      <!-- 日期 -->
+      <el-form-item prop="log_date" class="ios-input-row half">
+        <el-date-picker
+          v-model="form.log_date"
+          type="date"
+          placeholder="日期"
+          value-format="YYYY-MM-DD"
+          class="ios-date-picker"
+          :clearable="false"
+        />
+      </el-form-item>
+
+      <!-- 时间段 -->
+      <el-form-item class="ios-input-row half">
+        <el-input
+          v-model="form.time_slot"
+          placeholder="时间段"
+          class="ios-input right-align"
+        />
+      </el-form-item>
+    </div>
+
+    <!-- 实际时长 -->
+    <el-form-item prop="actual_duration" class="ios-input-row">
+      <span class="ios-label">时长</span>
+      <div class="duration-group">
+        <div class="duration-item">
+          <el-input-number
+            v-model="form.duration_hours"
+            :min="0"
+            :max="24"
+            :controls="false"
+            class="ios-number-input"
+            placeholder=""
           />
-        </el-form-item>
-      </el-col>
-      <el-col :span="8">
-        <el-form-item label="时间段">
-          <el-input
-            v-model="form.time_slot"
-            placeholder="选填，如：早上、下午、9-11点"
-            size="large"
-            clearable
+          <span class="unit">小时</span>
+        </div>
+        <div class="duration-item">
+          <el-input-number
+            v-model="form.duration_minutes"
+            :min="0"
+            :max="59"
+            :controls="false"
+            class="ios-number-input"
+            placeholder=""
           />
-        </el-form-item>
-      </el-col>
-      <el-col :span="8">
-        <el-form-item label="实际时长" prop="actual_duration">
-          <el-row :gutter="8" class="duration-row">
-            <el-col :span="12">
-              <div class="duration-input">
-                <el-input-number
-                  v-model="form.duration_hours"
-                  :min="0"
-                  :max="24"
-                  placeholder="0"
-                  size="large"
-                  :controls="false"
-                />
-                <span class="unit-label">小时</span>
-              </div>
-            </el-col>
-            <el-col :span="12">
-              <div class="duration-input">
-                <el-input-number
-                  v-model="form.duration_minutes"
-                  :min="0"
-                  :max="59"
-                  placeholder="0"
-                  size="large"
-                  :controls="false"
-                />
-                <span class="unit-label">分钟</span>
-              </div>
-            </el-col>
-          </el-row>
-        </el-form-item>
-      </el-col>
-    </el-row>
+          <span class="unit">分钟</span>
+        </div>
+      </div>
+    </el-form-item>
   </div>
 </template>
 
@@ -80,44 +74,148 @@ defineProps({
 </script>
 
 <style scoped lang="scss">
-.form-section {
+.ios-form-group {
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.ios-split-row {
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-height: 56px;
+}
+
+.ios-input-row {
   margin-bottom: 0;
-
-  :deep(.el-form-item__label) {
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 8px;
-  }
-
-  .no-label {
-    margin-bottom: 4px;
-
-    :deep(.el-form-item__label) {
-      display: none;
-    }
-  }
-
-  .duration-row {
-    width: 100%;
-  }
-
-  .duration-input {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .duration-input :deep(.el-input-number) {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  min-height: 56px;
+  position: relative;
+  flex: 1;
+  
+  &.half {
     flex: 1;
+    min-width: 0;
+    padding: 14px 16px;
+  }
+  
+  :deep(.el-form-item__content) {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    line-height: normal;
+    margin-left: 0 !important;
     min-width: 0;
   }
 
-  .unit-label {
-    color: #6b7280;
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 1;
-    white-space: nowrap;
+  /* Hide default error message */
+  :deep(.el-form-item__error) {
+    display: none;
+  }
+}
+
+.ios-label {
+  font-size: 17px;
+  color: #000;
+  margin-right: 8px;
+  white-space: nowrap;
+  font-weight: 400;
+}
+
+.ios-input {
+  width: 100%;
+  
+  :deep(.el-input__wrapper) {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  
+  :deep(.el-input__inner) {
+    font-size: 17px;
+    color: #000;
+    height: auto;
+    line-height: normal;
+    text-align: left;
+    padding: 0 !important;
+    border: none !important;
+  }
+  
+  &.right-align :deep(.el-input__inner) {
+    text-align: right;
+    color: #8e8e93;
+  }
+}
+
+.ios-date-picker {
+  width: auto;
+  flex: 1;
+  
+  :deep(.el-input__wrapper) {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    justify-content: flex-end;
+  }
+  
+  :deep(.el-input__inner) {
+    font-size: 17px;
+    color: #007aff;
+    text-align: right;
+    cursor: pointer;
+    height: auto;
+    padding: 0 !important;
+  }
+  
+  :deep(.el-input__prefix) {
+    display: none;
+  }
+}
+
+.duration-group {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex: 1;
+  align-items: center;
+}
+
+.duration-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  .unit {
+    font-size: 15px;
+    color: #8e8e93;
+  }
+}
+
+.ios-number-input {
+  width: 44px;
+  
+  :deep(.el-input__wrapper) {
+    background-color: rgba(118, 118, 128, 0.12) !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    border-radius: 8px;
+  }
+  
+  :deep(.el-input__inner) {
+    text-align: center;
+    height: 32px;
+    line-height: 32px;
+    font-size: 17px;
+    color: #000;
+    padding: 0 !important;
   }
 }
 </style>

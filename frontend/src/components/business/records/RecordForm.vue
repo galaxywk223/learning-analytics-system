@@ -7,31 +7,35 @@
     @submit.prevent="submitForm"
     class="record-form"
   >
-    <!-- 基本信息 -->
-    <BasicInfoFields :form="form" />
+    <div class="ios-form-content">
+      <!-- 基本信息 -->
+      <BasicInfoFields :form="form" />
 
-    <!-- 分类标签 -->
-    <CategoryFields
-      :form="form"
-      :category-options="categoryStore.categoryOptions"
-      :sub-category-options="subCategoryOptions"
-      @category-change="onCategoryChange"
-    />
+      <!-- 分类标签 -->
+      <CategoryFields
+        :form="form"
+        :category-options="categoryStore.categoryOptions"
+        :sub-category-options="subCategoryOptions"
+        @category-change="onCategoryChange"
+      />
 
-    <!-- 附加信息 -->
-    <AdditionalFields :form="form" />
+      <!-- 附加信息 -->
+      <AdditionalFields :form="form" />
+    </div>
 
     <!-- 提交按钮 -->
-    <div class="form-actions">
-      <el-button @click="emit('cancel')" size="large"> 取消 </el-button>
-      <el-button
-        type="primary"
-        @click="submitForm"
-        :loading="loading"
-        size="large"
+    <div class="ios-form-actions">
+      <button class="ios-btn cancel" @click.prevent="emit('cancel')">
+        取消
+      </button>
+      <div class="divider-vertical"></div>
+      <button 
+        class="ios-btn confirm" 
+        @click.prevent="submitForm"
+        :disabled="loading"
       >
-        {{ isEdit ? "更新记录" : "添加记录" }}
-      </el-button>
+        {{ isEdit ? "更新" : "保存" }}
+      </button>
     </div>
   </el-form>
 </template>
@@ -160,156 +164,59 @@ defineExpose({
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .record-form {
-  max-width: 840px;
-  margin: 0 auto;
-  padding: 24px;
-  background: #ffffff;
-  border-radius: 20px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  height: 100%;
+}
 
-  :deep(.el-form-item) {
-    margin-bottom: 14px;
-  }
+.ios-form-content {
+  padding: 0 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 
-  :deep(.el-form-item__label) {
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 6px;
-  }
-
-  :deep(.el-input__wrapper),
-  :deep(.el-select .el-input__wrapper),
-  :deep(.el-date-editor .el-input__wrapper),
-  :deep(.el-textarea__inner) {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    box-shadow: none;
-    transition: all 0.15s ease;
-  }
-
-  :deep(.el-input__wrapper),
-  :deep(.el-select .el-input__wrapper),
-  :deep(.el-date-editor .el-input__wrapper) {
-    min-height: 48px;
-    height: 48px;
-    padding: 0 14px;
-  }
-
-  :deep(.el-input__inner),
-  :deep(.el-textarea__inner) {
-    font-size: 15px;
-    color: #111827;
-  }
-
-  :deep(.el-input__inner) {
-    line-height: 48px;
-  }
-
-  :deep(.el-input__wrapper.is-focus),
-  :deep(.el-select .el-input__wrapper.is-focus),
-  :deep(.el-date-editor.is-active .el-input__wrapper),
-  :deep(.el-textarea__inner:focus) {
-    background: #ffffff;
-    border-color: #c4c8d2;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
-  }
-
-  :deep(.el-input-number) {
-    width: 100%;
-    background: #f8fafc;
-    border-radius: 14px;
-    border: 1px solid #e5e7eb;
+.ios-form-actions {
+  display: flex;
+  border-top: 0.5px solid rgba(60, 60, 67, 0.29);
+  margin-top: auto;
+  
+  .ios-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 14px 0;
+    font-size: 17px;
+    color: #007aff;
+    cursor: pointer;
+    transition: background 0.2s;
     display: flex;
     align-items: center;
-    height: 48px;
-    box-shadow: none;
-    padding: 0 12px;
-    min-width: 0;
-    position: relative;
-    box-sizing: border-box;
+    justify-content: center;
+    
+    &:active {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    
+    &.confirm {
+      font-weight: 600;
+    }
+    
+    &.cancel {
+      font-weight: 400;
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
-
-  :deep(.el-input-number__increase),
-  :deep(.el-input-number__decrease) {
-    display: none;
-  }
-
-  :deep(.el-input-number__inner) {
-    font-weight: 700;
-    color: #111827;
-    text-align: center;
-    height: 100%;
-    line-height: 48px;
-  }
-
-  :deep(.el-rate) {
-    --el-rate-icon-size: 28px;
-  }
-
-  :deep(.el-rate__icon) {
-    color: #e5e7eb;
-  }
-
-  :deep(.el-rate__icon.is-active) {
-    color: #fbbf24;
-  }
-}
-
-.form-actions {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(15, 23, 42, 0.05);
-}
-
-.form-actions .el-button {
-  min-width: 132px;
-  height: 48px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border-radius: 14px;
-  border: none;
-}
-
-.form-actions .el-button:not(.el-button--primary) {
-  background: #f8fafc;
-  color: #4b5563;
-}
-
-.form-actions .el-button--primary {
-  background: #6366f1;
-  border: none;
-  box-shadow: none;
-}
-
-.form-actions .el-button--primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
-}
-
-@media (max-width: 768px) {
-  .record-form {
-    padding: 16px;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .form-actions .el-button {
-    width: 100%;
+  
+  .divider-vertical {
+    width: 0.5px;
+    background: rgba(60, 60, 67, 0.29);
   }
 }
 </style>

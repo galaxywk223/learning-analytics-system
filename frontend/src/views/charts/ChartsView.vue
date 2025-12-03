@@ -194,7 +194,7 @@
                   <span class="vol-state">{{ stabilityTitle }}</span>
                   <span class="vol-score">{{ stabilityScore }}</span>
                 </div>
-                <div class="vol-sub">平均时长：{{ stabilityAverageText }}</div>
+                <!-- Removed redundant subtitle -->
                 <div class="vol-grid">
                   <div class="vol-cell">
                     <span class="vol-label">Avg</span>

@@ -96,7 +96,7 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
   width: 100%;
   display: flex;
   justify-content: center;
-  margin-top: 0.75rem;
+  margin-top: 1.5rem;
 }
 
 .button-stack {
@@ -104,123 +104,109 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
   max-width: 360px;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
+  align-items: center;
 }
 
 :deep(.control-btn) {
   width: 100%;
-  height: 52px;
-  font-size: 1rem;
+  height: 56px; /* iOS Large Button Height */
+  font-size: 19px; /* Larger text */
   font-weight: 600;
-  border-radius: 18px;
+  border-radius: 999px; /* Pill shape */
   border: none;
-  box-shadow: 0 16px 40px rgba(99, 102, 241, 0.22);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   padding: 0 1.2rem;
-  transition:
-    transform 0.18s ease,
-    background-color 0.18s ease;
+  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.2s ease;
   margin-left: 0 !important;
+  letter-spacing: 0.5px;
 
   .el-button__content {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
+    gap: 8px;
   }
 
   .el-icon {
-    font-size: 1.05rem;
+    font-size: 22px;
   }
 
   &:hover {
-    transform: translateY(-1px);
+    transform: scale(1.02);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
   }
 
   &:active {
-    transform: translateY(0);
+    transform: scale(0.96);
   }
 }
 
-/* 清除 Element Plus 相邻按钮默认左间距，防止纵向堆叠时右偏 */
+/* 清除 Element Plus 相邻按钮默认左间距 */
 :deep(.button-stack .el-button + .el-button) {
   margin-left: 0 !important;
 }
 
 :deep(.primary-btn),
 :deep(.resume-btn) {
-  background: linear-gradient(135deg, #6d7cff, #4f46e5);
-  color: var(--color-text-light);
-  border: 1px solid rgba(79, 70, 229, 0.8);
+  /* Purple Gradient */
+  background: linear-gradient(135deg, #7C73FF 0%, #5856D6 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(88, 86, 214, 0.3);
 
   &:hover {
-    background: linear-gradient(135deg, #5c6cff, #4338ca);
+    background: linear-gradient(135deg, #8E86FF 0%, #6A67E6 100%);
+    box-shadow: 0 12px 24px rgba(88, 86, 214, 0.4);
   }
 }
 
 :deep(.pause-btn) {
-  background: linear-gradient(
-    135deg,
-    rgba(250, 189, 73, 0.95),
-    rgba(245, 158, 11, 0.95)
-  );
-  color: var(--color-text-light);
-  border: 1px solid rgba(245, 158, 11, 0.85);
+  background: linear-gradient(135deg, #FFD60A 0%, #FF9F0A 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(255, 159, 10, 0.3);
 
   &:hover {
-    background: linear-gradient(
-      135deg,
-      rgba(234, 147, 6, 0.98),
-      rgba(245, 158, 11, 0.98)
-    );
+    background: linear-gradient(135deg, #FFE033 0%, #FFB333 100%);
   }
 }
 
 :deep(.stop-btn) {
-  background: linear-gradient(
-    135deg,
-    rgba(248, 113, 113, 0.92),
-    rgba(244, 114, 182, 0.9)
-  );
-  color: var(--color-text-light);
-  border: 1px solid rgba(248, 113, 113, 0.75);
+  background: linear-gradient(135deg, #FF453A 0%, #FF3B30 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(255, 59, 48, 0.3);
 
   &:hover {
-    background: linear-gradient(
-      135deg,
-      rgba(239, 68, 68, 0.95),
-      rgba(236, 72, 153, 0.95)
-    );
+    background: linear-gradient(135deg, #FF6961 0%, #FF5E55 100%);
   }
 }
 
 :deep(.secondary-btn),
 :deep(.cancel-btn) {
-  background: var(--surface-card-muted);
-  color: var(--color-text-heading);
-  border: 1px solid var(--stroke-soft);
+  background: rgba(118, 118, 128, 0.12);
+  color: #000000;
+  box-shadow: none;
+  backdrop-filter: blur(10px);
 
   &:hover {
-    background: var(--surface-card);
+    background: rgba(118, 118, 128, 0.24);
   }
 }
 
 .return-link {
   background: transparent;
   border: none;
-  color: #6b7280;
-  font-weight: 600;
-  font-size: 0.95rem;
+  color: #8E8E93;
+  font-weight: 500;
+  font-size: 17px;
   cursor: pointer;
   text-decoration: none;
-  padding: 0.25rem 0;
-  transition:
-    color 0.15s ease,
-    transform 0.15s ease;
+  padding: 8px 16px;
+  transition: color 0.2s ease;
+  margin-top: 4px;
 
   &:hover {
-    color: #374151;
-    transform: translateY(-1px);
+    color: #000000;
   }
 }
 

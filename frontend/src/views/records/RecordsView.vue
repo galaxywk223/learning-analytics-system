@@ -25,24 +25,29 @@
 
     <el-dialog
       v-model="dialogVisible"
-      :title="isEditing ? '✏️ 编辑记录' : '➕ 添加新记录'"
-      width="900px"
+      :show-close="false"
+      width="600px"
       @close="handleDialogClose"
-      class="record-dialog"
-      :append-to-body="true"
-      :destroy-on-close="false"
+      class="ios-dialog-modal"
+      align-center
+      destroy-on-close
       :close-on-click-modal="false"
-      modal-class="record-dialog-overlay"
     >
-      <RecordForm
-        ref="recordFormRef"
-        :initial-data="currentRecord"
-        :is-edit="isEditing"
-        :loading="submitting"
-        :default-date="defaultDate"
-        @submit="handleSubmit"
-        @cancel="dialogVisible = false"
-      />
+      <div class="ios-dialog-content">
+        <div class="ios-dialog-header">
+          <h3 class="ios-dialog-title">{{ isEditing ? '编辑记录' : '添加新记录' }}</h3>
+        </div>
+        
+        <RecordForm
+          ref="recordFormRef"
+          :initial-data="currentRecord"
+          :is-edit="isEditing"
+          :loading="submitting"
+          :default-date="defaultDate"
+          @submit="handleSubmit"
+          @cancel="dialogVisible = false"
+        />
+      </div>
     </el-dialog>
 
     <div class="floating-actions">
@@ -295,40 +300,40 @@ watch(
   gap: 10px;
 }
 
-.record-dialog {
-  :deep(.record-dialog-overlay) {
-    background-color: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(10px);
-  }
-
-  :deep(.el-dialog) {
-    border-radius: 24px;
+/* iOS Dialog Styles */
+:deep(.ios-dialog-modal) {
+  .el-dialog {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(25px);
+    border-radius: 14px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 20px 40px rgba(0,0,0,0.2);
+    padding: 0;
     overflow: hidden;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 8px;
+    
+    .el-dialog__header {
+      display: none;
+    }
+    
+    .el-dialog__body {
+      padding: 0;
+    }
   }
+}
 
-  :deep(.el-dialog__header) {
-    padding: 16px 24px 8px;
+.ios-dialog-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.ios-dialog-header {
+  padding: 20px 20px 10px;
+  text-align: center;
+  
+  .ios-dialog-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #000;
     margin: 0;
-    border-bottom: none;
-    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
-  }
-
-  :deep(.el-dialog__title) {
-    font-size: 20px;
-    font-weight: 700;
-    color: #0f172a;
-  }
-
-  :deep(.el-dialog__body) {
-    padding: 0 24px 8px;
-  }
-
-  :deep(.el-dialog__footer) {
-    padding: 16px 24px 24px;
-    border-top: none;
   }
 }
 

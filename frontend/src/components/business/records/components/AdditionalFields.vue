@@ -1,26 +1,28 @@
 <template>
-  <div class="form-section">
+  <div class="ios-form-group transparent">
     <!-- 笔记 -->
-    <el-form-item label="笔记" prop="notes">
+    <div class="ios-input-row column">
       <el-input
         v-model="form.notes"
         type="textarea"
         :rows="4"
-        placeholder="记录本次学习的内容、收获或遇到的问题..."
+        placeholder="备注..."
         resize="none"
         show-word-limit
         :maxlength="500"
+        class="ios-textarea"
       />
-    </el-form-item>
+    </div>
 
     <!-- 心情 -->
-    <el-form-item label="心情" prop="mood">
+    <div class="ios-input-row center">
       <el-rate
         v-model="form.mood"
         :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
         size="large"
+        class="ios-rate"
       />
-    </el-form-item>
+    </div>
   </div>
 </template>
 
@@ -34,13 +36,59 @@ defineProps({
 </script>
 
 <style scoped lang="scss">
-.form-section {
-  margin-bottom: 0;
+.ios-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+  &.transparent {
+    background: transparent;
+  }
+}
 
-  :deep(.el-rate) {
-    height: 2.5rem;
-    display: flex;
-    align-items: center;
+.ios-input-row {
+  display: flex;
+  
+  &.column {
+    flex-direction: column;
+  }
+  
+  &.center {
+    justify-content: center;
+    padding: 10px 0;
+  }
+}
+
+.ios-textarea {
+  width: 100%;
+  
+  :deep(.el-textarea__inner) {
+    background: rgba(118, 118, 128, 0.12);
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 15px;
+    color: #000;
+    font-family: inherit;
+    
+    &::placeholder {
+      color: #8e8e93;
+    }
+  }
+  
+  :deep(.el-input__count) {
+    background: transparent;
+    color: #8e8e93;
+    bottom: 8px;
+    right: 12px;
+  }
+}
+
+.ios-rate {
+  height: 32px;
+  
+  :deep(.el-rate__icon) {
+    font-size: 28px;
   }
 }
 </style>

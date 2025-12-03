@@ -27,9 +27,9 @@
           {{ (day.total_duration / 60).toFixed(1) }}h
         </span>
 
-        <el-tag type="success" size="small">
-          日效率: {{ Number(day.efficiency).toFixed(2) }}
-        </el-tag>
+        <span class="daily-eff">
+          日效率 {{ Number(day.efficiency).toFixed(2) }}
+        </span>
 
         <!-- 快速添加按钮 -->
         <el-button
@@ -109,15 +109,15 @@ const getProgressColor = (duration) => {
 
 <style scoped lang="scss">
 .day-card {
-  margin-bottom: 0.75rem;
   border: none;
-  border-radius: 24px;
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  background: transparent;
+  box-shadow: none;
+  margin-bottom: 0;
 
   :deep(.el-card__header) {
-    padding: 12px 18px;
+    padding: 0 0 12px 0;
     background: transparent;
-    border-bottom: 1px solid #f0f1f5;
+    border-bottom: none;
   }
 
   :deep(.el-card__body) {
@@ -127,61 +127,68 @@ const getProgressColor = (duration) => {
   .day-card-header {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-
+    justify-content: space-between;
+    
     .date-badge {
+      font-size: 17px;
+      font-weight: 600;
+      color: #000;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      font-weight: 600;
-      color: #111827;
-      font-size: 14px;
-      min-width: 190px;
+      gap: 6px;
 
       .weekday-icon {
-        font-size: 20px;
+        font-size: 18px;
       }
     }
 
     .daily-progress-container {
       flex: 1;
-      min-width: 120px;
-      max-width: 200px;
-
-      :deep(.el-progress__text) {
-        display: none;
+      margin: 0 16px;
+      max-width: 120px; /* Smaller progress bar */
+      
+      :deep(.el-progress-bar__outer) {
+        background-color: rgba(118, 118, 128, 0.12);
       }
     }
 
     .total-duration-text {
+      font-size: 17px;
+      color: #8e8e93;
+      font-weight: 500;
       display: flex;
       align-items: center;
-      gap: 0.25rem;
-      font-weight: 600;
-      color: #374151;
-      font-size: 14px;
-      min-width: 60px;
-
+      gap: 4px;
+      margin-right: 12px;
+      
       .clock-icon {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
       }
     }
 
-    .el-tag {
-      height: 24px;
-      line-height: 22px;
-      padding: 0 10px;
-      font-size: 12px;
-      font-weight: 600;
-      border-radius: 12px;
+    .daily-eff {
+      font-size: 17px;
+      color: #8e8e93;
+      font-weight: 500;
+      margin-right: 12px;
     }
 
     .el-button {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #007aff;
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 0;
-      font-size: 16px;
+      
+      &:hover {
+        background: #0062cc;
+      }
 
       :deep(.iconify) {
         width: 16px;

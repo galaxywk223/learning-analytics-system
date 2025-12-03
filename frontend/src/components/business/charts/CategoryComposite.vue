@@ -163,6 +163,7 @@ function handleBarLeave() {
   doughnutRef.value?.clearHighlight?.();
 }
 
+
 watch(
   () => [props.drilldown, currentCategory.value],
   () => {
@@ -179,7 +180,7 @@ watch(
 );
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .category-wrapper {
   width: 100%;
   padding: 0;
@@ -190,7 +191,7 @@ watch(
 .main-grid {
   display: grid;
   grid-template-columns: 3fr 7fr;
-  gap: 16px;
+  gap: 24px;
   align-items: stretch;
 
   @media (max-width: 1024px) {
@@ -206,7 +207,7 @@ watch(
 }
 
 .right-panel.has-drilldown {
-  padding-top: 40px;
+  padding-top: 48px;
 }
 
 .right-panel.no-header {
@@ -219,39 +220,48 @@ watch(
   left: 0;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 12px;
-  border-radius: 12px;
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.25);
-  backdrop-filter: blur(6px);
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  backdrop-filter: none;
 }
 
 .panel-header :deep(.panel-back) {
-  padding: 2px 6px;
+  padding: 8px 12px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 4px;
+  font-size: 15px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f2f2f7;
+    transform: translateY(-1px);
+  }
 }
 
 .panel-header :deep(.panel-back .el-icon) {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .panel-header :deep(.panel-back.el-button--text) {
-  color: #4f46e5;
+  color: #007AFF;
   font-weight: 600;
 }
 
 .panel-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #4338ca;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1c1c1e;
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-left: 8px;
 }
 
 .panel-chart {
@@ -266,21 +276,22 @@ watch(
   padding: 60px 20px;
   text-align: center;
   background: #ffffff;
-  border-radius: 16px;
-  border: 1px dashed rgba(99, 102, 241, 0.3);
+  border-radius: 24px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
   margin: 1rem 0;
+  border: none;
 }
 
 .empty-icon {
   width: 56px;
   height: 56px;
-  color: #94a3b8;
+  color: #d1d1d6;
   margin-bottom: 1rem;
 }
 
 .empty-text {
   font-size: 15px;
-  color: #64748b;
+  color: #8e8e93;
   margin: 0;
   max-width: 420px;
   line-height: 1.6;
@@ -294,11 +305,11 @@ watch(
 
 @media (max-width: 768px) {
   .main-grid {
-    gap: 12px;
+    gap: 16px;
   }
 
   .right-panel {
-    padding-top: 44px;
+    padding-top: 52px;
   }
 
   .right-panel.no-header {
@@ -306,10 +317,11 @@ watch(
   }
 
   .panel-header {
-    position: static;
-    display: flex;
-    margin-bottom: 8px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin-bottom: 0;
   }
 }
 </style>
-

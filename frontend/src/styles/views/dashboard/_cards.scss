@@ -88,10 +88,55 @@
     .bar-fill {
       width: 100%;
       border-radius: 12px 12px 6px 6px;
-      background: linear-gradient(180deg, #2563eb 0%, #3b82f6 60%, #93c5fd 100%);
+      /* Default fallback */
+      background: linear-gradient(180deg, #007AFF 0%, #5AC8FA 100%);
       transition: height 0.3s ease;
       min-height: 12px;
-      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+
+      /* Progressive Gradients: Cyan -> Blue -> Indigo -> Purple */
+      &.fill-0 {
+        background: linear-gradient(180deg, #5AC8FA 0%, #4CD964 100%);
+        box-shadow: 0 4px 12px rgba(90, 200, 250, 0.25);
+      }
+
+      /* Cyan/Greenish */
+      &.fill-1 {
+        background: linear-gradient(180deg, #34AADC 0%, #5AC8FA 100%);
+        box-shadow: 0 4px 12px rgba(52, 170, 220, 0.25);
+      }
+
+      /* Light Blue */
+      &.fill-2 {
+        background: linear-gradient(180deg, #007AFF 0%, #34AADC 100%);
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+      }
+
+      /* System Blue */
+      &.fill-3 {
+        background: linear-gradient(180deg, #5856D6 0%, #007AFF 100%);
+        box-shadow: 0 4px 12px rgba(88, 86, 214, 0.25);
+      }
+
+      /* Blue-Indigo */
+      &.fill-4 {
+        background: linear-gradient(180deg, #5856D6 0%, #5E5CE6 100%);
+        box-shadow: 0 4px 12px rgba(94, 92, 230, 0.25);
+      }
+
+      /* Indigo */
+      &.fill-5 {
+        background: linear-gradient(180deg, #AF52DE 0%, #5856D6 100%);
+        box-shadow: 0 4px 12px rgba(175, 82, 222, 0.25);
+      }
+
+      /* Purple-Indigo */
+      &.fill-6 {
+        background: linear-gradient(180deg, #BF5AF2 0%, #AF52DE 100%);
+        box-shadow: 0 4px 12px rgba(191, 90, 242, 0.25);
+      }
+
+      /* Purple */
     }
 
     .bar-label {

@@ -50,62 +50,63 @@
       <!-- 结束专注弹窗 -->
       <el-dialog
         v-model="stopDialogVisible"
-        title="保存学习记录"
-        width="600px"
-        :close-on-click-modal="false"
-        class="stop-dialog"
+        :show-close="false"
+        width="320px"
+        class="ios-dialog-modal"
+        align-center
+        destroy-on-close
       >
-        <div class="dialog-content">
-          <div class="time-info">
-            <div class="info-item">
-              <span class="label">专注时长</span>
-              <span class="value">{{ formatDuration(elapsedSeconds) }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">开始时间</span>
-              <span class="value">{{ startTimeDisplay }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">结束时间</span>
-              <span class="value">{{ endTimeDisplay }}</span>
+        <div class="ios-dialog-content">
+          <div class="ios-dialog-header">
+            <h3 class="ios-dialog-title">保存学习记录</h3>
+            <p class="ios-dialog-subtitle">本次专注已结束</p>
+          </div>
+
+          <div class="ios-summary-card">
+            <div class="summary-row">
+              <div class="summary-item">
+                <span class="label">时长</span>
+                <span class="value highlight">{{ formatDuration(elapsedSeconds) }}</span>
+              </div>
+              <div class="divider-vertical"></div>
+              <div class="summary-item">
+                <span class="label">时间段</span>
+                <span class="value">{{ startTimeDisplay }} - {{ endTimeDisplay }}</span>
+              </div>
             </div>
           </div>
 
-          <el-form :model="stopForm" label-position="top">
-            <el-form-item label="学习心情">
+          <div class="ios-form-group">
+            <div class="form-row">
+              <span class="row-label">心情</span>
               <el-rate
                 v-model="stopForm.mood"
                 :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
                 size="large"
+                class="ios-rate"
               />
-            </el-form-item>
-
-            <el-form-item label="备注（选填）">
-              <el-input
+            </div>
+            <div class="form-row column">
+              <textarea
                 v-model="stopForm.notes"
-                type="textarea"
-                :rows="4"
-                placeholder="记录一下本次学习的收获或感想..."
+                class="ios-textarea"
+                rows="3"
+                placeholder="写点什么..."
                 maxlength="200"
-                show-word-limit
-              />
-            </el-form-item>
-          </el-form>
-        </div>
+              ></textarea>
+            </div>
+          </div>
 
-        <template #footer>
-          <el-button @click="stopDialogVisible = false" size="large">
-            取消
-          </el-button>
-          <el-button
-            type="primary"
-            @click="saveRecord"
-            :loading="loading"
-            size="large"
-          >
-            保存记录
-          </el-button>
-        </template>
+          <div class="ios-dialog-actions">
+            <button class="ios-btn cancel" @click="stopDialogVisible = false">
+              取消
+            </button>
+            <div class="divider-vertical"></div>
+            <button class="ios-btn confirm" @click="saveRecord" :disabled="loading">
+              保存
+            </button>
+          </div>
+        </div>
       </el-dialog>
     </PageContainer>
   </div>
@@ -196,11 +197,11 @@ const formatDuration = (seconds) => {
   const secs = seconds % 60;
 
   if (hours > 0) {
-    return `${hours}小时${minutes}分钟${secs}秒`;
+    return `${hours}h ${minutes}m`;
   } else if (minutes > 0) {
-    return `${minutes}分钟${secs}秒`;
+    return `${minutes}m ${secs}s`;
   } else {
-    return `${secs}秒`;
+    return `${secs}s`;
   }
 };
 
@@ -535,89 +536,178 @@ onMounted(async () => {
   }
 }
 
-:deep(.stop-dialog) {
+/* iOS Dialog Styles */
+:deep(.ios-dialog-modal) {
   .el-dialog {
-    background: #ffffff;
-    border: 1px solid rgba(203, 213, 225, 0.6);
-    border-radius: 18px;
-    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.12);
-  }
-
-  .el-dialog__header {
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid rgba(229, 231, 235, 0.9);
-  }
-
-  .el-dialog__title {
-    font-size: 1.28rem;
-    font-weight: 600;
-    color: #1f2937;
-  }
-
-  .el-dialog__body {
-    padding: 2rem;
-  }
-
-  .el-dialog__footer {
-    padding: 1.2rem 2rem;
-    border-top: 1px solid rgba(229, 231, 235, 0.9);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(25px);
+    border-radius: 14px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 20px 40px rgba(0,0,0,0.2);
+    padding: 0;
+    overflow: hidden;
+    
+    .el-dialog__header {
+      display: none; /* Hide default header */
+    }
+    
+    .el-dialog__body {
+      padding: 0;
+    }
   }
 }
 
-.dialog-content {
+.ios-dialog-content {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  align-items: center;
+  text-align: center;
+}
 
-  .time-info {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem;
-    padding: 1.5rem;
-    border-radius: 16px;
-    background: rgba(99, 102, 241, 0.08);
+.ios-dialog-header {
+  padding: 24px 16px 16px;
+  
+  .ios-dialog-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 4px;
+    line-height: 1.3;
+  }
+  
+  .ios-dialog-subtitle {
+    font-size: 13px;
+    color: #8e8e93;
+    margin: 0;
+  }
+}
 
-    .info-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.4rem;
-
-      .label {
-        font-size: 0.9rem;
-        color: #55607a;
-        font-weight: 500;
-      }
-
-      .value {
-        font-size: 1.15rem;
+.ios-summary-card {
+  width: 100%;
+  padding: 0 16px;
+  margin-bottom: 20px;
+  
+  .summary-row {
+    background: rgba(118, 118, 128, 0.12);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+  
+  .summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    
+    .label {
+      font-size: 11px;
+      color: #8e8e93;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .value {
+      font-size: 15px;
+      font-weight: 500;
+      color: #000;
+      
+      &.highlight {
+        color: #007aff;
         font-weight: 600;
-        color: #3730a3;
-        letter-spacing: 0.01em;
       }
     }
   }
+  
+  .divider-vertical {
+    width: 1px;
+    height: 24px;
+    background: rgba(60, 60, 67, 0.18);
+  }
+}
 
-  .el-form {
+.ios-form-group {
+  width: 100%;
+  padding: 0 16px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  
+  .form-row {
     display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-
-    .el-form-item {
-      margin-bottom: 0;
+    align-items: center;
+    justify-content: space-between;
+    
+    &.column {
+      flex-direction: column;
+      align-items: stretch;
     }
+    
+    .row-label {
+      font-size: 15px;
+      color: #000;
+    }
+  }
+}
 
-    .el-form-item__label {
+.ios-textarea {
+  width: 100%;
+  background: rgba(118, 118, 128, 0.12);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 15px;
+  color: #000;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  
+  &::placeholder {
+    color: #8e8e93;
+  }
+  
+  &:focus {
+    background: rgba(118, 118, 128, 0.18);
+  }
+}
+
+.ios-dialog-actions {
+  width: 100%;
+  display: flex;
+  border-top: 0.5px solid rgba(60, 60, 67, 0.29);
+  
+  .ios-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 14px 0;
+    font-size: 17px;
+    color: #007aff;
+    cursor: pointer;
+    transition: background 0.2s;
+    
+    &:active {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    
+    &.confirm {
       font-weight: 600;
-      color: #1f2937;
-      margin-bottom: 0.35rem;
     }
-
-    .el-rate {
-      height: 2.6rem;
-      display: flex;
-      align-items: center;
+    
+    &.cancel {
+      font-weight: 400;
     }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+  
+  .divider-vertical {
+    width: 0.5px;
+    background: rgba(60, 60, 67, 0.29);
   }
 }
 
@@ -631,10 +721,6 @@ onMounted(async () => {
   }
 
   .focus-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .dialog-content .time-info {
     grid-template-columns: 1fr;
   }
 }

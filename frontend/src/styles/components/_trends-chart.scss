@@ -1,45 +1,17 @@
 .trend-chart-card {
   position: relative;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.94);
-  border-radius: 20px;
+  background: #ffffff;
+  border-radius: 24px;
   padding: 24px;
-  box-shadow: 0 28px 60px rgba(79, 70, 229, 0.14);
-  border: 1px solid rgba(129, 140, 248, 0.25);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  border: none;
   min-height: 380px;
-  backdrop-filter: blur(6px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 
-  &::before,
-  &::after {
-    content: "";
-    position: absolute;
-    width: 320px;
-    height: 320px;
-    border-radius: 50%;
-    filter: blur(120px);
-    opacity: 0.45;
-    pointer-events: none;
-    transition: transform 0.6s ease;
-  }
-
-  &::before {
-    top: -140px;
-    right: -120px;
-    background: rgba(129, 140, 248, 0.6);
-  }
-
-  &::after {
-    bottom: -180px;
-    left: -80px;
-    background: rgba(241, 171, 255, 0.55);
-  }
-
-  &:hover::before {
-    transform: translate(-12px, 6px);
-  }
-
-  &:hover::after {
-    transform: translate(8px, -10px);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
   }
 
   &__panel {
@@ -48,137 +20,114 @@
     flex-direction: column;
     gap: 20px;
     z-index: 1;
+    height: 100%;
   }
 
   &__header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 16px;
+    margin-bottom: 8px;
   }
 
   &__titles {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 
     h3 {
       margin: 0;
-      font-size: 22px;
-      font-weight: 600;
-      color: #1e1b4b;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1c1c1e;
+      letter-spacing: -0.5px;
     }
 
     p {
       margin: 0;
       font-size: 13px;
-      color: #4c51bf;
-      opacity: 0.8;
+      color: #8e8e93;
     }
-  }
-
-  &__badge {
-    align-self: flex-start;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 14px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.25);
   }
 
   &__visual {
     width: 100%;
-    height: 360px;
+    height: 400px;
+    /* Explicit height */
+    min-height: 300px;
 
     @media (max-width: 768px) {
       height: 300px;
     }
   }
 
-  &__footer {
-    margin-top: -8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: #4c51bf;
-    background: rgba(129, 140, 248, 0.12);
-    padding: 8px 14px;
-    border-radius: 999px;
-    align-self: flex-start;
-  }
-
-  &__footer-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  }
-
   &__empty {
     position: relative;
     z-index: 1;
-    min-height: 220px;
-    padding: 40px 24px;
+    min-height: 300px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 16px;
     text-align: center;
-    color: #312e81;
-    background: rgba(255, 255, 255, 0.86);
+    color: #8e8e93;
+    background: #f9f9f9;
     border-radius: 18px;
-    border: 1px dashed rgba(99, 102, 241, 0.35);
   }
 
   &__empty-icon {
-    width: 56px;
-    height: 56px;
-    color: rgba(99, 102, 241, 0.65);
+    width: 48px;
+    height: 48px;
+    color: #d1d1d6;
   }
 
   &__empty-text {
     margin: 0;
-    font-size: 14px;
-    line-height: 1.6;
-    max-width: 320px;
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 280px;
+    font-weight: 500;
   }
 
+  /* iOS Segmented Control Style */
   &__switch {
     display: inline-flex;
-    gap: 10px;
+    background: #efeff4;
+    /* iOS System Gray 6 */
+    padding: 2px;
+    border-radius: 9px;
+    position: relative;
 
     .seg-btn {
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      padding: 10px 16px;
-      border-radius: 12px;
-      font-weight: 600;
-      color: #334155;
+      background: transparent;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #000000;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: none;
+      cursor: pointer;
+      min-width: 80px;
+      justify-content: center;
+
+      .emoji-icon {
+        font-size: 14px;
+      }
     }
 
     .seg-btn.active {
-      background: #2563eb;
-      color: #fff;
-      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.2);
-    }
-
-    @media (max-width: 768px) {
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0.5px 1px rgba(0, 0, 0, 0.04);
+      font-weight: 600;
+      color: #000000;
     }
   }
 }

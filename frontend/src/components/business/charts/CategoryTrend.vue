@@ -1,15 +1,19 @@
 <template>
-  <div class="category-trend">
-    <div class="selector-card">
-      <div class="selector-grid">
-        <div class="selector-field">
-          <span class="label">分类</span>
+  <div class="category-trend-card">
+    <div class="card-header">
+      <div class="header-title">
+        <h3>分类趋势</h3>
+        <p v-if="trendMeta">{{ trendMeta }}</p>
+      </div>
+      <div class="selector-group">
+        <div class="selector-wrapper">
           <el-select
             v-model="selectedCategory"
             placeholder="选择分类"
             filterable
             clearable
             :disabled="categoryStore.loading"
+            class="ios-select"
             @change="handleCategoryChange"
           >
             <el-option
@@ -20,14 +24,14 @@
             />
           </el-select>
         </div>
-        <div class="selector-field">
-          <span class="label">子分类</span>
+        <div class="selector-wrapper">
           <el-select
             v-model="selectedSubcategory"
             placeholder="全部子分类"
             :disabled="!selectedCategory"
             clearable
             filterable
+            class="ios-select"
             @change="handleSubChange"
           >
             <el-option
@@ -41,15 +45,10 @@
       </div>
     </div>
 
-    <el-card class="chart-card" v-loading="trendLoading" shadow="never">
-      <template #header>
-        <div class="chart-title">
-          <span>学习时长趋势</span>
-          <small v-if="trendMeta">{{ trendMeta }}</small>
-        </div>
-      </template>
-      <div v-if="!trendSeries.labels.length && !trendLoading" class="empty">
-        <p>当前筛选范围内没有记录。</p>
+    <div class="chart-container" v-loading="trendLoading">
+      <div v-if="!trendSeries.labels.length && !trendLoading" class="empty-state">
+        <div class="empty-icon">📊</div>
+        <p>当前筛选范围内没有记录</p>
       </div>
       <v-chart
         v-else-if="isActiveTab"
@@ -64,7 +63,7 @@
       <div v-else class="chart-placeholder">
         <p>切换到“分类趋势”即可查看图表。</p>
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -211,20 +210,25 @@ const option = computed(() => {
   const barWidth = dynamicBarWidth.value;
 
   return {
-    color: ["#6366f1"],
+    color: ["#5856D6"],
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "shadow" },
+      backgroundColor: "rgba(255, 255, 255, 0.95)",
+      borderColor: "rgba(0, 0, 0, 0.05)",
+      textStyle: { color: "#1c1c1e" },
       formatter: (params: any) => {
         const item = Array.isArray(params) ? params[0] : params;
-        return `${item.name}<br/>${Number(item.value || 0).toFixed(2)} 小时`;
+        return `<div style="font-weight:600;margin-bottom:4px">${item.name}</div>
+                <div style="color:#5856D6">${Number(item.value || 0).toFixed(2)} 小时</div>`;
       },
       confine: true,
+      extraCssText: "box-shadow: 0 8px 24px rgba(0,0,0,0.12); border-radius: 12px; padding: 12px;",
     },
     grid: {
-      left: 20,
-      right: 20,
-      top: 16,
+      left: 16,
+      right: 16,
+      top: 24,
       bottom: enableZoom ? 60 : rotate ? 44 : 28,
       containLabel: true,
     },
@@ -237,9 +241,17 @@ const option = computed(() => {
             end,
             minValueSpan: 3,
             bottom: 12,
-            height: 14,
+            height: 16,
             handleSize: 12,
             brushSelect: false,
+            borderColor: "transparent",
+            backgroundColor: "#f2f2f7",
+            fillerColor: "rgba(88, 86, 214, 0.15)",
+            handleStyle: {
+              color: "#5856D6",
+              shadowBlur: 4,
+              shadowColor: "rgba(0, 0, 0, 0.2)",
+            },
           },
         ]
       : [],
@@ -248,20 +260,22 @@ const option = computed(() => {
       boundaryGap: true,
       data: labels,
       axisLabel: {
-        color: "#475569",
+        color: "#8e8e93",
         formatter: (value: string) => value?.slice(5),
         rotate,
+        fontSize: 11,
       },
       axisTick: { show: false },
-      axisLine: { lineStyle: { color: "rgba(148, 163, 184, 0.35)" } },
+      axisLine: { show: false },
     },
     yAxis: {
       type: "value",
-      name: "学习时长 (小时)",
+      name: "时长 (h)",
+      nameTextStyle: { color: "#8e8e93", align: "right", padding: [0, 6, 0, 0] },
       min: 0,
-      axisLabel: { color: "#475569" },
+      axisLabel: { color: "#8e8e93", fontSize: 11 },
       splitLine: {
-        lineStyle: { type: "dashed", color: "rgba(148,163,184,0.35)" },
+        lineStyle: { type: "dashed", color: "#e5e5ea" },
       },
     },
     series: [
@@ -272,13 +286,18 @@ const option = computed(() => {
         barWidth,
         barCategoryGap: "26%",
         itemStyle: {
-          borderRadius: [6, 6, 0, 0],
+          borderRadius: [6, 6, 2, 2],
           color: new graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "#6366f1" },
-            { offset: 1, color: "#a5b4fc" },
+            { offset: 0, color: "#5856D6" }, // Indigo
+            { offset: 1, color: "#AF52DE" }, // Purple
           ]),
         },
-        emphasis: { focus: "series" },
+        emphasis: { 
+          itemStyle: {
+            shadowBlur: 12,
+            shadowColor: "rgba(88, 86, 214, 0.3)"
+          }
+        },
       },
     ],
   };
@@ -360,83 +379,149 @@ function onResize() {
 }
 </script>
 
-<style scoped>
-.category-trend {
+<style scoped lang="scss">
+.category-trend-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  min-height: 420px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+  }
 }
 
-.selector-card {
-  background: var(--surface-card);
-  border: 1px solid var(--color-border-card);
-  border-radius: 12px;
-  padding: 16px 18px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-}
-
-.selector-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+.card-header {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.selector-field {
+.header-title {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+
+  h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1c1c1e;
+    letter-spacing: -0.5px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: #8e8e93;
+  }
 }
 
-.selector-field :deep(.el-select) {
-  width: 100%;
-}
-
-.label {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.chart-card {
-  border-radius: 12px;
-  border: 1px solid var(--color-border-card);
-  min-height: 380px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-}
-
-.chart-title {
+.selector-group {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-weight: 600;
-  color: #1f2937;
+  flex-wrap: wrap;
 }
 
-.chart-title small {
-  color: var(--color-text-secondary);
-  font-weight: 400;
+.selector-wrapper {
+  min-width: 160px;
+}
+
+/* iOS Style Select */
+:deep(.ios-select) {
+  .el-input__wrapper {
+    background: #f2f2f7;
+    border-radius: 10px;
+    box-shadow: none !important;
+    padding: 4px 12px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #e5e5ea;
+    }
+
+    &.is-focus {
+      background: #ffffff;
+      box-shadow: 0 0 0 2px rgba(88, 86, 214, 0.2) !important;
+    }
+  }
+
+  .el-input__inner {
+    font-weight: 500;
+    color: #1c1c1e;
+  }
+}
+
+.chart-container {
+  flex: 1;
+  position: relative;
+  min-height: 360px;
 }
 
 .chart {
   width: 100%;
-  height: 360px;
+  height: 380px;
 }
 
-.empty {
-  padding: 48px 16px;
-  text-align: center;
-  color: var(--color-text-secondary);
+.empty-state {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #8e8e93;
+  min-height: 300px;
+  background: #f9f9f9;
+  border-radius: 18px;
+
+  .empty-icon {
+    font-size: 48px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 500;
+  }
 }
 
 .chart-placeholder {
   padding: 48px 16px;
   text-align: center;
-  color: var(--color-text-secondary);
+  color: #8e8e93;
   font-size: 13px;
 }
 
 @media (max-width: 768px) {
+  .category-trend-card {
+    padding: 20px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .selector-group {
+    width: 100%;
+  }
+  
+  .selector-wrapper {
+    flex: 1;
+    min-width: 0;
+  }
+
   .chart {
     height: 320px;
   }
