@@ -723,6 +723,9 @@ const stabilityTitleWithScore = computed(() => {
   return `${grade}（${score}/100）`;
 });
 
+const stabilityTitle = computed(() => stabilityStats.value.grade);
+const stabilityScore = computed(() => stabilityStats.value.score);
+
 const stabilityAverageText = computed(() => averageDuration30d.value.text);
 
 const durationExtremeDisplay = computed(() => {
