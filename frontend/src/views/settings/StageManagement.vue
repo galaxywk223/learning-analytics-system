@@ -4,29 +4,56 @@
     subtitle="梳理学习阶段，设置当前阶段并管理时间跨度"
     :custom-class="'settings-subpage'"
   >
-    <div class="stage-shell">
-      <div class="stage-card">
-        <div class="stage-card__header">
-          <div>
-            <h2>阶段管理</h2>
-            <p>创建、编辑你的学习阶段，设置当前进行中的阶段。</p>
-          </div>
+    <div class="stage-layout">
+      <!-- Left Column: Create New Stage -->
+      <div class="create-card">
+        <div class="card-header">
+          <h3>新建阶段</h3>
+          <p>开启一个新的学习旅程</p>
         </div>
-
-        <div class="create-row">
-          <input
-            v-model="newStage.name"
-            type="text"
-            placeholder="输入阶段名称（如：大三上学期）"
-          />
-          <input
-            v-model="newStage.start"
-            type="date"
-            placeholder="起始日期"
-          />
-          <button class="pill-btn primary" type="button" @click="addStage">
-            创建
+        <form @submit.prevent="handleAddStage" class="create-form">
+          <div class="form-group">
+            <label>阶段名称</label>
+            <input
+              v-model="newStage.name"
+              type="text"
+              placeholder="例如：大三上学期"
+              :disabled="loading"
+            />
+          </div>
+          <div class="form-group">
+            <label>起始日期</label>
+            <input
+              v-model="newStage.start_date"
+              type="date"
+              :disabled="loading"
+            />
+          </div>
+          <div class="form-group">
+            <label>结束日期 (可选)</label>
+            <input
+              v-model="newStage.end_date"
+              type="date"
+              :disabled="loading"
+            />
+          </div>
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" v-model="newStage.is_current" />
+              <span class="checkbox-text">设为当前阶段</span>
+            </label>
+          </div>
+          <button type="submit" class="btn-create" :disabled="loading || !isValidNewStage">
+            {{ loading ? "创建中..." : "创建阶段" }}
           </button>
+        </form>
+      </div>
+
+      <!-- Right Column: Existing Stages -->
+      <div class="list-card">
+        <div class="card-header">
+          <h3>已有阶段</h3>
+          <p>管理您的所有学习阶段</p>
         </div>
 
         <div class="stage-list" v-if="stages.length">
@@ -34,41 +61,46 @@
             v-for="stage in stages"
             :key="stage.id"
             class="stage-item"
-            :class="{ current: stage.isCurrent }"
+            :class="{ current: stage.is_current }"
           >
-            <div class="stage-info">
-              <div class="stage-title">{{ stage.name }}</div>
-              <div class="stage-sub">起始于 {{ stage.start }}</div>
-            </div>
-            <div class="stage-tags" v-if="stage.isCurrent">
-              <span class="pill current">✅ 当前进行中</span>
-            </div>
-            <div class="stage-actions">
-              <button
-                class="ghost-btn"
-                :disabled="stage.isCurrent"
-                @click="setCurrent(stage.id)"
-                title="设为当前阶段"
-              >
-                🚩
-              </button>
-              <button class="ghost-btn" title="编辑" @click="startEdit(stage)">
-                ✏️
-              </button>
-              <button class="ghost-btn danger" title="删除" @click="removeStage(stage.id)">
-                🗑️
-              </button>
-            </div>
-
-            <div class="edit-row" v-if="editingId === stage.id">
-              <input v-model="editStage.name" type="text" />
-              <input v-model="editStage.start" type="date" />
-              <div class="edit-actions">
-                <button class="pill-btn primary" type="button" @click="saveEdit(stage.id)">
-                  保存
+            <div class="stage-content">
+              <div class="stage-main">
+                <div class="stage-title-row">
+                  <span class="stage-name">{{ stage.name }}</span>
+                  <span v-if="stage.is_current" class="badge-current">当前</span>
+                </div>
+                <div class="stage-meta">
+                  <span>{{ formatDate(stage.start_date) }}</span>
+                  <span v-if="stage.end_date"> - {{ formatDate(stage.end_date) }}</span>
+                  <span v-else> - 至今</span>
+                </div>
+              </div>
+              
+              <div class="stage-actions">
+                <button
+                  v-if="!stage.is_current"
+                  class="action-btn"
+                  title="设为当前"
+                  @click="handleSetCurrent(stage)"
+                  :disabled="loading"
+                >
+                  🚩
                 </button>
-                <button class="pill-btn ghost" type="button" @click="cancelEdit">
-                  取消
+                <button
+                  class="action-btn"
+                  title="编辑"
+                  @click="openEdit(stage)"
+                  :disabled="loading"
+                >
+                  ✏️
+                </button>
+                <button
+                  class="action-btn danger"
+                  title="删除"
+                  @click="handleDelete(stage)"
+                  :disabled="loading"
+                >
+                  🗑️
                 </button>
               </div>
             </div>
@@ -76,307 +108,445 @@
         </div>
 
         <div class="empty-state" v-else>
-          <div class="empty-illustration">🏔️🚩</div>
-          <p class="empty-title">开启你的第一个学习阶段</p>
-          <p class="empty-sub">在上方输入名称与日期即可创建</p>
+          <div class="empty-icon">📭</div>
+          <p>还没有创建任何阶段</p>
         </div>
       </div>
     </div>
+
+    <!-- Edit Dialog -->
+    <el-dialog
+      v-model="editVisible"
+      title="编辑阶段"
+      width="500px"
+      class="edit-dialog"
+      destroy-on-close
+    >
+      <form @submit.prevent="handleUpdateStage" class="edit-form">
+        <div class="form-group">
+          <label>阶段名称</label>
+          <input v-model="editForm.name" type="text" required />
+        </div>
+        <div class="form-group">
+          <label>起始日期</label>
+          <input v-model="editForm.start_date" type="date" required />
+        </div>
+        <div class="form-group">
+          <label>结束日期</label>
+          <input v-model="editForm.end_date" type="date" />
+        </div>
+        <div class="dialog-footer">
+          <button type="button" class="btn-cancel" @click="editVisible = false">取消</button>
+          <button type="submit" class="btn-save" :disabled="loading">保存</button>
+        </div>
+      </form>
+    </el-dialog>
   </PageContainer>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, computed } from "vue";
 import PageContainer from "@/components/layout/PageContainer.vue";
+import { stageAPI } from "@/api/modules/stage";
+import { ElMessage, ElMessageBox } from "element-plus";
 
-let uid = 3;
-const stages = ref([
-  { id: 1, name: "大三上学期", start: "2024-09-01", isCurrent: true },
-  { id: 2, name: "寒假自律计划", start: "2025-01-15", isCurrent: false },
-]);
+const stages = ref([]);
+const loading = ref(false);
+const editVisible = ref(false);
 
-const newStage = ref({ name: "", start: "" });
-const editingId = ref(null);
-const editStage = ref({ name: "", start: "" });
+const newStage = ref({
+  name: "",
+  start_date: "",
+  end_date: "",
+  is_current: false,
+});
 
-function addStage() {
-  if (!newStage.value.name || !newStage.value.start) return;
-  stages.value.unshift({
-    id: ++uid,
-    name: newStage.value.name,
-    start: newStage.value.start,
-    isCurrent: false,
-  });
-  newStage.value = { name: "", start: "" };
+const editForm = ref({
+  id: null,
+  name: "",
+  start_date: "",
+  end_date: "",
+});
+
+const isValidNewStage = computed(() => {
+  return newStage.value.name && newStage.value.start_date;
+});
+
+onMounted(() => {
+  fetchStages();
+});
+
+async function fetchStages() {
+  loading.value = true;
+  try {
+    const res = await stageAPI.getAll();
+    stages.value = res.stages || [];
+  } catch (e) {
+    console.error("Failed to fetch stages", e);
+    ElMessage.error("获取阶段列表失败");
+  } finally {
+    loading.value = false;
+  }
 }
 
-function setCurrent(id) {
-  stages.value = stages.value.map((s) => ({
-    ...s,
-    isCurrent: s.id === id,
-  }));
+async function handleAddStage() {
+  if (!isValidNewStage.value) return;
+  loading.value = true;
+  try {
+    await stageAPI.create(newStage.value);
+    ElMessage.success("创建成功");
+    newStage.value = { name: "", start_date: "", end_date: "", is_current: false };
+    await fetchStages();
+  } catch (e) {
+    console.error("Create stage failed", e);
+    ElMessage.error("创建失败");
+  } finally {
+    loading.value = false;
+  }
 }
 
-function startEdit(stage) {
-  editingId.value = stage.id;
-  editStage.value = { name: stage.name, start: stage.start };
+async function handleSetCurrent(stage) {
+  loading.value = true;
+  try {
+    await stageAPI.update(stage.id, { is_current: true });
+    ElMessage.success("已更新当前阶段");
+    await fetchStages();
+  } catch (e) {
+    console.error("Set current failed", e);
+    ElMessage.error("设置失败");
+  } finally {
+    loading.value = false;
+  }
 }
 
-function cancelEdit() {
-  editingId.value = null;
-  editStage.value = { name: "", start: "" };
+function openEdit(stage) {
+  editForm.value = { ...stage };
+  editVisible.value = true;
 }
 
-function saveEdit(id) {
-  if (!editStage.value.name || !editStage.value.start) return;
-  stages.value = stages.value.map((s) =>
-    s.id === id ? { ...s, ...editStage.value } : s
-  );
-  cancelEdit();
+async function handleUpdateStage() {
+  loading.value = true;
+  try {
+    await stageAPI.update(editForm.value.id, {
+      name: editForm.value.name,
+      start_date: editForm.value.start_date,
+      end_date: editForm.value.end_date,
+    });
+    ElMessage.success("更新成功");
+    editVisible.value = false;
+    await fetchStages();
+  } catch (e) {
+    console.error("Update stage failed", e);
+    ElMessage.error("更新失败");
+  } finally {
+    loading.value = false;
+  }
 }
 
-function removeStage(id) {
-  stages.value = stages.value.filter((s) => s.id !== id);
-  if (editingId.value === id) cancelEdit();
+async function handleDelete(stage) {
+  try {
+    await ElMessageBox.confirm("确定要删除这个阶段吗？", "提示", {
+      confirmButtonText: "删除",
+      cancelButtonText: "取消",
+      type: "warning",
+    });
+    
+    loading.value = true;
+    await stageAPI.delete(stage.id);
+    ElMessage.success("删除成功");
+    await fetchStages();
+  } catch (e) {
+    if (e !== "cancel") {
+      console.error("Delete stage failed", e);
+      ElMessage.error("删除失败");
+    }
+  } finally {
+    loading.value = false;
+  }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 }
 </script>
 
 <style scoped>
-.stage-shell {
-  display: flex;
-  justify-content: center;
+.stage-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  width: 100%;
 }
 
-.stage-card {
-  width: 100%;
-  max-width: 820px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid #e5e7eb;
+/* ... (unchanged styles) ... */
+
+@media (max-width: 768px) {
+  .stage-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .create-card {
+    position: static;
+  }
+}
+
+/* Cards */
+.create-card,
+.list-card {
+  background: #ffffff;
   border-radius: 24px;
   box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
-  padding: 18px 18px 22px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.02);
 }
 
-.stage-card__header h2 {
+.create-card {
+  position: sticky;
+  top: 32px;
+}
+
+.card-header h3 {
   margin: 0;
   font-size: 20px;
   font-weight: 800;
-  color: #0f172a;
+  color: #1c1c1e;
 }
 
-.stage-card__header p {
+.card-header p {
   margin: 6px 0 0;
-  color: #6b7280;
-  font-size: 13px;
-}
-
-.create-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr auto;
-  gap: 10px;
-  align-items: center;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.create-row input {
-  height: 42px;
-  border: none;
-  border-radius: 12px;
-  background: #f3f4f6;
-  padding: 0 12px;
+  color: #8e8e93;
   font-size: 14px;
-  outline: none;
-  transition: all 0.15s ease;
 }
 
-.create-row input:focus {
-  background: #ffffff;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.12);
-}
-
-.stage-list {
+/* Form */
+.create-form,
+.edit-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 4px;
+  gap: 20px;
 }
 
-.stage-item {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 10px;
-  align-items: center;
-  padding: 14px 12px;
-  border-radius: 16px;
-  transition: all 0.15s ease;
-  min-height: 72px;
-}
-
-.stage-item:hover {
-  background: #f9fafb;
-}
-
-.stage-item.current {
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.stage-info .stage-title {
-  font-weight: 800;
-  color: #0f172a;
-  font-size: 15px;
-}
-
-.stage-info .stage-sub {
-  color: #6b7280;
-  font-size: 12px;
-  margin-top: 2px;
-}
-
-.stage-tags .pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  background: rgba(16, 185, 129, 0.16);
-  color: #0f766e;
-}
-
-.stage-actions {
+.form-group {
   display: flex;
-  gap: 6px;
-  justify-content: flex-end;
-}
-
-.ghost-btn {
-  border: none;
-  background: rgba(0, 0, 0, 0.04);
-  border-radius: 10px;
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 14px;
-  color: #4b5563;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.ghost-btn:hover {
-  background: rgba(79, 70, 229, 0.12);
-  color: #111827;
-}
-
-.ghost-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.12);
-  color: #dc2626;
-}
-
-.ghost-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.edit-row {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: 2fr 1fr auto;
-  gap: 10px;
-  align-items: center;
-  padding-top: 6px;
-}
-
-.edit-row input {
-  height: 38px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 0 10px;
-}
-
-.edit-actions {
-  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.pill-btn {
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1c1c1e;
+  margin-left: 4px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"] {
+  height: 48px;
+  background: #f2f2f7;
   border: none;
   border-radius: 12px;
-  padding: 10px 14px;
-  font-weight: 800;
-  font-size: 13px;
+  padding: 0 16px;
+  font-size: 16px;
+  color: #1c1c1e;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.form-group input:focus {
+  background: #ffffff;
+  box-shadow: 0 0 0 2px #007AFF;
+}
+
+.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.15s ease;
 }
 
-.pill-btn.primary {
-  background: linear-gradient(135deg, #6d7cff, #4f46e5);
+.checkbox-text {
+  font-size: 14px;
+  color: #1c1c1e;
+  font-weight: 500;
+}
+
+.btn-create {
+  height: 48px;
+  background: linear-gradient(135deg, #007AFF, #5856D6);
+  border: none;
+  border-radius: 999px;
   color: #ffffff;
-  box-shadow: 0 10px 22px rgba(79, 70, 229, 0.28);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 20px rgba(0, 122, 255, 0.3);
+  margin-top: 8px;
 }
 
-.pill-btn.ghost {
-  background: #f8fafc;
-  color: #475569;
-  border: 1px solid #e5e7eb;
+.btn-create:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 122, 255, 0.4);
 }
 
-.pill-btn:disabled {
+.btn-create:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.danger-row {
+/* List */
+.stage-list {
   display: flex;
-  justify-content: center;
-  gap: 6px;
-  padding: 16px 0;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 24px 0 12px;
-  color: #6b7280;
+.stage-item {
+  background: #ffffff;
+  border: 1px solid #f2f2f7;
+  border-radius: 16px;
+  padding: 16px 20px;
+  transition: all 0.2s ease;
+}
+
+.stage-item:hover {
+  border-color: #e5e5ea;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  transform: translateY(-1px);
+}
+
+.stage-item.current {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.stage-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.stage-main {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.empty-illustration {
-  font-size: 32px;
+.stage-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.empty-title {
-  margin: 0;
-  font-weight: 800;
-  color: #0f172a;
+.stage-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1c1c1e;
 }
 
-.empty-sub {
-  margin: 0;
+.badge-current {
+  font-size: 11px;
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.stage-meta {
   font-size: 13px;
-  color: #9ca3af;
+  color: #8e8e93;
+}
+
+.stage-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: #f2f2f7;
+  color: #1c1c1e;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #e5e5ea;
+  transform: scale(1.05);
+}
+
+.action-btn.danger:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 0;
+  color: #8e8e93;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+/* Dialog Styles */
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-cancel {
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: none;
+  background: #f2f2f7;
+  color: #1c1c1e;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-save {
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: none;
+  background: #007AFF;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {
-  .create-row,
-  .edit-row {
+  .stage-layout {
     grid-template-columns: 1fr;
   }
-
-  .stage-item {
-    grid-template-columns: 1fr;
-    align-items: flex-start;
-  }
-
-  .stage-actions {
-    justify-content: flex-start;
+  
+  .create-card {
+    position: static;
   }
 }
 </style>

@@ -242,30 +242,32 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-/* Dialog & Overlay */
+/* Dialog & Overlay - iOS Premium */
 .milestone-form-dialog :deep(.el-overlay) {
-  background-color: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
 }
 
 .milestone-form-dialog :deep(.el-dialog) {
-  border-radius: 20px;
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+  border-radius: 24px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
   padding: 0;
   overflow: hidden;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
 }
 
 .milestone-form-dialog :deep(.el-dialog__header) {
   margin: 0;
-  padding: 24px 32px 12px;
+  padding: 24px 32px 16px;
   border-bottom: none;
 }
 
 .milestone-form-dialog :deep(.el-dialog__title) {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #1c1c1e;
+  letter-spacing: -0.5px;
 }
 
 .milestone-form-dialog :deep(.el-dialog__headerbtn) {
@@ -274,15 +276,22 @@ async function handleSubmit() {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  transition: background 0.2s;
+  background: #f2f2f7;
+  transition: all 0.2s ease;
 }
 
 .milestone-form-dialog :deep(.el-dialog__headerbtn:hover) {
-  background: #f5f5f5;
+  background: #e5e5ea;
+  transform: scale(1.05);
+}
+
+.milestone-form-dialog :deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: #8e8e93;
+  font-weight: 700;
 }
 
 .milestone-form-dialog :deep(.el-dialog__body) {
-  padding: 12px 32px 32px;
+  padding: 8px 32px 32px;
 }
 
 /* Form Layout */
@@ -294,13 +303,13 @@ async function handleSubmit() {
 .form-body {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 .form-row {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .split-row {
@@ -313,7 +322,7 @@ async function handleSubmit() {
 }
 
 .w-date {
-  width: 180px;
+  width: 200px;
   flex-shrink: 0;
 }
 
@@ -324,29 +333,29 @@ async function handleSubmit() {
 }
 
 .form-label {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  color: #1f2937;
-  margin-left: 2px;
+  color: #1c1c1e;
+  margin-left: 4px;
 }
 
 .required {
-  color: #ef4444;
+  color: #ff3b30;
   margin-left: 2px;
 }
 
-/* Record Form Style Inputs */
+/* Record Form Style Inputs - iOS Style */
 .record-input :deep(.el-input__wrapper),
 .record-select :deep(.el-input__wrapper) {
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  background: #f2f2f7;
+  border: none;
+  border-radius: 12px;
   box-shadow: none !important;
-  padding: 0 14px;
+  padding: 0 16px;
   height: 52px !important;
   line-height: 52px;
   box-sizing: border-box;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .tall-input :deep(.el-input__wrapper),
@@ -370,50 +379,50 @@ async function handleSubmit() {
 
 .record-input :deep(.el-input__wrapper:hover),
 .record-select :deep(.el-input__wrapper:hover) {
-  background: #f1f5f9;
+  background: #e5e5ea;
 }
 
 .record-input :deep(.el-input__wrapper.is-focus),
 .record-select :deep(.el-input__wrapper.is-focus) {
   background: #ffffff;
-  border-color: #c4c8d2;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15) !important;
+  box-shadow: 0 0 0 2px #007AFF !important;
 }
 
 .record-input :deep(.el-input__inner) {
-  font-size: 15px;
-  color: #111827;
+  font-size: 17px;
+  color: #1c1c1e;
   height: 100%;
   line-height: normal;
   display: flex;
   align-items: center;
+  font-weight: 500;
 }
 
 /* Textarea */
 .record-textarea :deep(.el-textarea__inner) {
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 14px;
-  font-size: 15px;
-  color: #111827;
+  background: #f2f2f7;
+  border: none;
+  border-radius: 16px;
+  padding: 16px;
+  font-size: 17px;
+  color: #1c1c1e;
   box-shadow: none;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
+  font-family: inherit;
 }
 
 .record-textarea :deep(.el-textarea__inner:focus) {
   background: #ffffff;
-  border-color: #c4c8d2;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 0 2px #007AFF;
 }
 
 /* Upload Area */
 .upload-area {
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
-  border-radius: 14px;
-  min-height: 80px;
-  padding: 16px;
+  background: #f9f9f9;
+  border: 2px dashed #e5e5ea;
+  border-radius: 16px;
+  min-height: 100px;
+  padding: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -422,15 +431,14 @@ async function handleSubmit() {
 }
 
 .upload-area:hover {
-  background: #ffffff;
-  border-color: #94a3b8;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  background: #f2f2f7;
+  border-color: #007AFF;
 }
 
 .upload-area.has-files {
   background: #ffffff;
   border-style: solid;
-  border-color: #e2e8f0;
+  border-color: #e5e5ea;
   justify-content: flex-start;
   align-items: flex-start;
 }
@@ -442,34 +450,35 @@ async function handleSubmit() {
 }
 
 .icon-circle {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: #e0e7ff;
+  background: #e5e5ea;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #007AFF;
 }
 
 .icon-circle .icon {
-  font-size: 18px;
+  font-size: 24px;
 }
 
 .text-content {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .primary-text {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
-  color: #334155;
+  color: #1c1c1e;
 }
 
 .secondary-text {
-  font-size: 12px;
-  color: #94a3b8;
+  font-size: 13px;
+  color: #8e8e93;
 }
 
 .hidden-input {
@@ -488,42 +497,41 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  background: #f1f5f9;
-  border-radius: 10px;
-  color: #64748b;
-  font-size: 13px;
+  padding: 10px 16px;
+  background: #f2f2f7;
+  border-radius: 12px;
+  color: #007AFF;
+  font-size: 14px;
   font-weight: 600;
   transition: all 0.2s;
 }
 
 .add-more-btn:hover {
-  background: #e2e8f0;
-  color: #475569;
+  background: #e5e5ea;
 }
 
 .file-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #f9f9f9;
+  border: 1px solid #e5e5ea;
+  border-radius: 12px;
   transition: all 0.2s;
 }
 
 .file-item:hover {
-  border-color: #cbd5e1;
+  border-color: #007AFF;
   background: #ffffff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .file-name {
-  font-size: 13px;
-  color: #334155;
+  font-size: 14px;
+  color: #1c1c1e;
   font-weight: 500;
-  max-width: 150px;
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -533,74 +541,76 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border: none;
   background: transparent;
-  color: #94a3b8;
-  border-radius: 4px;
+  color: #8e8e93;
+  border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .remove-btn:hover {
-  background: #fee2e2;
-  color: #ef4444;
+  background: #e5e5ea;
+  color: #ff3b30;
 }
 
 /* Footer */
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 14px;
-  margin-top: 12px;
-  padding-top: 20px;
-  border-top: 1px solid #f1f5f9;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 24px;
+  border-top: 1px solid #f2f2f7;
 }
 
 .btn-cancel {
   min-width: 100px;
   height: 48px;
-  border-radius: 14px;
+  border-radius: 999px;
   border: none;
-  background: #f8fafc;
-  color: #4b5563;
+  background: #f2f2f7;
+  color: #1c1c1e;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-cancel:hover {
-  background: #f1f5f9;
-  color: #374151;
+  background: #e5e5ea;
 }
 
 .btn-submit {
-  min-width: 120px;
+  min-width: 140px;
   height: 48px;
-  border-radius: 14px;
+  border-radius: 999px;
   border: none;
-  background: #6366f1;
+  background: #007AFF;
   color: #ffffff;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 
 .btn-submit:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+  background: #0062cc;
+  box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
 }
 
 .btn-submit:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 </style>

@@ -1,6 +1,6 @@
-/* 倒计时视图主样式 */
+/* 倒计时视图主样式 - iOS Premium */
 .countdown-page {
-  padding: 20px;
+  padding: 24px clamp(16px, 3vw, 32px) 48px;
   max-width: 1400px;
   margin: 0 auto;
   background: transparent;
@@ -12,23 +12,24 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  padding: 20px 24px;
-  background: var(--surface-card);
-  border-radius: 16px;
-  border: 1px solid var(--color-border-card);
-  box-shadow: var(--box-shadow);
-  color: var(--color-text-heading);
+  margin-bottom: 32px;
+  padding: 24px 32px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+  color: #1c1c1e;
 }
 
 .page-header h1 {
-  font-size: 28px;
+  font-size: 32px;
   margin: 0;
   padding: 0;
   font-weight: 700;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.5px;
   line-height: 1.2;
-  color: var(--color-text-heading);
+  color: #1c1c1e;
   display: flex;
   align-items: center;
 }
@@ -36,17 +37,17 @@
 .page-header h1::before {
   content: "";
   width: 8px;
-  height: 22px;
+  height: 28px;
   border-radius: 4px;
-  margin-right: 10px;
-  background: linear-gradient(180deg, var(--color-primary), #8b5cf6);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  margin-right: 12px;
+  background: linear-gradient(180deg, #007AFF, #5856D6);
+  box-shadow: 0 2px 4px rgba(0, 122, 255, 0.2);
 }
 
 .page-header .lead {
-  margin: 6px 0 0;
-  font-size: 13px;
-  color: var(--color-text-secondary);
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: #8e8e93;
   font-weight: 400;
 }
 
@@ -58,42 +59,44 @@
 /* 卡片网格布局 */
 .row-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 /* 空状态 */
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 48px 24px;
-  background: white;
-  border: 2px dashed #cbd5e0;
-  border-radius: 12px;
-  transition: border-color 0.2s ease;
-}
+  padding: 64px 24px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px dashed rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
 
-.empty-state:hover {
-  border-color: #667eea;
+  &:hover {
+    border-color: #007AFF;
+    background: rgba(255, 255, 255, 0.8);
+  }
 }
 
 .empty-state .ll-icon {
-  font-size: 56px;
-  color: #cbd5e0;
-  margin-bottom: 14px;
+  font-size: 64px;
+  color: #d1d1d6;
+  margin-bottom: 16px;
 }
 
 .empty-state h3 {
-  margin: 14px 0 10px;
-  font-size: 18px;
-  color: #2d3748;
-  font-weight: 600;
+  margin: 16px 0 12px;
+  font-size: 20px;
+  color: #1c1c1e;
+  font-weight: 700;
 }
 
 .text-muted {
-  color: #718096;
-  font-size: 13px;
+  color: #8e8e93;
+  font-size: 15px;
   line-height: 1.6;
 }
 
@@ -104,17 +107,17 @@
 /* 响应式调整 */
 @media (max-width: 768px) {
   .countdown-page {
-    padding: 14px;
+    padding: 16px;
   }
 
   .page-header {
     flex-direction: column;
-    gap: 14px;
-    padding: 14px 16px;
+    gap: 16px;
+    padding: 20px;
   }
 
   .page-header h1 {
-    font-size: 22px;
+    font-size: 24px;
   }
 
   .row-cards {
@@ -130,54 +133,59 @@
 
 /* 骨架屏样式优化 */
 .countdown-page :deep(.el-skeleton) {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 24px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
 }
 
 /* 对话框与表单（美化尺寸与间距） */
 .countdown-page :deep(.el-dialog) {
-  border-radius: 16px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
 }
 
 .countdown-page :deep(.el-dialog__header) {
-  padding: 16px 20px 0 20px;
+  padding: 24px 24px 0 24px;
+  margin-right: 0;
 }
 
 .countdown-page :deep(.el-dialog__title) {
   font-weight: 700;
-  color: #1f2937;
+  color: #1c1c1e;
+  font-size: 20px;
 }
 
 .countdown-page :deep(.el-dialog__body) {
-  padding: 16px 20px 20px 20px;
+  padding: 24px;
 }
 
 .countdown-page :deep(.countdown-form) {
   max-width: 840px;
   margin: 0 auto;
-  padding: 24px;
-  background: #ffffff;
-  border-radius: 20px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 
   .el-form-item {
-    margin-bottom: 14px;
+    margin-bottom: 16px;
     align-items: flex-start;
   }
 
   .el-form-item__label {
     font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 6px;
+    color: #1c1c1e;
+    margin-bottom: 8px;
     display: inline-flex;
     align-items: center;
     min-height: 24px;
+    font-size: 15px;
   }
 
   .el-form-item__content {
@@ -193,17 +201,22 @@
   .el-select .el-input__wrapper,
   .el-date-editor .el-input__wrapper,
   .el-time-picker .el-input__wrapper {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
+    background: #f2f2f7;
+    border: none;
+    border-radius: 12px;
     box-shadow: none;
-    min-height: 48px;
-    height: 48px;
-    padding: 0 14px;
-    transition: all 0.15s ease;
+    min-height: 52px;
+    height: 52px;
+    padding: 0 16px;
+    transition: all 0.2s ease;
   }
 
-  .el-input__inner { line-height: 48px; font-size: 15px; color: #111827; }
+  .el-input__inner {
+    line-height: 52px;
+    font-size: 17px;
+    color: #1c1c1e;
+    font-weight: 500;
+  }
 
   .el-date-editor .el-input__wrapper,
   .el-time-picker .el-input__wrapper {
@@ -215,8 +228,7 @@
   .el-date-editor.is-active .el-input__wrapper,
   .el-time-picker.is-active .el-input__wrapper {
     background: #ffffff;
-    border-color: #c4c8d2;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 0 0 2px #007AFF;
   }
 }
 
@@ -227,12 +239,17 @@
   :deep(.el-collapse-item__header) {
     background: transparent;
     border-bottom: none;
-    padding: 0 4px;
+    padding: 0 8px;
+    margin-bottom: 16px;
   }
 
   :deep(.el-collapse-item__wrap) {
     background: transparent;
     border: none;
+  }
+
+  :deep(.el-collapse-item__content) {
+    padding-bottom: 0;
   }
 }
 
@@ -241,103 +258,115 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 10px 4px;
+  gap: 12px;
+  padding: 12px 4px;
   font-weight: 700;
-  color: #0f172a;
+  color: #1c1c1e;
+  font-size: 18px;
 
   .badge {
-    min-width: 28px;
-    height: 24px;
-    padding: 0 8px;
+    min-width: 32px;
+    height: 28px;
+    padding: 0 10px;
     border-radius: 999px;
-    background: #f3f4f6;
-    color: #4b5563;
-    font-size: 12px;
+    background: #e5e5ea;
+    color: #1c1c1e;
+    font-size: 14px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
 
     &.muted {
-      background: #f5f5f5;
-      color: #9ca3af;
+      background: #f2f2f7;
+      color: #8e8e93;
     }
   }
 }
 
 .fab-add {
   position: fixed;
-  right: clamp(18px, 3vw, 32px);
-  bottom: clamp(18px, 3vw, 32px);
-  width: 56px;
-  height: 56px;
+  right: clamp(24px, 4vw, 48px);
+  bottom: clamp(24px, 4vw, 48px);
+  width: 64px;
+  height: 64px;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6d7cff, #4f46e5);
+  background: linear-gradient(135deg, #007AFF, #5856D6);
   color: #ffffff;
-  box-shadow: 0 18px 40px rgba(79, 70, 229, 0.35);
+  box-shadow: 0 16px 32px rgba(0, 122, 255, 0.35);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.18s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
   z-index: 1200;
 }
 
 .fab-add:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 22px 48px rgba(79, 70, 229, 0.42);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 20px 40px rgba(0, 122, 255, 0.45);
 }
 
 .fab-icon {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 400;
   line-height: 1;
 }
 
 
 /* 日期/时间输入：默认宽一些，图标与文本间距更宽松 */
-.countdown-page :deep(.el-date-editor) { width: 100%; }
+.countdown-page :deep(.el-date-editor) {
+  width: 100%;
+}
 
-.countdown-page :deep(.el-time-picker) { width: 100%; }
+.countdown-page :deep(.el-time-picker) {
+  width: 100%;
+}
 
 .countdown-page :deep(.el-dialog__footer) {
-  padding: 10px 20px 18px 20px;
+  padding: 16px 24px 24px 24px;
   display: flex;
-  justify-content: center;
-  gap: 12px;
+  justify-content: flex-end;
+  gap: 16px;
 
   .el-button {
-    min-width: 132px;
+    min-width: 120px;
     height: 48px;
-    font-weight: 700;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    border-radius: 14px;
+    border-radius: 999px;
     border: none;
+    font-size: 16px;
   }
 
   .el-button:not(.el-button--primary) {
-    background: #f8fafc;
-    color: #4b5563;
+    background: #f2f2f7;
+    color: #1c1c1e;
+
+    &:hover {
+      background: #e5e5ea;
+    }
   }
 
   .el-button--primary {
-    background: #6366f1;
+    background: #007AFF;
     border: none;
-    box-shadow: none;
-  }
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 
-  .el-button--primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+    &:hover {
+      background: #0062cc;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+    }
   }
 }
 
 @media (max-width: 600px) {
+
   .countdown-page :deep(.el-date-editor),
   .countdown-page :deep(.el-time-picker) {
     width: 100%;
