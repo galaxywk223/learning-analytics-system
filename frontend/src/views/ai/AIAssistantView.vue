@@ -1,213 +1,232 @@
 <template>
-  <div class="ai-assistant">
+  <div class="ios-view">
     <PageContainer
       :title="{ icon: '🤖', text: '智能规划' }"
-      subtitle="按日、周、月或阶段梳理学习数据，生成易读的总结与下一步规划，并支持历史追溯。"
+      subtitle="按日、周、月或阶段梳理学习数据，生成易读的总结与下一步规划。"
     >
-      <div class="glass-control">
-        <div class="meta-chips">
-          <span class="chip"><span class="dot" />{{ scopeLabel }}</span>
-          <span class="chip" v-if="!isStageScope">{{ currentPeriodLabel }}</span>
-          <span class="chip" v-else>{{ currentStageLabel }}</span>
-        </div>
-        <div class="control-row">
-          <div class="segment">
-            <span class="seg-label">分析范围</span>
-            <div class="segmented">
-              <button
-                v-for="item in scopeOptions"
-                :key="item.value"
-                :class="['seg-btn', scopeValue === item.value && 'active']"
-                @click="scopeValue = item.value"
-              >
-                {{ item.label }}
-              </button>
+      <div class="ios-content-wrapper">
+        <!-- Control Panel -->
+        <div class="ios-card control-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">配置分析范围</h3>
+            <div class="current-status">
+              <span class="status-badge">{{ scopeLabel }}</span>
+              <span class="status-badge secondary" v-if="!isStageScope">{{ currentPeriodLabel }}</span>
+              <span class="status-badge secondary" v-else>{{ currentStageLabel }}</span>
             </div>
           </div>
-          <div class="picker">
-            <template v-if="!isStageScope">
-              <button class="pill-picker" @click="openDatePicker">
-                <span class="emoji-icon" aria-hidden="true">📅</span>
-                <span>{{ dateValue || datePlaceholder }}</span>
-                <span class="caret">▾</span>
-              </button>
-              <el-date-picker
-                ref="datePicker"
-                v-model="dateValue"
-                :type="datePickerType"
-                value-format="YYYY-MM-DD"
-                :placeholder="datePlaceholder"
-                :clearable="false"
-                class="hidden-date-input"
-              />
-            </template>
-            <template v-else>
-              <el-select
-                v-model="stageValue"
-                placeholder="请选择阶段"
-                filterable
-                class="minimal-select"
-              >
-                <el-option
-                  v-for="stage in stageOptions"
-                  :key="stage.value"
-                  :label="stage.label"
-                  :value="stage.value"
-                />
-              </el-select>
-            </template>
-          </div>
-          <div class="actions">
-            <button
-              class="btn-primary"
-              :disabled="analysisLoading || planLoading"
-              @click="handleGenerateAnalysis"
-            >
-              ✨ 生成分析
-            </button>
-            <button
-              class="btn-primary alt"
-              :disabled="analysisLoading || planLoading"
-              @click="handleGeneratePlan"
-            >
-              🤖 生成规划
-            </button>
-            <button class="btn-ghost" :disabled="!hasResult" @click="handleClear">
-              🗑️ 清空
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="insight-grid">
-        <section
-          class="glass-card insight-card"
-          :class="{ 'is-loading': analysisLoading }"
-        >
-          <header class="insight-card__header">
-            <div class="title-wrap">
-              <span class="icon">📊</span>
-              <div>
-                <span class="title">分析总结</span>
-                <small v-if="analysisMeta.period">{{ analysisMeta.period }}</small>
+          
+          <div class="panel-body">
+            <div class="control-group">
+              <label class="group-label">时间维度</label>
+              <div class="ios-segmented-control">
+                <button
+                  v-for="item in scopeOptions"
+                  :key="item.value"
+                  :class="['segment-btn', scopeValue === item.value && 'active']"
+                  @click="scopeValue = item.value"
+                >
+                  {{ item.label }}
+                </button>
               </div>
             </div>
-            <span class="pill latest">最新</span>
-          </header>
-          <div class="insight-card__body" v-loading="analysisLoading">
-            <div v-if="analysisHtml" class="bubble">
-              <div class="markdown-body" v-html="analysisHtml"></div>
-              <p v-if="analysisMeta.generatedAt" class="insight-content__time">
-                生成时间：{{ formatDateTime(analysisMeta.generatedAt) }}
-              </p>
+
+            <div class="control-group">
+              <label class="group-label">选择范围</label>
+              <div class="picker-wrapper">
+                <template v-if="!isStageScope">
+                  <button class="ios-picker-btn" @click="openDatePicker">
+                    <span class="icon">📅</span>
+                    <span class="value">{{ dateValue || datePlaceholder }}</span>
+                    <el-icon class="arrow"><ArrowRight /></el-icon>
+                  </button>
+                  <el-date-picker
+                    ref="datePicker"
+                    v-model="dateValue"
+                    :type="datePickerType"
+                    value-format="YYYY-MM-DD"
+                    :placeholder="datePlaceholder"
+                    :clearable="false"
+                    class="hidden-date-input"
+                  />
+                </template>
+                <template v-else>
+                  <el-select
+                    v-model="stageValue"
+                    placeholder="请选择阶段"
+                    filterable
+                    class="ios-select"
+                    :teleported="false"
+                  >
+                    <el-option
+                      v-for="stage in stageOptions"
+                      :key="stage.value"
+                      :label="stage.label"
+                      :value="stage.value"
+                    />
+                  </el-select>
+                </template>
+              </div>
             </div>
-            <div v-else class="empty-robot">
-              <span class="bot">🤔</span>
-              <p>等待输入数据...</p>
+
+            <div class="action-group">
+              <button
+                class="ios-btn primary"
+                :disabled="analysisLoading || planLoading"
+                @click="handleGenerateAnalysis"
+              >
+                <span class="icon">✨</span> 生成分析
+              </button>
+              <button
+                class="ios-btn primary-alt"
+                :disabled="analysisLoading || planLoading"
+                @click="handleGeneratePlan"
+              >
+                <span class="icon">🎯</span> 生成规划
+              </button>
+              <button class="ios-btn ghost" :disabled="!hasResult" @click="handleClear">
+                <span class="icon">🗑️</span>
+              </button>
             </div>
           </div>
-        </section>
+        </div>
 
-        <section class="glass-card insight-card" :class="{ 'is-loading': planLoading }">
-          <header class="insight-card__header">
-            <div class="title-wrap">
-              <span class="icon">🤖</span>
-              <div>
-                <span class="title">规划建议</span>
-                <div class="result-card__sub" v-if="planMeta.period">
-                  <small>{{ planMeta.period }}</small>
-                  <el-icon v-if="planMeta.nextPeriod" size="14" class="result-card__arrow">
-                    <ArrowRight />
-                  </el-icon>
-                  <small v-if="planMeta.nextPeriod">{{ planMeta.nextPeriod }}</small>
+        <!-- Results Grid -->
+        <div class="results-grid">
+          <!-- Analysis Card -->
+          <section class="ios-card result-card" :class="{ 'is-loading': analysisLoading }">
+            <div class="card-header">
+              <div class="header-left">
+                <div class="icon-box analysis-icon">📊</div>
+                <div class="header-text">
+                  <h3 class="title">分析总结</h3>
+                  <span class="subtitle" v-if="analysisMeta.period">{{ analysisMeta.period }}</span>
                 </div>
               </div>
+              <span class="ios-tag latest">最新</span>
             </div>
-            <span class="pill plan">规划</span>
-          </header>
-          <div class="insight-card__body" v-loading="planLoading">
-            <div v-if="planHtml" class="bubble bubble-ai">
-              <div class="markdown-body" v-html="planHtml"></div>
-              <p v-if="planMeta.generatedAt" class="insight-content__time">
-                生成时间：{{ formatDateTime(planMeta.generatedAt) }}
-              </p>
+            <div class="card-body" v-loading="analysisLoading">
+              <div v-if="analysisHtml" class="markdown-content">
+                <div class="markdown-body" v-html="analysisHtml"></div>
+                <div v-if="analysisMeta.generatedAt" class="timestamp">
+                  生成于 {{ formatDateTime(analysisMeta.generatedAt) }}
+                </div>
+              </div>
+              <div v-else class="empty-state">
+                <span class="emoji">🤔</span>
+                <p>暂无分析数据</p>
+              </div>
             </div>
-            <div v-else class="empty-robot">
-              <span class="bot">💭</span>
-              <p>等待输入数据...</p>
-            </div>
-          </div>
-        </section>
-      </div>
+          </section>
 
-      <div class="history-stream glass-card" v-loading="historyLoading">
-        <div class="history-stream__header">
-          <div class="title-wrap">
-            <span class="icon">🕒</span>
-            <div>
-              <h4>历史记录</h4>
-              <p>以时间序排列你的每次生成</p>
+          <!-- Plan Card -->
+          <section class="ios-card result-card" :class="{ 'is-loading': planLoading }">
+            <div class="card-header">
+              <div class="header-left">
+                <div class="icon-box plan-icon">🧭</div>
+                <div class="header-text">
+                  <h3 class="title">规划建议</h3>
+                  <div class="subtitle-row" v-if="planMeta.period">
+                    <span>{{ planMeta.period }}</span>
+                    <el-icon v-if="planMeta.nextPeriod"><ArrowRight /></el-icon>
+                    <span v-if="planMeta.nextPeriod">{{ planMeta.nextPeriod }}</span>
+                  </div>
+                </div>
+              </div>
+              <span class="ios-tag plan">规划</span>
+            </div>
+            <div class="card-body" v-loading="planLoading">
+              <div v-if="planHtml" class="markdown-content plan-content">
+                <div class="markdown-body" v-html="planHtml"></div>
+                <div v-if="planMeta.generatedAt" class="timestamp">
+                  生成于 {{ formatDateTime(planMeta.generatedAt) }}
+                </div>
+              </div>
+              <div v-else class="empty-state">
+                <span class="emoji">💭</span>
+                <p>暂无规划建议</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- History Section -->
+        <div class="ios-card history-section" v-loading="historyLoading">
+          <div class="section-header">
+            <div class="header-title">
+              <span class="icon">🕒</span>
+              <h3>历史记录</h3>
+            </div>
+            <div class="header-controls">
+              <div class="ios-segmented-control small">
+                <button
+                  v-for="item in historyTypeOptions"
+                  :key="item.value"
+                  :class="['segment-btn', historyTypeValue === item.value && 'active']"
+                  @click="historyTypeValue = item.value"
+                >
+                  {{ item.label }}
+                </button>
+              </div>
+              <button class="icon-btn" @click="handleRefreshHistory">
+                🔄
+              </button>
             </div>
           </div>
-          <div class="history-stream__controls">
-            <el-radio-group v-model="historyTypeValue" size="small">
-              <el-radio-button
-                v-for="item in historyTypeOptions"
-                :key="item.value"
-                :label="item.value"
-              >
-                {{ item.label }}
-              </el-radio-button>
-            </el-radio-group>
-            <button class="btn-ghost" @click="handleRefreshHistory">刷新</button>
+          
+          <div class="history-list" v-if="historyRows.length">
+            <div
+              class="history-item"
+              v-for="item in historyRows"
+              :key="item.id"
+              @click="handlePreview(item)"
+            >
+              <div class="item-icon" :class="item.type">
+                {{ item.type === 'plan' ? '🧭' : '📊' }}
+              </div>
+              <div class="item-content">
+                <div class="item-top">
+                  <span class="item-title">{{ item.typeLabel }}</span>
+                  <span class="item-date">{{ item.createdAt }}</span>
+                </div>
+                <div class="item-bottom">
+                  <span class="item-period">{{ item.period }}</span>
+                  <span class="item-scope">{{ item.scopeLabel }}</span>
+                </div>
+              </div>
+              <el-icon class="item-arrow"><ArrowRight /></el-icon>
+            </div>
+          </div>
+          <div v-else class="empty-history">
+            <span class="text">暂无历史记录</span>
           </div>
         </div>
-        <div class="history-list" v-if="historyRows.length">
-          <div
-            class="history-card-lite"
-            v-for="item in historyRows"
-            :key="item.id"
-            @click="handlePreview(item)"
-          >
-            <div class="history-meta">
-              <span class="pill" :class="item.type === 'plan' ? 'plan' : 'analysis'">
-                {{ item.typeLabel }}
-              </span>
-              <span class="scope">{{ item.scopeLabel }}</span>
-            </div>
-            <div class="history-period">{{ item.period }}</div>
-            <div class="history-footer">
-              <span class="time">{{ item.createdAt }}</span>
-              <span class="arrow">›</span>
-            </div>
-          </div>
-        </div>
-        <el-empty v-else description="暂无记录" />
       </div>
 
-        <el-dialog
-          v-model="previewDialogVisible"
-          :title="previewDialog.title"
-          width="720px"
-          class="preview-dialog"
-          destroy-on-close
-        >
-          <div class="preview-dialog__meta">
-            <span v-if="previewDialog.period">{{ previewDialog.period }}</span>
-            <span v-if="previewDialog.generatedAt"
-              >生成时间：{{ previewDialog.generatedAt }}</span
-            >
-            <span v-if="previewDialog.nextPeriod"
-              >下一阶段：{{ previewDialog.nextPeriod }}</span
-            >
-          </div>
-          <div
-            v-if="previewDialog.html"
-            class="markdown-body"
-            v-html="previewDialog.html"
-          ></div>
-          <el-empty v-else description="暂无内容" />
-        </el-dialog>
+      <!-- Preview Dialog -->
+      <el-dialog
+        v-model="previewDialogVisible"
+        :title="previewDialog.title"
+        width="90%"
+        class="ios-dialog"
+        destroy-on-close
+        align-center
+      >
+        <div class="dialog-meta">
+          <span class="meta-item" v-if="previewDialog.period">
+            <el-icon><Calendar /></el-icon> {{ previewDialog.period }}
+          </span>
+          <span class="meta-item" v-if="previewDialog.generatedAt">
+            <el-icon><Clock /></el-icon> {{ previewDialog.generatedAt }}
+          </span>
+        </div>
+        <div
+          v-if="previewDialog.html"
+          class="markdown-body ios-markdown"
+          v-html="previewDialog.html"
+        ></div>
+        <el-empty v-else description="暂无内容" />
+      </el-dialog>
     </PageContainer>
   </div>
 </template>
@@ -218,7 +237,7 @@ import dayjs from "dayjs";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import PageContainer from "@/components/layout/PageContainer.vue";
-import { ArrowRight } from "@element-plus/icons-vue";
+import { ArrowRight, Calendar, Clock } from "@element-plus/icons-vue";
 import {
   useAIAssistantStore,
   type HistoryType,
@@ -508,568 +527,630 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-.ai-assistant {
-  position: relative;
-  display: flex;
-  flex-direction: column;
+.ios-view {
   min-height: 100%;
-  isolation: isolate;
-  background: transparent;
+  background-color: transparent; /* Allow global background to show */
+}
 
-.glass-control {
-  margin-top: 6px;
-  background: rgba(255, 255, 255, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 24px;
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
-  backdrop-filter: blur(14px);
-  padding: 16px 18px;
+.ios-content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24px;
+  padding-bottom: 40px;
+}
 
-  .meta-chips {
+/* --- iOS Card Generic --- */
+.ios-card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* --- Control Panel --- */
+.control-panel {
+  padding: 24px;
+  
+  .panel-header {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    
+    .panel-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1c1c1e;
+      margin: 0;
+    }
 
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      background: rgba(255, 255, 255, 0.5);
-      color: #475569;
+    .current-status {
+      display: flex;
+      gap: 8px;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      background: #e5e5ea; /* iOS System Gray 5 */
+      color: #1c1c1e;
       border-radius: 999px;
-      font-size: 12px;
-      line-height: 1;
-      backdrop-filter: blur(8px);
-    }
-
-    .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--color-primary);
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.12);
+      font-size: 13px;
+      font-weight: 600;
+      
+      &.secondary {
+        background: #f2f2f7;
+        color: #8e8e93;
+      }
     }
   }
 
-  .control-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
-    align-items: center;
-  }
-
-  .segment {
+  .panel-body {
     display: flex;
-    align-items: center;
-    gap: 10px;
     flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-end;
   }
+}
 
-  .seg-label {
-    color: #475569;
-    font-weight: 600;
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .group-label {
     font-size: 13px;
+    font-weight: 600;
+    color: #8e8e93; /* iOS System Gray */
+    margin-left: 4px;
+  }
+}
+
+/* iOS Segmented Control */
+.ios-segmented-control {
+  background: #e5e5ea;
+  padding: 3px;
+  border-radius: 9px;
+  display: inline-flex;
+  position: relative;
+  
+  &.small {
+    padding: 2px;
+    border-radius: 8px;
+    
+    .segment-btn {
+      padding: 4px 12px;
+      font-size: 12px;
+    }
   }
 
-  .segmented {
-    display: inline-flex;
-    align-items: center;
-    min-height: 52px;
-    background: #f1f3f5;
-    border-radius: 999px;
-    padding: 6px;
-    gap: 6px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
-  }
-
-  .seg-btn {
+  .segment-btn {
     border: none;
     background: transparent;
-    height: 40px;
-    padding: 0 16px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 700;
-    color: #6b7280;
+    padding: 8px 20px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1c1c1e;
     cursor: pointer;
     transition: all 0.2s ease;
-    min-width: 86px;
-    display: inline-flex;
-    align-items: center;
-  }
 
-  .seg-btn.active {
-    background: #ffffff;
-    color: #0f172a;
-    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
-  }
-
-  .picker {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .pill-picker {
-    min-width: 200px;
-    height: 52px;
-    border: 1px solid rgba(148, 163, 184, 0.38);
-    background: rgba(255, 255, 255, 0.8);
-    color: #0f172a;
-    padding: 0 16px;
-    border-radius: 16px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(8px);
-    font-weight: 700;
-
-    &:hover {
-      background: rgba(241, 245, 249, 0.9);
-      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
-    }
-
-    .caret {
-      color: #94a3b8;
-      font-weight: 700;
-    }
-  }
-
-  .minimal-select {
-    min-width: 180px;
-  }
-
-  :deep(.hidden-date-input) {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-    width: 1px;
-    height: 1px;
-  }
-
-  .actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .btn-primary {
-    border: none;
-    color: #ffffff;
-    padding: 12px 16px;
-    border-radius: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    background: linear-gradient(135deg, #7c3aed, #2563eb);
-    box-shadow: 0 14px 32px rgba(79, 70, 229, 0.35);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-    &.alt {
-      background: linear-gradient(135deg, #22c55e, #06b6d4);
-      box-shadow: 0 14px 32px rgba(34, 197, 94, 0.28);
-    }
-
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      box-shadow: none;
-      transform: none;
-    }
-  }
-
-  .btn-ghost {
-    border: none;
-    background: rgba(248, 250, 252, 0.8);
-    color: #64748b;
-    padding: 10px 12px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
-
-    &:hover {
+    &.active {
       background: #ffffff;
-      color: #0f172a;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+      font-weight: 600;
     }
   }
 }
-}
 
-.insight-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: 20px;
-}
-
-.glass-card {
-  position: relative;
-  background: rgba(255, 255, 255, 0.42);
-  border-radius: 24px;
-  padding: 18px 20px;
-  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(14px);
-}
-
-.insight-card {
+/* iOS Picker Button */
+.picker-wrapper {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
-  overflow: hidden;
-  transition: box-shadow 0.2s ease;
-
-  &.is-loading {
-    opacity: 0.72;
-  }
+  align-items: center;
 }
 
-.insight-card__header {
-  position: relative;
+.ios-picker-btn {
+  background: #f2f2f7;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 12px;
   display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+  min-width: 220px;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
 
-  .title-wrap {
-    display: flex;
-    gap: 10px;
-    align-items: center;
+  &:hover {
+    background: #e5e5ea;
   }
 
   .icon {
-    font-size: 18px;
+    font-size: 16px;
   }
 
-  .title {
-    font-size: 19px;
-    font-weight: 700;
-    display: block;
-    color: #1f1d47;
+  .value {
+    font-size: 15px;
+    font-weight: 600;
+    color: #007aff; /* iOS Blue */
+    flex: 1;
+    text-align: left;
   }
 
-  small {
-    color: rgba(79, 70, 229, 0.7);
-    font-size: 12px;
+  .arrow {
+    font-size: 14px;
+    color: #c7c7cc;
   }
 }
 
-.pill {
-  display: inline-flex;
+.ios-select {
+  width: 220px;
+  
+  :deep(.el-input__wrapper) {
+    background-color: #f2f2f7;
+    border-radius: 12px;
+    box-shadow: none !important;
+    padding: 4px 12px;
+  }
+  
+  :deep(.el-input__inner) {
+    font-weight: 600;
+    color: #007aff;
+  }
+}
+
+:deep(.hidden-date-input) {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Action Buttons */
+.action-group {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.ios-btn {
+  border: none;
+  padding: 12px 24px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.1s, opacity 0.2s;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.primary {
+    background: #007aff;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+
+    &:hover:not(:disabled) {
+      background: #006ce6;
+    }
+  }
+
+  &.primary-alt {
+    background: #34c759; /* iOS Green */
+    color: white;
+    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+
+    &:hover:not(:disabled) {
+      background: #2db84f;
+    }
+  }
+
+  &.ghost {
+    background: #f2f2f7;
+    color: #ff3b30; /* iOS Red */
+    padding: 12px;
+    
+    &:hover:not(:disabled) {
+      background: #e5e5ea;
+    }
+  }
+}
+
+/* --- Results Grid --- */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
+}
+
+.result-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+  
+  &.is-loading {
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  .card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f2f2f7;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    .header-left {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      
+      &.analysis-icon {
+        background: #eaf2ff; /* Light Blue */
+      }
+      &.plan-icon {
+        background: #e8f8f0; /* Light Green */
+      }
+    }
+
+    .header-text {
+      .title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1c1c1e;
+        margin: 0 0 4px 0;
+      }
+      
+      .subtitle, .subtitle-row {
+        font-size: 13px;
+        color: #8e8e93;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+    }
+  }
+
+  .ios-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &.latest {
+      background: #eaf2ff;
+      color: #007aff;
+    }
+    &.plan {
+      background: #e8f8f0;
+      color: #34c759;
+    }
+  }
+
+  .card-body {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    background: #ffffff;
+  }
+}
+
+.markdown-content {
+  .timestamp {
+    margin-top: 24px;
+    font-size: 12px;
+    color: #c7c7cc;
+    text-align: right;
+  }
+}
+
+.empty-state {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 12px;
-  background: rgba(99, 102, 241, 0.14);
-  color: #4338ca;
-
-  &.latest {
-    background: rgba(59, 130, 246, 0.18);
-    color: #1d4ed8;
-  }
-
-  &.plan {
-    background: rgba(16, 185, 129, 0.16);
-    color: #047857;
-  }
-}
-
-.insight-card__body {
-  min-height: 260px;
-  display: flex;
-  flex-direction: column;
-}
-
-.bubble {
-  background: rgba(248, 250, 252, 0.8);
-  border-radius: 18px;
-  padding: 14px 16px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(226, 232, 240, 0.7);
-}
-
-.bubble-ai {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(37, 99, 235, 0.12));
-  border: 1px solid rgba(124, 58, 237, 0.2);
-}
-
-.empty-robot {
-  flex: 1;
-  display: grid;
-  place-items: center;
-  color: #94a3b8;
-  gap: 8px;
-
-  .bot {
-    font-size: 28px;
-  }
-}
-
-.history-card {
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(12px);
-  padding: 18px;
-
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  &__controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-}
-
-.history-timeline {
-  padding-left: 6px;
-
-  .el-timeline-item__content {
-    width: 100%;
-  }
-}
-
-.history-item {
-  background: rgba(255, 255, 255, 0.35);
-  border-radius: 16px;
-  padding: 14px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-}
-
-.history-item__header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.history-item__scope {
-  font-size: 13px;
-  color: var(--el-text-color-secondary);
-}
-
-.history-item__period {
-  font-size: 14px;
-  color: #111827;
-  font-weight: 500;
-}
-
-.history-item__actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.history-stream {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
+  color: #c7c7cc;
   gap: 12px;
 
-  &__header {
+  .emoji {
+    font-size: 48px;
+    opacity: 0.5;
+  }
+  
+  p {
+    font-size: 15px;
+    font-weight: 500;
+  }
+}
+
+/* --- History Section --- */
+.history-section {
+  padding: 24px;
+
+  .section-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .title-wrap {
-    display: flex;
     align-items: center;
-    gap: 10px;
+    margin-bottom: 20px;
 
-    h4 {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 700;
-      color: #0f172a;
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      
+      .icon { font-size: 20px; }
+      h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #1c1c1e;
+      }
     }
 
-    p {
-      margin: 2px 0 0;
-      color: #6b7280;
-      font-size: 0.88rem;
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-  }
 
-  .icon {
-    font-size: 18px;
-  }
+    .icon-btn {
+      background: #f2f2f7;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      color: #8e8e93;
+      transition: all 0.2s;
 
-  &__controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+      &:hover {
+        background: #e5e5ea;
+        color: #007aff;
+      }
+    }
   }
 }
 
 .history-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
 }
 
-.history-card-lite {
-  background: rgba(255, 255, 255, 0.78);
+.history-item {
+  background: #f9f9f9; /* Very light gray */
   border-radius: 16px;
-  padding: 12px 14px;
-  border: 1px solid rgba(226, 232, 240, 0.7);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
-  }
-}
-
-.history-meta {
+  padding: 16px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
 
-  .scope {
-    color: #475569;
-    font-weight: 600;
-    font-size: 13px;
+  &:hover {
+    background: #f2f2f7;
+  }
+
+  .item-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+
+    &.analysis { background: #eaf2ff; }
+    &.plan { background: #e8f8f0; }
+  }
+
+  .item-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .item-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    .item-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1c1c1e;
+    }
+    
+    .item-date {
+      font-size: 12px;
+      color: #8e8e93;
+    }
+  }
+
+  .item-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    .item-period {
+      font-size: 13px;
+      color: #3a3a3c;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .item-scope {
+      font-size: 11px;
+      color: #8e8e93;
+      background: #ffffff;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  }
+
+  .item-arrow {
+    color: #c7c7cc;
+    font-size: 14px;
   }
 }
 
-.history-period {
-  font-weight: 700;
-  color: #0f172a;
+.empty-history {
+  padding: 40px;
+  text-align: center;
+  color: #8e8e93;
   font-size: 14px;
 }
 
-.history-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #94a3b8;
-  font-size: 12px;
-
-  .arrow {
-    font-weight: 800;
-    color: #64748b;
+/* --- Dialog & Markdown --- */
+.ios-dialog {
+  :deep(.el-dialog) {
+    border-radius: 20px;
+    overflow: hidden;
   }
-}
-
-.preview-dialog__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  margin-bottom: 12px;
-}
-
-.preview-dialog .markdown-body {
-  max-height: 480px;
-  overflow-y: auto;
-}
-
-.insight-content {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
-  .markdown-body {
-    font-size: 14px;
-    line-height: 1.7;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-      margin: 0;
-      font-weight: 600;
-      line-height: 1.4;
-    }
-
-    h2 {
+  
+  :deep(.el-dialog__header) {
+    margin: 0;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f2f2f7;
+    
+    .el-dialog__title {
+      font-weight: 700;
       font-size: 18px;
     }
-
-    h3 {
-      font-size: 16px;
-    }
-
-    p {
-      margin: 0;
-      white-space: pre-wrap;
-    }
-
-    ul,
-    ol {
-      margin: 0;
-      padding-left: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    li {
-      line-height: 1.6;
-    }
-
-    hr {
-      border: none;
-      border-top: 1px solid var(--el-border-color-lighter);
-      margin: 8px 0;
-    }
-
-    code {
-      background-color: var(--el-fill-color-light);
-      padding: 0 4px;
-      border-radius: 4px;
-      font-size: 90%;
-    }
-
-    strong {
-      font-weight: 600;
-    }
   }
+  
+  :deep(.el-dialog__body) {
+    padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+}
 
-  &__time {
-    margin: 0;
-    font-size: 12px;
-    color: var(--el-text-color-secondary);
+.dialog-meta {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #e5e5ea;
+  
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #8e8e93;
+  }
+}
+
+/* Markdown Styles for iOS Theme */
+:deep(.markdown-body) {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #1c1c1e;
+  line-height: 1.6;
+  
+  h1, h2, h3 {
+    border-bottom: none;
+    margin-top: 24px;
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+  
+  h1 { font-size: 24px; }
+  h2 { font-size: 20px; }
+  h3 { font-size: 17px; }
+  
+  p { margin-bottom: 16px; }
+  
+  ul, ol {
+    padding-left: 24px;
+    margin-bottom: 16px;
+  }
+  
+  li { margin-bottom: 8px; }
+  
+  blockquote {
+    border-left: 4px solid #007aff;
+    background: #f2f2f7;
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: #3a3a3c;
+    margin: 16px 0;
+  }
+  
+  code {
+    background: #f2f2f7;
+    color: #ff2d55;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.9em;
+  }
+  
+  pre {
+    background: #1c1c1e;
+    border-radius: 12px;
+    padding: 16px;
+    
+    code {
+      background: transparent;
+      color: #ffffff;
+      padding: 0;
+    }
   }
 }
 
 @media (max-width: 768px) {
-  .control-card .control-grid {
+  .control-panel .panel-body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .action-group {
+    width: 100%;
+    justify-content: space-between;
+    
+    .ios-btn {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+  
+  .results-grid {
     grid-template-columns: 1fr;
   }
 }

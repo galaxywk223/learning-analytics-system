@@ -48,7 +48,22 @@ body {
 
 #app {
   min-height: 100vh;
-  background: #F5F7FA;
+  /* Lighter, softer animated gradient background */
+  background: linear-gradient(-45deg, #e0c3fc, #8ec5fc, #90f7ec, #fbc2eb);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* 当用户上传了自定义背景时，通过settings store动态设置 */
