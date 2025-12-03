@@ -1,122 +1,123 @@
 <template>
   <div class="charts-view">
-    <div class="floating-dock">
-      <button
-        class="dock-btn"
-        :class="{ active: charts.activeTab === 'trends' }"
-        @click="charts.setActiveTab('trends')"
-        title="趋势分析"
-      >
-        <Icon icon="lucide:line-chart" />
-        <span class="dock-tip">趋势分析</span>
-      </button>
-      <button
-        class="dock-btn"
-        :class="{ active: charts.activeTab === 'categories' }"
-        @click="charts.setActiveTab('categories')"
-        title="分类占比"
-      >
-        <Icon icon="lucide:pie-chart" />
-        <span class="dock-tip">分类占比</span>
-      </button>
-      <button
-        class="dock-btn"
-        :class="{ active: charts.activeTab === 'cattrend' }"
-        @click="charts.setActiveTab('cattrend')"
-        title="分类趋势"
-      >
-        <Icon icon="lucide:trending-up" />
-        <span class="dock-tip">分类趋势</span>
-      </button>
-    </div>
     <PageContainer
       :title="{ icon: '📊', text: '统计分析' }"
       subtitle="通过数据洞察学习模式，掌握成长轨迹"
     >
-      <button
-        v-if="charts.activeTab === 'categories' && isDrilldown"
-        class="floating-back"
-        type="button"
-        @click="handleBackClick"
-        aria-label="返回上一级分类"
-      >
-        <Icon icon="lucide:arrow-left" />
-      </button>
-      <div
-        class="toolbar-container"
-        v-if="['categories', 'cattrend'].includes(charts.activeTab)"
-      >
-        <div class="toolbar-left"></div>
-        <div class="category-filters">
-          <div class="segmented filter-switch">
+      <div class="charts-layout">
+        <aside class="charts-sidebar">
+          <div class="filter-list">
             <button
-              v-for="mode in categoryModes"
-              :key="mode.value"
-              :class="['seg-btn', rangeMode === mode.value && 'active']"
-              @click="onRangeModeChange(mode.value)"
+              type="button"
+              class="filter-item"
+              :class="{ active: charts.activeTab === 'trends' }"
+              @click="charts.setActiveTab('trends')"
             >
-              {{ mode.label }}
+              趋势分析
+            </button>
+            <button
+              type="button"
+              class="filter-item"
+              :class="{ active: charts.activeTab === 'categories' }"
+              @click="charts.setActiveTab('categories')"
+            >
+              分类占比
+            </button>
+            <button
+              type="button"
+              class="filter-item"
+              :class="{ active: charts.activeTab === 'cattrend' }"
+              @click="charts.setActiveTab('cattrend')"
+            >
+              分类趋势
             </button>
           </div>
-          <div class="filter-inputs">
-            <select
-              v-if="rangeMode === 'stage'"
-              class="stage-select minimal-select"
-              v-model="stageSelected"
-              @change="onStageChange"
-            >
-              <option value="all">全部历史</option>
-              <option v-for="s in charts.stages" :key="s.id" :value="s.id">
-                {{ s.name }}
-              </option>
-            </select>
-            <el-date-picker
-              v-else-if="rangeMode === 'daily'"
-              v-model="datePoint"
-              type="date"
-              value-format="YYYY-MM-DD"
-              placeholder="选择日期"
-              clearable
-              @clear="onFilterCleared"
-              :disabled="charts.loading"
-            />
-            <el-date-picker
-              v-else-if="rangeMode === 'weekly'"
-              v-model="datePoint"
-              type="date"
-              value-format="YYYY-MM-DD"
-              placeholder="选择一周中的任意一天"
-              :first-day-of-week="1"
-              clearable
-              @clear="onFilterCleared"
-              :disabled="charts.loading"
-            />
-            <el-date-picker
-              v-else-if="rangeMode === 'monthly'"
-              v-model="datePoint"
-              type="month"
-              value-format="YYYY-MM"
-              placeholder="选择月份"
-              clearable
-              @clear="onFilterCleared"
-              :disabled="charts.loading"
-            />
-            <el-date-picker
-              v-else-if="rangeMode === 'custom'"
-              v-model="customRange"
-              type="daterange"
-              value-format="YYYY-MM-DD"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              unlink-panels
-              clearable
-              @clear="onFilterCleared"
-              :disabled="charts.loading"
-            />
+        </aside>
+        <div class="charts-main">
+          <button
+            v-if="charts.activeTab === 'categories' && isDrilldown"
+            class="floating-back"
+            type="button"
+            @click="handleBackClick"
+            aria-label="返回上一级分类"
+          >
+            <Icon icon="lucide:arrow-left" />
+          </button>
+          <div
+            class="toolbar-container"
+            v-if="['categories', 'cattrend'].includes(charts.activeTab)"
+          >
+            <div class="toolbar-left"></div>
+            <div class="category-filters">
+              <div class="segmented filter-switch">
+                <button
+                  v-for="mode in categoryModes"
+                  :key="mode.value"
+                  :class="['seg-btn', rangeMode === mode.value && 'active']"
+                  @click="onRangeModeChange(mode.value)"
+                >
+                  {{ mode.label }}
+                </button>
+              </div>
+              <div class="filter-inputs">
+                <select
+                  v-if="rangeMode === 'stage'"
+                  class="stage-select minimal-select"
+                  v-model="stageSelected"
+                  @change="onStageChange"
+                >
+                  <option value="all">全部历史</option>
+                  <option v-for="s in charts.stages" :key="s.id" :value="s.id">
+                    {{ s.name }}
+                  </option>
+                </select>
+                <el-date-picker
+                  v-else-if="rangeMode === 'daily'"
+                  v-model="datePoint"
+                  type="date"
+                  value-format="YYYY-MM-DD"
+                  placeholder="选择日期"
+                  clearable
+                  @clear="onFilterCleared"
+                  :disabled="charts.loading"
+                />
+                <el-date-picker
+                  v-else-if="rangeMode === 'weekly'"
+                  v-model="datePoint"
+                  type="date"
+                  value-format="YYYY-MM-DD"
+                  placeholder="选择一周中的任意一天"
+                  :first-day-of-week="1"
+                  clearable
+                  @clear="onFilterCleared"
+                  :disabled="charts.loading"
+                />
+                <el-date-picker
+                  v-else-if="rangeMode === 'monthly'"
+                  v-model="datePoint"
+                  type="month"
+                  value-format="YYYY-MM"
+                  placeholder="选择月份"
+                  clearable
+                  @clear="onFilterCleared"
+                  :disabled="charts.loading"
+                />
+                <el-date-picker
+                  v-else-if="rangeMode === 'custom'"
+                  v-model="customRange"
+                  type="daterange"
+                  value-format="YYYY-MM-DD"
+                  range-separator="至"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                  unlink-panels
+                  clearable
+                  @clear="onFilterCleared"
+                  :disabled="charts.loading"
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
       <div class="tab-panels">
         <div v-show="charts.activeTab === 'trends'" class="panel">
         <!-- KPI 仅在趋势分析面板内部显示，符合旧项目布局 -->
@@ -284,6 +285,8 @@
         <CategoryTrend />
       </div>
     </div>
+        </div>
+      </div>
     </PageContainer>
   </div>
 </template>

@@ -8,7 +8,7 @@
 
 .layout-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 280px) 1fr;
+  grid-template-columns: minmax(10px, 20px) 1fr;
   gap: clamp(1.5rem, 3vw, 2rem);
   align-items: start;
 }
@@ -16,13 +16,19 @@
 .sidebar-filter {
   position: sticky;
   top: clamp(1.5rem, 3vw, 2rem);
-  /* Nudge into the left gutter to hug the main sidebar */
-  margin-left: clamp(-96px, -8vw, -44px);
+  /* Align with charts sidebar styling */
+  margin-left: clamp(-176px, -16vw, -124px);
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
 
   .filter-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    align-items: center;
   }
 
   .filter-item {
@@ -32,20 +38,21 @@
     font-weight: 600;
     font-size: 15px;
     padding: 10px 14px;
-    text-align: left;
+    text-align: center;
     border-radius: 999px;
     transition: all 0.18s ease;
     cursor: pointer;
 
     &:hover {
       color: #111827;
-      transform: translateX(2px);
+      transform: translateX(1px);
     }
 
     &.active {
-      background: #ffffff;
+      background: rgba(255, 255, 255, 0.9);
       color: #2563eb;
-      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+      box-shadow: none;
+      border: 1px solid rgba(99, 102, 241, 0.15);
     }
   }
 }

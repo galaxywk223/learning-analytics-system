@@ -8,73 +8,58 @@
 
 .settings-main-content {
   display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 20px;
+  grid-template-columns: minmax(10px, 20px) 1fr;
+  gap: clamp(1.5rem, 3vw, 2rem);
   align-items: start;
 }
 
 .settings-sidebar {
   position: sticky;
-  top: 80px;
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid #e2e8f0;
+  top: clamp(1.5rem, 3vw, 2rem);
+  margin-left: clamp(-176px, -16vw, -124px);
+  padding: 10px 12px;
+  border-radius: 18px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .settings-nav {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+  align-items: center;
 }
 
 .settings-nav-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  padding: 12px 14px;
-  border-radius: 10px;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 999px;
   text-decoration: none;
-  color: #475569;
-  font-weight: 500;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.18s ease;
   position: relative;
   overflow: hidden;
-}
-
-.settings-nav-item::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 3px;
-  background: #667eea;
-  transform: scaleY(0);
-  transition: transform 0.2s ease;
-}
-
-.settings-nav-item .el-icon,
-.settings-nav-item svg {
-  margin-right: 12px;
-  font-size: 1.1rem;
-  width: 1.1rem;
-  height: 1.1rem;
+  background: transparent;
+  min-width: 120px;
 }
 
 .settings-nav-item:hover {
-  background: rgba(102, 126, 234, 0.08);
-  color: #667eea;
+  color: #111827;
+  transform: translateX(1px);
 }
 
 .settings-nav-item.router-link-exact-active {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-  font-weight: 600;
-}
-
-.settings-nav-item.router-link-exact-active::before {
-  transform: scaleY(1);
+  background: rgba(255, 255, 255, 0.9);
+  color: #2563eb;
+  font-weight: 700;
+  box-shadow: none;
+  border: 1px solid rgba(99, 102, 241, 0.15);
 }
 
 .settings-content {
@@ -104,12 +89,13 @@
 
 @media (max-width: 1024px) {
   .settings-main-content {
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 1fr;
     gap: 16px;
   }
 
   .settings-sidebar {
-    padding: 12px;
+    position: static;
+    margin-left: 0;
   }
 }
 
@@ -142,5 +128,6 @@
 
   .settings-nav-item {
     white-space: nowrap;
+    min-width: auto;
   }
 }

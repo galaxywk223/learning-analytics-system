@@ -12,6 +12,62 @@
   }
 }
 
+.charts-layout {
+  display: grid;
+  grid-template-columns: minmax(10px, 20px) 1fr;
+  gap: clamp(1.5rem, 3vw, 2rem);
+  align-items: start;
+  position: relative;
+}
+
+.charts-sidebar {
+  position: sticky;
+  top: clamp(1.5rem, 3vw, 2rem);
+  margin-left: clamp(-176px, -16vw, -124px);
+  padding: 10px 12px;
+  border-radius: 18px;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  backdrop-filter: none;
+
+  .filter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .filter-item {
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 10px 14px;
+    text-align: center;
+    border-radius: 999px;
+    transition: all 0.18s ease;
+    cursor: pointer;
+
+    &:hover {
+      color: #111827;
+      transform: translateX(1px);
+    }
+
+    &.active {
+      background: rgba(255, 255, 255, 0.9);
+      color: #2563eb;
+      box-shadow: none;
+      border: 1px solid rgba(99, 102, 241, 0.15);
+    }
+  }
+}
+
+.charts-main {
+  min-width: 0;
+}
+
 // 页面头部 - 扁平化设计
 .page-header {
   background: #ffffff;
@@ -409,7 +465,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 
   &:hover {
     transform: translateY(-1px);
@@ -542,71 +600,14 @@
   }
 }
 
-.floating-dock {
-  position: fixed;
-  left: clamp(110px, 8vw, 180px);
-  top: 38%;
-  transform: translateY(-50%);
-  background: #ffffff;
-  border-radius: 32px;
-  padding: 16px 10px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  z-index: 1100;
-
-  @media (max-width: 1024px) {
-    display: none;
+@media (max-width: 1024px) {
+  .charts-layout {
+    grid-template-columns: 1fr;
   }
 
-  .dock-btn {
-    position: relative;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border: none;
-    background: transparent;
-    color: #9ca3af;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-      color: #111827;
-    }
-
-    &.active {
-      background: #4f46e5;
-      color: #ffffff;
-      box-shadow: 0 10px 24px rgba(79, 70, 229, 0.32);
-    }
-
-    svg {
-      width: 22px;
-      height: 22px;
-    }
-
-    .dock-tip {
-      position: absolute;
-      left: 58px;
-      white-space: nowrap;
-      background: rgba(0, 0, 0, 0.8);
-      color: #ffffff;
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 12px;
-      opacity: 0;
-      transform: translateY(0);
-      pointer-events: none;
-      transition: opacity 0.15s ease;
-    }
-
-    &:hover .dock-tip {
-      opacity: 1;
-    }
+  .charts-sidebar {
+    position: static;
+    margin-left: 0;
   }
 }
 
