@@ -36,31 +36,35 @@
       </el-col>
       <el-col :span="8">
         <el-form-item label="实际时长" prop="actual_duration">
-          <el-row :gutter="8">
+          <el-row :gutter="8" class="duration-row">
             <el-col :span="12">
-            <el-input-number
-              v-model="form.duration_hours"
-              :min="0"
-              :max="24"
-              placeholder="小时"
-              style="width: 100%"
-              size="large"
-              :controls="false"
-            />
-          </el-col>
-          <el-col :span="12">
-            <el-input-number
-              v-model="form.duration_minutes"
-              :min="0"
-              :max="59"
-              placeholder="分钟"
-              style="width: 100%"
-              size="large"
-              :controls="false"
-            />
-          </el-col>
-        </el-row>
-      </el-form-item>
+              <div class="duration-input">
+                <el-input-number
+                  v-model="form.duration_hours"
+                  :min="0"
+                  :max="24"
+                  placeholder="0"
+                  size="large"
+                  :controls="false"
+                />
+                <span class="unit-label">小时</span>
+              </div>
+            </el-col>
+            <el-col :span="12">
+              <div class="duration-input">
+                <el-input-number
+                  v-model="form.duration_minutes"
+                  :min="0"
+                  :max="59"
+                  placeholder="0"
+                  size="large"
+                  :controls="false"
+                />
+                <span class="unit-label">分钟</span>
+              </div>
+            </el-col>
+          </el-row>
+        </el-form-item>
       </el-col>
     </el-row>
   </div>
@@ -91,6 +95,29 @@ defineProps({
     :deep(.el-form-item__label) {
       display: none;
     }
+  }
+
+  .duration-row {
+    width: 100%;
+  }
+
+  .duration-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .duration-input :deep(.el-input-number) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .unit-label {
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1;
+    white-space: nowrap;
   }
 }
 </style>

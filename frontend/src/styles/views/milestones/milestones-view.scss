@@ -16,6 +16,8 @@
 .sidebar-filter {
   position: sticky;
   top: clamp(1.5rem, 3vw, 2rem);
+  /* Nudge into the left gutter to hug the main sidebar */
+  margin-left: clamp(-96px, -8vw, -44px);
 
   .filter-list {
     display: flex;
@@ -209,6 +211,7 @@
 
   .sidebar-filter {
     position: static;
+    margin-left: 0;
   }
 }
 

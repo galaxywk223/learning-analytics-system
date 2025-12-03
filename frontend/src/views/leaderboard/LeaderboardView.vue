@@ -43,22 +43,24 @@
         </button>
       </section>
 
-      <el-alert
-      v-if="!leaderboard.optedIn"
-      type="info"
-      show-icon
-      class="join-alert"
-    >
-      <template #title>未加入社区排行</template>
-      <template #default>
-        <div class="join-alert__body">
-          <span>加入后即可出现在榜单中，并分享你的学习数据（时长与效率）。</span>
-          <el-button type="primary" size="small" @click="handleJoin" :loading="joinLoading">
+      <div v-if="!leaderboard.optedIn" class="join-banner">
+        <div class="join-banner__left">
+          <div class="join-icon">
+            <Icon icon="lucide:sparkles" />
+          </div>
+          <div class="join-copy">
+            <div class="join-eyebrow">未加入社区排行</div>
+            <div class="join-title">同步学习数据，解锁上榜资格</div>
+            <div class="join-sub">加入后即可展示时长与效率，与社区一起进步。</div>
+          </div>
+        </div>
+        <div class="join-banner__actions">
+          <el-button type="primary" size="large" @click="handleJoin" :loading="joinLoading">
             立即加入
           </el-button>
+          <el-button link type="primary" size="large" @click="leaderboard.initialize()">刷新数据</el-button>
         </div>
-      </template>
-    </el-alert>
+      </div>
 
       <div class="podium-card" v-if="topThree.length">
         <div class="podium-header">
@@ -477,22 +479,78 @@ async function handleLeave() {
   }
 }
 
-.join-alert {
+.join-banner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-radius: 12px;
-  border: 1px solid rgba(199, 210, 254, 0.6);
-  background: rgba(238, 242, 255, 0.4);
-  backdrop-filter: blur(10px);
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.08), rgba(56, 189, 248, 0.06));
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(12px);
 }
 
-.join-alert__body {
+.join-banner__left {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 14px;
+  min-width: 0;
+}
+
+.join-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  color: #4f46e5;
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.15);
+  font-size: 22px;
+}
+
+.join-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #0f172a;
+}
+
+.join-eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  color: #6366f1;
+  letter-spacing: 0.2px;
+}
+
+.join-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.join-sub {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.join-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.join-banner :deep(.el-button--primary) {
+  border-radius: 12px;
+  padding: 0 16px;
+}
+
+.join-banner :deep(.el-button.is-text),
+.join-banner :deep(.el-button.is-link) {
+  font-weight: 700;
+  color: #4f46e5;
 }
 
 .card {

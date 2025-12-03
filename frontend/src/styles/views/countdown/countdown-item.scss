@@ -272,6 +272,7 @@
   margin-top: 8px;
   justify-content: center;
   gap: 10px;
+  opacity: 0;
 }
 
 .expired-card .actions .el-button {
@@ -279,6 +280,10 @@
   padding: 6px;
   border-radius: 10px;
   transition: all 0.2s ease;
+}
+
+.expired-card:hover .actions {
+  opacity: 1;
 }
 
 .status-expired {
