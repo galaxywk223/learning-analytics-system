@@ -85,6 +85,79 @@
       :categories="categories"
       @saved="onSaved"
     />
+
+    <el-dialog
+      v-model="categoryManagerVisible"
+      width="560px"
+      class="category-manager-dialog"
+      :show-close="true"
+      top="6vh"
+      :destroy-on-close="true"
+    >
+      <div class="manager-card">
+        <div class="manager-header">
+          <h2>成就分类管理</h2>
+          <p>管理您的成就时刻分类标签。</p>
+        </div>
+
+        <div class="add-row" @keyup.enter="createCategory">
+          <input
+            v-model="newCategory.name"
+            type="text"
+            maxlength="100"
+            placeholder="输入新分类名称..."
+          />
+          <button
+            class="add-btn"
+            type="button"
+            :disabled="categoryCreating || !newCategory.name.trim()"
+            @click="createCategory"
+          >
+            {{ categoryCreating ? "…" : "＋" }}
+          </button>
+        </div>
+
+        <div v-if="categories.length" class="category-grid">
+          <div
+            v-for="cat in categories"
+            :key="cat.id"
+            class="category-card"
+            :class="{ editing: editingId === cat.id }"
+          >
+            <div class="card-actions" v-if="editingId !== cat.id">
+              <button type="button" class="ghost-btn" title="编辑" @click="startEdit(cat)">✏️</button>
+              <el-popconfirm title="确定删除此分类?" @confirm="deleteCategory(cat)">
+                <template #reference>
+                  <button type="button" class="ghost-btn danger" title="删除">🗑️</button>
+                </template>
+              </el-popconfirm>
+            </div>
+
+            <div v-if="editingId !== cat.id" class="card-body">
+              <div class="category-icon">🏷️</div>
+              <div class="category-meta">
+                <div class="name">{{ cat.name }}</div>
+                <div class="count">{{ getCountText(cat) }}</div>
+              </div>
+            </div>
+
+            <div v-else class="edit-inline">
+              <el-input v-model="editName" maxlength="100" />
+              <div class="edit-actions">
+                <el-button size="small" type="primary" @click="confirmEdit(cat)">保存</el-button>
+                <el-button size="small" @click="cancelEdit">取消</el-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="empty-state">
+          <div class="empty-illustration">📦</div>
+          <p class="empty-title">还没有分类，快去添加一个吧</p>
+          <p class="empty-sub">使用上方输入框即可创建你的第一个分类</p>
+        </div>
+      </div>
+    </el-dialog>
   </PageContainer>
   <div class="milestone-fab">
     <button
@@ -102,14 +175,12 @@
 
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, computed } from "vue";
-import { useRouter } from "vue-router";
 import { Icon } from "@iconify/vue";
 import PageContainer from "@/components/layout/PageContainer.vue";
 import MilestoneForm from "@/components/milestones/MilestoneForm.vue";
 import MilestoneItem from "@/components/milestones/MilestoneItem.vue";
 import { milestoneAPI } from "@/api/modules/milestone";
 
-const router = useRouter();
 // 每页显示条目数调小，便于分页浏览
 const state = reactive({ page: 1, per_page: 6, category_id: null });
 const allItems = ref([]);
@@ -124,6 +195,11 @@ const pagination = reactive({
 const formVisible = ref(false);
 const editing = ref(null);
 const loading = ref(false);
+const categoryManagerVisible = ref(false);
+const categoryCreating = ref(false);
+const editingId = ref(null);
+const editName = ref("");
+const newCategory = ref({ name: "" });
 
 async function fetchCategories() {
   try {
@@ -220,6 +296,71 @@ function openCreate() {
   editing.value = null;
   formVisible.value = true;
 }
+function openCategoryManager() {
+  categoryManagerVisible.value = true;
+}
+
+function getCountText(cat) {
+  const count =
+    cat.milestone_count ??
+    cat.count ??
+    cat.total ??
+    (cat.stats ? cat.stats.count : 0) ??
+    0;
+  return `${count} 个成就`;
+}
+
+async function createCategory() {
+  if (!newCategory.value.name.trim() || categoryCreating.value) return;
+  categoryCreating.value = true;
+  try {
+    const res = await milestoneAPI.createCategory({
+      name: newCategory.value.name.trim(),
+    });
+    categories.value.push(res.category);
+    newCategory.value.name = "";
+  } catch (e) {
+    console.error("create category failed", e);
+  } finally {
+    categoryCreating.value = false;
+  }
+}
+
+function startEdit(cat) {
+  editingId.value = cat.id;
+  editName.value = cat.name;
+}
+function cancelEdit() {
+  editingId.value = null;
+  editName.value = "";
+}
+
+async function confirmEdit(cat) {
+  if (!editName.value.trim()) return;
+  try {
+    const res = await milestoneAPI.updateCategory(cat.id, {
+      name: editName.value.trim(),
+    });
+    const idx = categories.value.findIndex((c) => c.id === cat.id);
+    if (idx !== -1) categories.value[idx] = res.category;
+    cancelEdit();
+  } catch (e) {
+    console.error("update category failed", e);
+  }
+}
+
+async function deleteCategory(cat) {
+  try {
+    await milestoneAPI.deleteCategory(cat.id);
+    categories.value = categories.value.filter((c) => c.id !== cat.id);
+    if (state.category_id === cat.id) {
+      state.category_id = null;
+      fetchMilestones();
+    }
+  } catch (e) {
+    console.error("delete category failed", e);
+  }
+}
 function editMilestone(m) {
   editing.value = m;
   formVisible.value = true;
@@ -241,9 +382,6 @@ function handleAttachmentDeleted({ milestoneId, attachmentId }) {
 }
 async function onSaved(payload) {
   await fetchMilestones();
-}
-function openCategoryManager() {
-  router.push({ path: "/milestones/categories" });
 }
 
 onMounted(async () => {

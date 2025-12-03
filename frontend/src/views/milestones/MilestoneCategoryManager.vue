@@ -3,101 +3,71 @@
     :title="{ icon: '🏆', text: '成就分类管理' }"
     subtitle="管理您的成就时刻分类标签。"
     :custom-class="'milestone-category-manager'"
-    :max-width="1400"
+    :max-width="900"
   >
-    <div class="layout-grid">
-      <div class="add-form-card card">
-        <div class="card-header">
-          <h5 class="card-title mb-0">添加新分类</h5>
+    <div class="manager-card">
+      <header class="manager-header">
+        <div>
+          <h2>成就分类管理</h2>
+          <p>管理您的成就时刻分类标签。</p>
         </div>
-        <div class="card-body">
-          <el-form :model="newCategory" @submit.prevent="createCategory">
-            <el-form-item label="分类名称" required>
-              <el-input v-model="newCategory.name" maxlength="100" />
-            </el-form-item>
-            <el-button
-              type="primary"
-              :loading="creating"
-              @click="createCategory"
-              >确认添加</el-button
-            >
-          </el-form>
+      </header>
+
+      <div class="add-row" @keyup.enter="createCategory">
+        <input
+          v-model="newCategory.name"
+          type="text"
+          maxlength="100"
+          placeholder="输入新分类名称..."
+        />
+        <button
+          class="add-btn"
+          type="button"
+          :disabled="creating || !newCategory.name.trim()"
+          @click="createCategory"
+        >
+          {{ creating ? "…" : "＋" }}
+        </button>
+      </div>
+
+      <div v-if="categories.length" class="category-grid">
+        <div
+          v-for="cat in categories"
+          :key="cat.id"
+          class="category-card"
+          :class="{ editing: editingId === cat.id }"
+        >
+          <div class="card-actions" v-if="editingId !== cat.id">
+            <button type="button" class="ghost-btn" title="编辑" @click="startEdit(cat)">✏️</button>
+            <el-popconfirm title="确定删除此分类?" @confirm="deleteCategory(cat)">
+              <template #reference>
+                <button type="button" class="ghost-btn danger" title="删除">🗑️</button>
+              </template>
+            </el-popconfirm>
+          </div>
+
+          <div v-if="editingId !== cat.id" class="card-body">
+            <div class="category-icon">🏷️</div>
+            <div class="category-meta">
+              <div class="name">{{ cat.name }}</div>
+              <div class="count">{{ getCountText(cat) }}</div>
+            </div>
+          </div>
+
+          <div v-else class="edit-inline">
+            <el-input v-model="editName" maxlength="100" />
+            <div class="edit-actions">
+              <el-button size="small" type="primary" @click="confirmEdit(cat)">保存</el-button>
+              <el-button size="small" @click="cancelEdit">取消</el-button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="list-card card">
-        <div class="card-header">
-          <h5 class="card-title mb-0">现有分类</h5>
-        </div>
-        <div class="list-group list-group-flush">
-          <template v-if="categories.length">
-            <div
-              v-for="cat in categories"
-              :key="cat.id"
-              class="list-group-item category-item-container"
-            >
-              <div v-if="editingId !== cat.id" class="category-item view-mode">
-                <span class="category-name">{{ cat.name }}</span>
-                <div class="item-actions">
-                  <el-button
-                    size="small"
-                    @click="startEdit(cat)"
-                    class="btn-outline-secondary"
-                    title="编辑"
-                  >
-                    <Icon
-                      icon="lucide:pencil"
-                      style="width: 16px; height: 16px"
-                    />
-                  </el-button>
-                  <el-popconfirm
-                    title="确定删除此分类?"
-                    @confirm="deleteCategory(cat)"
-                  >
-                    <template #reference>
-                      <el-button
-                        size="small"
-                        type="danger"
-                        class="btn-outline-danger"
-                        title="删除"
-                      >
-                        <Icon
-                          icon="lucide:trash-2"
-                          style="width: 16px; height: 16px"
-                        />
-                      </el-button>
-                    </template>
-                  </el-popconfirm>
-                </div>
-              </div>
-              <div v-else class="edit-form">
-                <el-input
-                  v-model="editName"
-                  maxlength="100"
-                  class="edit-input"
-                />
-                <div class="edit-actions">
-                  <el-button
-                    size="small"
-                    type="success"
-                    @click="confirmEdit(cat)"
-                  >
-                    <Icon
-                      icon="lucide:check"
-                      style="width: 16px; height: 16px"
-                    />
-                  </el-button>
-                  <el-button size="small" @click="cancelEdit">
-                    <Icon icon="lucide:x" style="width: 16px; height: 16px" />
-                  </el-button>
-                </div>
-              </div>
-            </div>
-          </template>
-          <div v-else class="list-group-item text-center p-4 text-muted">
-            还没有任何分类。
-          </div>
-        </div>
+      <div v-else class="empty-state">
+        <div class="empty-illustration">📦</div>
+        <p class="empty-title">还没有分类，快去添加一个吧</p>
+        <p class="empty-sub">使用上方输入框即可创建你的第一个分类</p>
       </div>
     </div>
   </PageContainer>
@@ -122,6 +92,16 @@ const creating = ref(false);
 const newCategory = ref({ name: "" });
 const editingId = ref(null);
 const editName = ref("");
+
+function getCountText(cat) {
+  const count =
+    cat.milestone_count ??
+    cat.count ??
+    cat.total ??
+    (cat.stats ? cat.stats.count : 0) ??
+    0;
+  return `${count} 个成就`;
+}
 
 async function fetchCategories() {
   loading.value = true;

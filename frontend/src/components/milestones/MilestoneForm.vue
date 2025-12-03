@@ -19,7 +19,7 @@
               maxlength="200" 
               show-word-limit 
               placeholder="给这个成就起个名字"
-              class="record-input"
+              class="record-input tall-input"
             />
           </div>
           <div class="form-group w-date">
@@ -29,7 +29,7 @@
               type="date"
               value-format="YYYY-MM-DD"
               placeholder="选择日期"
-              class="record-input"
+              class="record-input tall-input"
               :clearable="false"
               style="width: 100%"
             />
@@ -343,10 +343,29 @@ async function handleSubmit() {
   border-radius: 14px;
   box-shadow: none !important;
   padding: 0 14px;
-  height: 48px !important;
-  line-height: 48px;
+  height: 52px !important;
+  line-height: 52px;
   box-sizing: border-box;
   transition: all 0.15s ease;
+}
+
+.tall-input :deep(.el-input__wrapper),
+.tall-input :deep(.el-date-editor .el-input__wrapper) {
+  height: 52px !important;
+  line-height: 52px;
+}
+
+.tall-input :deep(.el-input__inner),
+.tall-input :deep(.el-date-editor .el-input__inner) {
+  height: 52px !important;
+  line-height: 52px;
+  display: flex;
+  align-items: center;
+}
+
+.tall-input :deep(.el-input__prefix) {
+  display: flex;
+  align-items: center;
 }
 
 .record-input :deep(.el-input__wrapper:hover),

@@ -26,7 +26,7 @@
           </div>
           <div class="picker">
             <template v-if="!isStageScope">
-              <button class="pill-picker" @click="datePicker?.focus?.()">
+              <button class="pill-picker" @click="openDatePicker">
                 <span class="emoji-icon" aria-hidden="true">📅</span>
                 <span>{{ dateValue || datePlaceholder }}</span>
                 <span class="caret">▾</span>
@@ -38,7 +38,7 @@
                 value-format="YYYY-MM-DD"
                 :placeholder="datePlaceholder"
                 :clearable="false"
-                style="display: none"
+                class="hidden-date-input"
               />
             </template>
             <template v-else>
@@ -431,6 +431,13 @@ function formatDateTime(value?: string) {
   return dayjs(value).format("YYYY-MM-DD HH:mm");
 }
 
+function openDatePicker() {
+  const picker = datePicker.value as any;
+  if (!picker) return;
+  if (typeof picker.focus === "function") picker.focus();
+  if (typeof picker.handleOpen === "function") picker.handleOpen();
+}
+
 function buildPeriodLabel(
   scope: Scope,
   start?: string | null,
@@ -571,17 +578,20 @@ onMounted(async () => {
 
   .segmented {
     display: inline-flex;
+    align-items: center;
+    min-height: 52px;
     background: #f1f3f5;
     border-radius: 999px;
-    padding: 4px;
-    gap: 4px;
+    padding: 6px;
+    gap: 6px;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
   }
 
   .seg-btn {
     border: none;
     background: transparent;
-    padding: 10px 14px;
+    height: 40px;
+    padding: 0 16px;
     border-radius: 999px;
     font-size: 13px;
     font-weight: 700;
@@ -589,6 +599,8 @@ onMounted(async () => {
     cursor: pointer;
     transition: all 0.2s ease;
     min-width: 86px;
+    display: inline-flex;
+    align-items: center;
   }
 
   .seg-btn.active {
@@ -604,21 +616,24 @@ onMounted(async () => {
   }
 
   .pill-picker {
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    background: rgba(255, 255, 255, 0.7);
+    min-width: 200px;
+    height: 52px;
+    border: 1px solid rgba(148, 163, 184, 0.38);
+    background: rgba(255, 255, 255, 0.8);
     color: #0f172a;
-    padding: 10px 14px;
-    border-radius: 12px;
+    padding: 0 16px;
+    border-radius: 16px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
     backdrop-filter: blur(8px);
+    font-weight: 700;
 
     &:hover {
       background: rgba(241, 245, 249, 0.9);
-      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
     }
 
     .caret {
@@ -629,6 +644,14 @@ onMounted(async () => {
 
   .minimal-select {
     min-width: 180px;
+  }
+
+  :deep(.hidden-date-input) {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 1px;
+    height: 1px;
   }
 
   .actions {

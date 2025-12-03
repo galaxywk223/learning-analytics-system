@@ -143,8 +143,9 @@
 
 /* 设置中心子页面标题：比主标题略小，接近格言字号 */
 .settings-subpage .page-title {
-  font-size: 1.5rem !important;
-  line-height: 1.4;
+  font-size: 28px !important;
+  line-height: 1.35;
+  font-weight: 800;
 }
 
 .settings-subpage .page-subtitle {
