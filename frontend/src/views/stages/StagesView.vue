@@ -1,169 +1,139 @@
 <template>
-  <div class="ios-view">
-    <PageContainer
-      :title="{ icon: '🚩', text: '阶段管理' }"
-      subtitle="创建、切换、编辑和删除您的学习阶段。"
-    >
-      <div class="ios-content-wrapper">
-        <!-- Create New Stage Card -->
-        <div class="ios-card create-card">
-          <div class="card-header">
-            <h3 class="card-title">创建新阶段</h3>
-          </div>
-          <div class="card-body">
-            <el-form
-              :model="createForm"
-              ref="createFormRef"
-              class="ios-form"
-              @submit.prevent="onCreateStage"
-            >
-              <div class="form-group">
-                <label class="form-label">阶段名称</label>
-                <el-input
-                  v-model="createForm.name"
-                  placeholder="例如：大三上学期"
-                  maxlength="100"
-                  class="ios-input"
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label">起始日期</label>
-                <div class="picker-wrapper">
-                  <button class="ios-picker-btn" @click="openCreateDatePicker" type="button">
-                    <span class="icon">📅</span>
-                    <span class="value">{{ createForm.start_date || '选择日期' }}</span>
-                    <el-icon class="arrow"><ArrowRight /></el-icon>
-                  </button>
-                  <el-date-picker
-                    ref="createDatePickerRef"
-                    v-model="createForm.start_date"
-                    type="date"
-                    value-format="YYYY-MM-DD"
-                    class="hidden-date-input"
-                  />
-                </div>
-              </div>
-              <div class="form-actions">
-                <button 
-                  class="ios-btn primary full-width" 
-                  :disabled="creating" 
-                  @click.prevent="onCreateStage"
-                >
-                  <span v-if="creating">创建中...</span>
-                  <span v-else>创建阶段</span>
-                </button>
-              </div>
-            </el-form>
-          </div>
+  <PageContainer
+    :title="{ icon: '🚩', text: '阶段管理' }"
+    subtitle="梳理学习阶段，设置当前阶段并管理时间跨度"
+    :custom-class="'settings-subpage'"
+  >
+    <div class="stage-container">
+      <!-- Header -->
+      <div class="stage-header">
+        <div class="header-left">
+          <h4>阶段列表</h4>
         </div>
+        <button class="btn-create-flat" @click="openCreate">
+          <span class="icon">+</span> 新建阶段
+        </button>
+      </div>
 
-        <!-- Existing Stages List -->
-        <div class="ios-card list-card">
-          <div class="card-header">
-            <h3 class="card-title">已有阶段</h3>
+      <!-- Stage List (Flat Table Style) -->
+      <div class="stage-list-flat" v-if="stages.length">
+        <div class="list-header">
+          <span class="col-name">名称</span>
+          <span class="col-date">时间范围</span>
+          <span class="col-actions">操作</span>
+        </div>
+        
+        <div
+          v-for="stage in stages"
+          :key="stage.id"
+          class="stage-row"
+          :class="{ current: stage.id === activeStageId }"
+        >
+          <!-- Name Column -->
+          <div class="col-name">
+            <span class="stage-name">{{ stage.name }}</span>
+            <span v-if="stage.id === activeStageId" class="badge-current">当前</span>
           </div>
-          
-          <div v-if="loading" class="loading-wrapper">
-            <el-skeleton :rows="3" animated />
+
+          <!-- Date Column -->
+          <div class="col-date">
+            <span class="date-text">{{ formatDate(stage.start_date) }}</span>
+            <span class="separator">→</span>
+            <span class="date-text" :class="{ 'text-present': !stage.end_date }">
+              {{ stage.end_date ? formatDate(stage.end_date) : (stage.id === activeStageId ? '至今' : '未结束') }}
+            </span>
           </div>
-          <div v-else class="card-body no-padding">
-            <div v-if="stages.length > 0" class="ios-list">
-              <div 
-                v-for="stage in stages" 
-                :key="stage.id" 
-                class="ios-list-item"
-                :class="{ 'is-active': stage.id === activeStageId }"
+
+          <!-- Actions Column -->
+          <div class="col-actions">
+            <div class="action-group">
+              <button
+                v-if="stage.id !== activeStageId"
+                class="action-btn"
+                title="设为当前"
+                @click="applyStage(stage)"
+                :disabled="loading"
               >
-                <div class="item-content">
-                  <div class="item-main">
-                    <h4 class="item-title">{{ stage.name }}</h4>
-                    <span class="item-subtitle">起始于 {{ formatDate(stage.start_date) }}</span>
-                  </div>
-                  <div class="item-status" v-if="stage.id === activeStageId">
-                    <span class="status-badge">当前阶段</span>
-                  </div>
-                </div>
-                
-                <div class="item-actions">
-                  <el-tooltip content="应用此阶段" placement="top" :show-after="500">
-                    <button 
-                      class="action-btn apply"
-                      :disabled="stage.id === activeStageId"
-                      @click="applyStage(stage)"
-                    >
-                      <Icon icon="lucide:flag" />
-                    </button>
-                  </el-tooltip>
-                  
-                  <el-tooltip content="编辑" placement="top" :show-after="500">
-                    <button class="action-btn edit" @click="openEdit(stage)">
-                      <Icon icon="lucide:pencil" />
-                    </button>
-                  </el-tooltip>
-                  
-                  <el-tooltip content="删除" placement="top" :show-after="500">
-                    <button class="action-btn delete" @click="confirmDelete(stage)">
-                      <Icon icon="lucide:trash-2" />
-                    </button>
-                  </el-tooltip>
-                </div>
-              </div>
-            </div>
-            <div v-else class="empty-state">
-              <span class="emoji">📭</span>
-              <p>暂无阶段数据</p>
+                🚩
+              </button>
+              <button
+                class="action-btn"
+                title="编辑"
+                @click="openEdit(stage)"
+                :disabled="loading"
+              >
+                ✏️
+              </button>
+              <button
+                class="action-btn danger"
+                title="删除"
+                @click="confirmDelete(stage)"
+                :disabled="loading"
+              >
+                🗑️
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Edit Dialog -->
-      <el-dialog
-        v-model="editDialog.visible"
-        title="编辑阶段"
-        width="90%"
-        class="ios-dialog"
-        destroy-on-close
-        align-center
-      >
-        <el-form :model="editDialog.form" ref="editFormRef" class="ios-form">
-          <div class="form-group">
-            <label class="form-label">阶段名称</label>
-            <el-input 
-              v-model="editDialog.form.name" 
-              maxlength="100" 
-              class="ios-input"
+      <div class="empty-state" v-else>
+        <div class="empty-icon">📭</div>
+        <p>还没有创建任何阶段</p>
+        <button class="btn-create-flat" @click="openCreate">立即创建</button>
+      </div>
+    </div>
+
+    <!-- Create/Edit Dialog -->
+    <el-dialog
+      v-model="dialogVisible"
+      :title="isEditing ? '编辑阶段' : '新建阶段'"
+      width="420px"
+      class="ios-dialog"
+      destroy-on-close
+      align-center
+    >
+      <form @submit.prevent="handleSubmit" class="dialog-form">
+        <div class="ios-input-group">
+          <div class="input-row">
+            <label>名称</label>
+            <input
+              v-model="form.name"
+              type="text"
+              placeholder="例如：大三上学期"
+              required
+              :disabled="loading"
             />
           </div>
-          <div class="form-group">
-            <label class="form-label">起始日期</label>
-            <div class="picker-wrapper">
-              <button class="ios-picker-btn" @click="openEditDatePicker" type="button">
-                <span class="icon">📅</span>
-                <span class="value">{{ editDialog.form.start_date || '选择日期' }}</span>
-                <el-icon class="arrow"><ArrowRight /></el-icon>
-              </button>
-              <el-date-picker
-                ref="editDatePickerRef"
-                v-model="editDialog.form.start_date"
-                type="date"
-                value-format="YYYY-MM-DD"
-                class="hidden-date-input"
-              />
-            </div>
+          <div class="input-row">
+            <label>开始</label>
+            <input
+              v-model="form.start_date"
+              type="date"
+              required
+              :disabled="loading"
+            />
           </div>
-        </el-form>
-        <template #footer>
-          <div class="dialog-footer">
-            <button class="ios-btn ghost" @click="editDialog.visible = false">取消</button>
-            <button class="ios-btn primary" :disabled="updating" @click="onUpdateStage">
-              {{ updating ? '保存中...' : '保存更改' }}
-            </button>
+          <div class="input-row">
+            <label>结束</label>
+            <input
+              v-model="form.end_date"
+              type="date"
+              :disabled="loading"
+              placeholder="可选"
+            />
           </div>
-        </template>
-      </el-dialog>
-    </PageContainer>
-  </div>
+        </div>
+        
+        <div class="dialog-footer">
+          <button type="button" class="btn ghost" @click="dialogVisible = false">取消</button>
+          <button type="submit" class="btn primary" :disabled="loading">
+            {{ loading ? "保存" : "保存" }}
+          </button>
+        </div>
+      </form>
+    </el-dialog>
+  </PageContainer>
 </template>
 
 <script setup>
@@ -171,8 +141,6 @@ import { ref, computed, onMounted } from "vue";
 import { useStageStore } from "@/stores/modules/stage";
 import { useSettingsStore } from "@/stores/modules/settings";
 import { ElMessageBox, ElMessage } from "element-plus";
-import { Icon } from "@iconify/vue";
-import { ArrowRight } from "@element-plus/icons-vue";
 import PageContainer from "@/components/layout/PageContainer.vue";
 
 const stageStore = useStageStore();
@@ -184,20 +152,14 @@ const activeStageId = computed(
   () => settingsStore.activeStageId || stageStore.activeStage?.id
 );
 
-// Create Form
-const createForm = ref({ name: "", start_date: "" });
-const createFormRef = ref();
-const createDatePickerRef = ref();
-const creating = ref(false);
-
-// Edit Dialog
-const editDialog = ref({
-  visible: false,
-  form: { id: null, name: "", start_date: "" },
+const dialogVisible = ref(false);
+const isEditing = ref(false);
+const form = ref({
+  id: null,
+  name: "",
+  start_date: "",
+  end_date: "",
 });
-const editFormRef = ref();
-const editDatePickerRef = ref();
-const updating = ref(false);
 
 onMounted(async () => {
   await stageStore.fetchStages();
@@ -211,34 +173,62 @@ onMounted(async () => {
 
 function formatDate(d) {
   if (!d) return "";
-  return String(d).slice(0, 10);
+  const date = new Date(d);
+  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
 }
 
-function openCreateDatePicker() {
-  createDatePickerRef.value?.focus();
-  createDatePickerRef.value?.handleOpen();
+function openCreate() {
+  isEditing.value = false;
+  form.value = {
+    id: null,
+    name: "",
+    start_date: "",
+    end_date: "",
+  };
+  dialogVisible.value = true;
 }
 
-function openEditDatePicker() {
-  editDatePickerRef.value?.focus();
-  editDatePickerRef.value?.handleOpen();
+function openEdit(stage) {
+  isEditing.value = true;
+  form.value = { 
+    id: stage.id,
+    name: stage.name,
+    start_date: String(stage.start_date).slice(0, 10),
+    end_date: stage.end_date ? String(stage.end_date).slice(0, 10) : "",
+  };
+  dialogVisible.value = true;
 }
 
-async function onCreateStage() {
-  if (!createForm.value.name || !createForm.value.start_date) {
-    ElMessage.error("阶段名称和起始日期均不能为空。");
+async function handleSubmit() {
+  if (!form.value.name || !form.value.start_date) {
+    ElMessage.warning("请填写必要信息");
     return;
   }
-  creating.value = true;
-  const ok = await stageStore.createStage({
-    name: createForm.value.name.trim(),
-    start_date: createForm.value.start_date,
-  });
-  creating.value = false;
-  if (ok) {
-    createForm.value.name = "";
-    createForm.value.start_date = "";
-    ElMessage.success("创建成功");
+
+  try {
+    let ok = false;
+    if (isEditing.value) {
+      ok = await stageStore.updateStage(form.value.id, {
+        name: form.value.name.trim(),
+        start_date: form.value.start_date,
+        end_date: form.value.end_date,
+      });
+      if (ok) ElMessage.success("更新成功");
+    } else {
+      ok = await stageStore.createStage({
+        name: form.value.name.trim(),
+        start_date: form.value.start_date,
+        end_date: form.value.end_date,
+      });
+      if (ok) ElMessage.success("创建成功");
+    }
+    
+    if (ok) {
+      dialogVisible.value = false;
+    }
+  } catch (e) {
+    console.error("Operation failed", e);
+    ElMessage.error(isEditing.value ? "更新失败" : "创建失败");
   }
 }
 
@@ -249,40 +239,14 @@ function applyStage(stage) {
   ElMessage.success(`已切换到阶段："${stage.name}"`);
 }
 
-function openEdit(stage) {
-  editDialog.value.form.id = stage.id;
-  editDialog.value.form.name = stage.name;
-  editDialog.value.form.start_date = formatDate(stage.start_date);
-  editDialog.value.visible = true;
-}
-
-async function onUpdateStage() {
-  const { id, name, start_date } = editDialog.value.form;
-  if (!name) {
-    ElMessage.error("阶段名称不能为空。");
-    return;
-  }
-  updating.value = true;
-  const ok = await stageStore.updateStage(id, {
-    name: name.trim(),
-    start_date,
-  });
-  updating.value = false;
-  if (ok) {
-    editDialog.value.visible = false;
-    ElMessage.success("更新成功");
-  }
-}
-
 function confirmDelete(stage) {
   ElMessageBox.confirm(
-    `警告：删除阶段将永久删除其下所有学习记录！确定要删除“${stage.name}”吗？`,
+    `确定要删除“${stage.name}”吗？这将删除其下所有记录。`,
     "删除确认",
     { 
       type: "warning", 
       confirmButtonText: "删除", 
       cancelButtonText: "取消",
-      confirmButtonClass: "el-button--danger"
     }
   )
     .then(async () => {
@@ -304,333 +268,256 @@ function confirmDelete(stage) {
 }
 </script>
 
-<style scoped lang="scss">
-.ios-view {
-  min-height: 100%;
-  background-color: transparent; /* Allow global background to show */
-}
-
-.ios-content-wrapper {
-  max-width: 800px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  padding-bottom: 40px;
-}
-
-/* --- iOS Card Generic --- */
-.ios-card {
+<style scoped>
+.stage-container {
+  width: 100%; /* Full width */
   background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border-radius: 16px;
+  border: 1px solid #e5e7eb; /* Flat border */
   overflow: hidden;
-  
-  .card-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid #f2f2f7;
-    
-    .card-title {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 700;
-      color: #1c1c1e;
-    }
-  }
-  
-  .card-body {
-    padding: 24px;
-    
-    &.no-padding {
-      padding: 0;
-    }
-  }
 }
 
-/* --- Form Styles --- */
-.ios-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  
-  .form-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #8e8e93;
-    margin-left: 4px;
-  }
-}
-
-.ios-input {
-  :deep(.el-input__wrapper) {
-    background-color: #f2f2f7;
-    border-radius: 12px;
-    box-shadow: none !important;
-    padding: 8px 16px;
-    height: 44px;
-  }
-  
-  :deep(.el-input__inner) {
-    font-weight: 500;
-    color: #1c1c1e;
-  }
-}
-
-.picker-wrapper {
-  position: relative;
-}
-
-.ios-picker-btn {
-  background: #f2f2f7;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: background 0.2s;
-  width: 100%;
-  height: 44px;
-
-  &:hover {
-    background: #e5e5ea;
-  }
-
-  .icon {
-    font-size: 16px;
-  }
-
-  .value {
-    font-size: 15px;
-    font-weight: 500;
-    color: #007aff;
-    flex: 1;
-    text-align: left;
-  }
-
-  .arrow {
-    font-size: 14px;
-    color: #c7c7cc;
-  }
-}
-
-:deep(.hidden-date-input) {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  pointer-events: none;
-  
-  .el-input__wrapper {
-    padding: 0;
-  }
-}
-
-/* --- Buttons --- */
-.ios-btn {
-  border: none;
-  padding: 12px 24px;
-  border-radius: 14px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.1s, opacity 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  &.primary {
-    background: #007aff;
-    color: white;
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-
-    &:hover:not(:disabled) {
-      background: #006ce6;
-    }
-  }
-  
-  &.ghost {
-    background: #f2f2f7;
-    color: #8e8e93;
-    
-    &:hover:not(:disabled) {
-      background: #e5e5ea;
-      color: #1c1c1e;
-    }
-  }
-
-  &.full-width {
-    width: 100%;
-  }
-}
-
-/* --- List Styles --- */
-.ios-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.ios-list-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.stage-header {
   padding: 16px 24px;
-  border-bottom: 1px solid #f2f2f7;
-  transition: background 0.2s;
-  
-  &:last-child {
-    border-bottom: none;
-  }
-  
-  &:hover {
-    background-color: #f9f9f9;
-  }
-  
-  &.is-active {
-    background-color: #f0f7ff;
-    
-    .item-title {
-      color: #007aff;
-    }
-  }
+  background: #f9fafb; /* Very light gray */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.item-content {
+.header-left h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.btn-create-flat {
   display: flex;
   align-items: center;
-  gap: 16px;
-  flex: 1;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.item-main {
+.btn-create-flat:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+/* Flat List Styles */
+.stage-list-flat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  
-  .item-title {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: #1c1c1e;
-  }
-  
-  .item-subtitle {
-    font-size: 13px;
-    color: #8e8e93;
-  }
 }
 
-.status-badge {
-  padding: 4px 10px;
-  background: #34c759;
-  color: white;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.item-actions {
+.list-header {
   display: flex;
+  padding: 12px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stage-row {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.1s ease;
+}
+
+.stage-row:last-child {
+  border-bottom: none;
+}
+
+.stage-row:hover {
+  background: #f9fafb;
+}
+
+.stage-row.current {
+  background: #f0fdf4; /* Very subtle green */
+}
+
+/* Columns */
+.col-name {
+  flex: 2;
+  display: flex;
+  align-items: center;
   gap: 8px;
-  margin-left: 16px;
+}
+
+.col-date {
+  flex: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.col-actions {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Elements */
+.stage-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.badge-current {
+  font-size: 11px;
+  font-weight: 600;
+  color: #059669;
+  background: #d1fae5;
+  padding: 2px 8px;
+  border-radius: 4px; /* Less rounded */
+}
+
+.separator {
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.date-text {
+  font-variant-numeric: tabular-nums;
+}
+
+.text-present {
+  color: #059669;
+  font-weight: 500;
+}
+
+.action-group {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.stage-row:hover .action-group {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .action-group {
+    opacity: 1;
+  }
+  
+  .list-header {
+    display: none; /* Hide header on mobile */
+  }
+  
+  .stage-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .col-name, .col-date, .col-actions {
+    width: 100%;
+    flex: none;
+  }
+  
+  .col-actions {
+    justify-content: flex-start;
+    margin-top: 4px;
+  }
 }
 
 .action-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  display: grid;
-  place-items: center;
-  font-size: 16px;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #6b7280;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
-  
-  &.apply {
-    background: #e8f8f0;
-    color: #34c759;
-    &:hover:not(:disabled) { background: #34c759; color: white; }
-    &:disabled { opacity: 0.3; cursor: default; }
-  }
-  
-  &.edit {
-    background: #f2f2f7;
-    color: #007aff;
-    &:hover { background: #007aff; color: white; }
-  }
-  
-  &.delete {
-    background: #fff2f2;
-    color: #ff3b30;
-    &:hover { background: #ff3b30; color: white; }
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.action-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.action-btn.danger:hover {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
 }
 
 .empty-state {
-  padding: 48px;
   text-align: center;
-  color: #c7c7cc;
+  padding: 60px 0;
+  color: #9ca3af;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  
-  .emoji {
-    font-size: 48px;
-    opacity: 0.5;
-  }
-  
-  p {
-    font-size: 15px;
-    font-weight: 500;
-  }
+  gap: 16px;
 }
 
-/* --- Dialog --- */
-.ios-dialog {
-  :deep(.el-dialog) {
-    border-radius: 20px;
-    overflow: hidden;
-  }
-  
-  :deep(.el-dialog__header) {
-    margin: 0;
-    padding: 20px 24px;
-    border-bottom: 1px solid #f2f2f7;
-    
-    .el-dialog__title {
-      font-weight: 700;
-      font-size: 18px;
-    }
-  }
-  
-  :deep(.el-dialog__body) {
-    padding: 24px;
-  }
-  
-  :deep(.el-dialog__footer) {
-    padding: 20px 24px;
-    border-top: 1px solid #f2f2f7;
-  }
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+/* Dialog Styles */
+.ios-input-group {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 0 16px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.input-row:last-child {
+  border-bottom: none;
+}
+
+.input-row label {
+  width: 60px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.input-row input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #111827;
+  padding: 0;
 }
 
 .dialog-footer {
@@ -639,19 +526,32 @@ function confirmDelete(stage) {
   gap: 12px;
 }
 
-@media (max-width: 640px) {
-  .ios-list-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-  
-  .item-actions {
-    width: 100%;
-    justify-content: flex-end;
-    margin-left: 0;
-    padding-top: 12px;
-    border-top: 1px dashed #f2f2f7;
-  }
+.btn {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn.primary {
+  background: #111827;
+  color: white;
+}
+
+.btn.primary:hover {
+  background: #374151;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: #6b7280;
+}
+
+.btn.ghost:hover {
+  background: #f3f4f6;
+  color: #111827;
 }
 </style>

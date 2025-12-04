@@ -4,162 +4,145 @@
     subtitle="管理个人信息与账号安全"
     :custom-class="'settings-subpage'"
   >
-    <div class="account-layout">
-      <aside class="profile-card">
-        <div class="profile-hero"></div>
-        <div class="avatar-shell">
+    <div class="account-container">
+      <!-- Header: Avatar & Basic Info -->
+      <div class="account-header">
+        <div class="avatar-wrapper">
           <div class="avatar-preview">
             {{ authStore.user?.username?.charAt(0)?.toUpperCase() || "U" }}
           </div>
-          <div class="avatar-meta">
-            <h3>{{ authStore.user?.username || "用户" }}</h3>
-            <p>{{ authStore.user?.email || "email@example.com" }}</p>
-          </div>
         </div>
-      </aside>
+        <div class="header-info">
+          <h3>{{ authStore.user?.username || "用户" }}</h3>
+          <p>{{ authStore.user?.email || "email@example.com" }}</p>
+        </div>
+      </div>
 
-      <section class="settings-panel">
-        <div class="section">
-          <div class="section-header">
-            <h4>基本资料</h4>
-          </div>
-          <form @submit.prevent="handleProfileSubmit" class="compact-form">
-            <div class="form-row">
-              <label for="username">用户名</label>
-              <div class="input-col">
+      <!-- Body: Two Columns (Basic Info & Security) -->
+      <div class="account-body">
+        <!-- Column 1: Profile Edit -->
+        <div class="form-section">
+          <h4>基本资料</h4>
+          <form @submit.prevent="handleProfileSubmit">
+            <div class="ios-input-group">
+              <div class="input-row">
+                <label for="username">用户名</label>
                 <input
                   id="username"
                   type="text"
                   v-model="profileForm.username"
-                  placeholder="输入您的用户名"
+                  placeholder="您的昵称"
                   :disabled="profileLoading"
                 />
-                <p class="hint">您的公开显示名称</p>
               </div>
-            </div>
-            <div class="form-row">
-              <label for="email">邮箱地址</label>
-              <div class="input-col">
+              <div class="input-row">
+                <label for="email">邮箱</label>
                 <input
                   id="email"
                   type="email"
                   :value="authStore.user?.email || ''"
                   readonly
                   disabled
+                  class="text-muted"
                 />
-                <p class="hint">邮箱用于登录，暂不支持修改</p>
               </div>
             </div>
-            <div class="form-actions">
+            <div class="form-actions" v-if="isProfileChanged">
               <button
-                type="submit"
-                class="btn primary"
-                :disabled="profileLoading || !isProfileChanged"
-              >
-                {{ profileLoading ? "保存中..." : "保存更改" }}
-              </button>
-              <button
-                v-if="isProfileChanged"
                 type="button"
-                class="btn ghost"
+                class="btn ghost small"
                 @click="resetProfileForm"
                 :disabled="profileLoading"
               >
                 取消
               </button>
+              <button
+                type="submit"
+                class="btn primary small"
+                :disabled="profileLoading"
+              >
+                {{ profileLoading ? "保存..." : "保存更改" }}
+              </button>
             </div>
           </form>
         </div>
 
-        <div class="section">
-          <div class="section-header">
-            <h4>安全设置</h4>
-          </div>
-          <form @submit.prevent="handlePasswordSubmit" class="compact-form">
-            <div class="form-row">
-              <label for="current-password">当前密码</label>
-              <div class="input-col">
+        <!-- Column 2: Security -->
+        <div class="form-section">
+          <h4>安全设置</h4>
+          <form @submit.prevent="handlePasswordSubmit">
+            <div class="ios-input-group">
+              <div class="input-row">
+                <label for="current-password">当前密码</label>
                 <input
                   id="current-password"
                   type="password"
                   v-model="passwordForm.currentPassword"
-                  placeholder="输入您当前的密码"
+                  placeholder="验证身份"
                   autocomplete="current-password"
                   :disabled="passwordLoading"
                 />
               </div>
-            </div>
-            <div class="form-row">
-              <label for="new-password">新密码</label>
-              <div class="input-col">
+              <div class="input-row">
+                <label for="new-password">新密码</label>
                 <input
                   id="new-password"
                   type="password"
                   v-model="passwordForm.newPassword"
-                  placeholder="输入您的新密码"
+                  placeholder="设置新密码"
                   autocomplete="new-password"
                   :disabled="passwordLoading"
                   @input="validatePassword"
                 />
-                <p class="hint" :class="{ error: passwordError }">
-                  {{
-                    passwordError ||
-                    "至少 8 位，建议包含字母、数字和特殊字符"
-                  }}
-                </p>
               </div>
-            </div>
-            <div class="form-row">
-              <label for="confirm-password">确认新密码</label>
-              <div class="input-col">
+              <div class="input-row">
+                <label for="confirm-password">确认密码</label>
                 <input
                   id="confirm-password"
                   type="password"
                   v-model="passwordForm.confirmPassword"
-                  placeholder="再次输入您的新密码"
+                  placeholder="再次输入"
                   autocomplete="new-password"
                   :disabled="passwordLoading"
                   @input="validateConfirmPassword"
                 />
-                <p class="hint error" v-if="confirmPasswordError">
-                  {{ confirmPasswordError }}
-                </p>
               </div>
             </div>
-            <div class="form-actions">
+            
+            <div class="validation-feedback" v-if="passwordError || confirmPasswordError">
+               <p class="error-text" v-if="passwordError">{{ passwordError }}</p>
+               <p class="error-text" v-if="confirmPasswordError">{{ confirmPasswordError }}</p>
+            </div>
+
+            <div class="form-actions" v-if="isPasswordFormFilled">
               <button
-                type="submit"
-                class="btn primary"
-                :disabled="passwordLoading || !isPasswordFormValid"
-              >
-                {{ passwordLoading ? "修改中..." : "修改密码" }}
-              </button>
-              <button
-                v-if="isPasswordFormFilled"
                 type="button"
-                class="btn ghost"
+                class="btn ghost small"
                 @click="resetPasswordForm"
                 :disabled="passwordLoading"
               >
                 取消
               </button>
+              <button
+                type="submit"
+                class="btn primary small"
+                :disabled="passwordLoading || !isPasswordFormValid"
+              >
+                {{ passwordLoading ? "修改..." : "修改密码" }}
+              </button>
             </div>
           </form>
         </div>
+      </div>
 
-        <div class="danger-row">
-          <div>
-            <h5>账号控制</h5>
-            <p>退出登录或注销账号，谨慎操作。</p>
-          </div>
-          <div class="danger-actions">
-            <button type="button" class="btn ghost danger" @click="handleLogout">
-              退出登录
-            </button>
-            <button type="button" class="btn danger">注销账号</button>
-          </div>
+      <!-- Footer: Danger Zone -->
+      <div class="account-footer">
+        <div class="danger-zone">
+          <button type="button" class="btn text-danger" @click="handleLogout">
+            退出登录
+          </button>
         </div>
-      </section>
+      </div>
     </div>
   </PageContainer>
 </template>

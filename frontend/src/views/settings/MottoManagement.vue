@@ -2,73 +2,94 @@
   <PageContainer
     :title="{ icon: '💬', text: '格言管理' }"
     subtitle="写下一句激励你的话语，启发每一天。"
-      :custom-class="'settings-subpage'"
+    :custom-class="'settings-subpage'"
   >
-    <div class="motto-shell">
-      <div class="motto-card">
-        <div class="add-row" @keyup.enter="submitAdd">
+    <div class="motto-container-flat">
+      <!-- Header / Add Area -->
+      <div class="motto-header">
+        <div class="header-left">
+          <h4>格言列表</h4>
+        </div>
+        <div class="add-wrapper">
           <input
             v-model="form.content"
             type="text"
             maxlength="500"
             placeholder="在此输入新的格言..."
+            @keyup.enter="submitAdd"
           />
           <button
-            class="pill-btn primary"
+            class="btn-add"
             type="button"
             :disabled="adding || !form.content.trim()"
             @click="submitAdd"
           >
-            {{ adding ? "添加中..." : "添加" }}
+            {{ adding ? "..." : "添加" }}
           </button>
         </div>
+      </div>
 
-        <div v-if="itemsSorted.length" class="motto-list">
-          <div
-            v-for="m in itemsSorted"
-            :key="m.id"
-            class="motto-item"
-          >
-            <div class="quote-mark">❝</div>
-            <div class="motto-text">
-              <p>{{ m.content }}</p>
-            </div>
-            <div class="motto-actions">
-              <button class="ghost-btn" title="编辑" @click="openEdit(m)">✏️</button>
-              <button class="ghost-btn danger" title="删除" @click="confirmDelete(m.id)">🗑️</button>
+      <!-- Motto List -->
+      <div v-if="itemsSorted.length" class="motto-list">
+        <div class="list-header">
+          <span class="col-content">内容</span>
+          <span class="col-actions">操作</span>
+        </div>
+
+        <div
+          v-for="m in itemsSorted"
+          :key="m.id"
+          class="motto-row"
+        >
+          <div class="col-content">
+            <span class="quote-mark">❝</span>
+            <span class="motto-text">{{ m.content }}</span>
+          </div>
+          <div class="col-actions">
+            <div class="action-group">
+              <button class="action-btn" title="编辑" @click="openEdit(m)">✏️</button>
+              <button class="action-btn danger" title="删除" @click="confirmDelete(m.id)">🗑️</button>
             </div>
           </div>
         </div>
-        <div v-else class="empty-state">
-          <div class="empty-illustration">🪶</div>
-          <p class="empty-title">记录第一句人生格言</p>
-          <p class="empty-sub">在上方输入框里写下你的灵感</p>
-        </div>
+      </div>
+
+      <div v-else class="empty-state">
+        <div class="empty-icon">🪶</div>
+        <p>记录第一句人生格言</p>
+        <p class="empty-sub">在上方输入框里写下你的灵感</p>
       </div>
     </div>
 
+    <!-- Edit Dialog -->
     <el-dialog
       v-model="editVisible"
       title="编辑格言"
-      width="520px"
+      width="480px"
+      class="ios-dialog"
+      align-center
       @opened="refreshIcons"
     >
-      <el-form :model="editForm">
-        <el-form-item prop="content">
-          <el-input
-            v-model="editForm.content"
-            type="textarea"
-            :autosize="{ minRows: 3, maxRows: 6 }"
-            placeholder="在此输入新的格言..."
-            maxlength="500"
-            show-word-limit
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" :loading="updating" @click="submitEdit">保存</el-button>
-      </template>
+      <form @submit.prevent="submitEdit" class="dialog-form">
+        <div class="ios-input-group">
+          <div class="input-row">
+            <label>内容</label>
+            <textarea
+              v-model="editForm.content"
+              rows="3"
+              placeholder="在此输入新的格言..."
+              maxlength="500"
+            ></textarea>
+          </div>
+        </div>
+        
+        <div class="dialog-footer">
+          <button type="button" class="btn ghost" @click="editVisible = false">取消</button>
+          <button type="submit" class="btn primary" :disabled="updating">
+            {{ updating ? "保存中..." : "保存" }}
+          </button>
+        </div>
+      </form>
     </el-dialog>
   </PageContainer>
 </template>
@@ -156,188 +177,286 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.motto-shell {
-  display: flex;
-  justify-content: center;
-}
-
-.motto-card {
+.motto-container-flat {
   width: 100%;
-  max-width: 820px;
-  background: rgba(255, 255, 255, 0.95);
+  background: #ffffff;
+  border-radius: 16px;
   border: 1px solid #e5e7eb;
-  border-radius: 24px;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
-  padding: 18px 18px 20px;
+  overflow: hidden;
+}
+
+.motto-header {
+  padding: 16px 24px;
+  background: #f9fafb;
   display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.add-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
+  justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  gap: 24px;
 }
 
-.add-row input {
-  height: 44px;
-  border: none;
-  border-radius: 12px;
-  background: #f3f4f6;
-  padding: 0 14px;
+.header-left h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.add-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 500px;
+}
+
+.add-wrapper input {
+  flex: 1;
+  height: 36px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 12px;
   font-size: 14px;
   outline: none;
   transition: all 0.15s ease;
 }
 
-.add-row input:focus {
-  background: #ffffff;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.12);
+.add-wrapper input:focus {
+  border-color: #111827;
+  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.1);
 }
 
+.btn-add {
+  height: 36px;
+  padding: 0 16px;
+  background: #111827;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-add:hover {
+  background: #374151;
+}
+
+.btn-add:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* List Styles */
 .motto-list {
   display: flex;
   flex-direction: column;
 }
 
-.motto-item {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 12px;
-  align-items: center;
-  padding: 16px 4px;
-  border-bottom: 1px solid #eef1f5;
-  transition: background 0.12s ease;
+.list-header {
+  display: flex;
+  padding: 12px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.motto-item:last-of-type {
+.motto-row {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.1s ease;
+}
+
+.motto-row:last-child {
   border-bottom: none;
 }
 
-.motto-item:hover {
+.motto-row:hover {
   background: #f9fafb;
 }
 
-.quote-mark {
-  font-size: 28px;
-  color: #cbd5e1;
-  padding-left: 6px;
-}
-
-.motto-text p {
-  margin: 0;
-  font-family: "Georgia", "Times New Roman", serif;
-  font-size: 16px;
-  color: #111827;
-  line-height: 1.6;
-}
-
-.motto-actions {
+.col-content {
+  flex: 1;
   display: flex;
+  align-items: flex-start;
   gap: 8px;
-  opacity: 0;
-  transition: opacity 0.12s ease;
+  padding-right: 24px;
 }
 
-.motto-item:hover .motto-actions {
+.col-actions {
+  width: 80px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.quote-mark {
+  font-size: 20px;
+  color: #cbd5e1;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.motto-text {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 15px;
+  color: #111827;
+  line-height: 1.5;
+}
+
+.action-group {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.motto-row:hover .action-group {
   opacity: 1;
 }
 
-.ghost-btn {
-  border: none;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 10px;
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
+.action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  font-size: 14px;
-  color: #4b5563;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
-.ghost-btn:hover {
-  background: rgba(79, 70, 229, 0.12);
+.action-btn:hover {
+  background: #f3f4f6;
   color: #111827;
+  border-color: #d1d5db;
 }
 
-.ghost-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.12);
+.action-btn.danger:hover {
+  background: #fef2f2;
   color: #dc2626;
+  border-color: #fecaca;
 }
 
-.ghost-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.pill-btn {
-  border: none;
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-weight: 800;
-  font-size: 14px;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.15s ease;
-}
-
-.pill-btn.primary {
-  background: linear-gradient(135deg, #6d7cff, #4f46e5);
-  color: #ffffff;
-  box-shadow: 0 12px 26px rgba(79, 70, 229, 0.28);
-}
-
-.pill-btn.primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  box-shadow: none;
+@media (max-width: 768px) {
+  .action-group {
+    opacity: 1;
+  }
+  
+  .list-header {
+    display: none;
+  }
+  
+  .motto-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .add-wrapper {
+    max-width: none;
+  }
 }
 
 .empty-state {
   text-align: center;
-  color: #6b7280;
-  padding: 24px 0 8px;
+  padding: 60px 0;
+  color: #9ca3af;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
 }
 
-.empty-illustration {
-  font-size: 36px;
-}
-
-.empty-title {
-  margin: 0;
-  font-weight: 800;
-  color: #0f172a;
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
 }
 
 .empty-sub {
-  margin: 0;
   font-size: 13px;
-  color: #9ca3af;
+  color: #d1d5db;
 }
 
-@media (max-width: 768px) {
-  .add-row {
-    grid-template-columns: 1fr;
-  }
+/* Dialog Styles */
+.ios-input-group {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 0 16px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+}
 
-  .motto-item {
-    grid-template-columns: auto 1fr;
-    grid-template-areas:
-      "quote text"
-      "actions actions";
-    row-gap: 6px;
-  }
+.input-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 14px 0;
+}
 
-  .motto-actions {
-    grid-area: actions;
-    justify-content: flex-end;
-  }
+.input-row label {
+  width: 60px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  padding-top: 8px;
+}
+
+.input-row textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #111827;
+  padding: 8px 0;
+  resize: none;
+  font-family: inherit;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn.primary {
+  background: #111827;
+  color: white;
+}
+
+.btn.primary:hover {
+  background: #374151;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: #6b7280;
+}
+
+.btn.ghost:hover {
+  background: #f3f4f6;
+  color: #111827;
 }
 </style>

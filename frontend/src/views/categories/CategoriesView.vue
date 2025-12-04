@@ -2,7 +2,7 @@
   <PageContainer
     :title="{ icon: '📂', text: '分类管理' }"
     subtitle="维护学习分类与子分类层级结构"
-    :custom-class="'categories-view'"
+    :custom-class="'settings-subpage'"
   >
     <template #actions>
       <div class="actions">
