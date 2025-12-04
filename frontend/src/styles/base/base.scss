@@ -97,39 +97,72 @@ body {
   overflow-x: hidden;
 }
 
-/* Mesh gradient backdrop on app */
+/* Dynamic Animated Background */
+@keyframes float-1 {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(100px, 50px) rotate(10deg); }
+  66% { transform: translate(-50px, 100px) rotate(-5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes float-2 {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(-80px, -60px) rotate(-10deg); }
+  66% { transform: translate(60px, -40px) rotate(5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes float-3 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-40px, 40px) scale(1.1); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
 #app::before,
 #app::after {
   content: "";
   position: fixed;
-  pointer-events: none;
   z-index: -1;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.6;
+  pointer-events: none;
 }
 
+/* Orb 1: Top Left - Soft Blue/Purple */
 #app::before {
-  top: -200px;
-  left: -220px;
-  width: 720px;
-  height: 720px;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(98, 102, 255, 0.32), transparent 55%),
-    radial-gradient(circle at 70% 20%, rgba(16, 185, 129, 0.28), transparent 55%),
-    radial-gradient(circle at 50% 55%, rgba(236, 72, 153, 0.26), transparent 60%),
-    radial-gradient(circle at 60% 70%, rgba(59, 130, 246, 0.22), transparent 60%);
-  filter: blur(110px);
+  top: -10%;
+  left: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(165, 180, 252, 0.4) 0%, rgba(196, 181, 253, 0.3) 100%);
+  animation: float-1 20s ease-in-out infinite;
 }
 
+/* Orb 2: Bottom Right - Soft Teal/Blue */
 #app::after {
-  bottom: -220px;
-  right: -220px;
-  width: 780px;
-  height: 780px;
-  background:
-    radial-gradient(circle at 40% 40%, rgba(250, 204, 21, 0.22), transparent 60%),
-    radial-gradient(circle at 80% 60%, rgba(59, 130, 246, 0.26), transparent 55%),
-    radial-gradient(circle at 35% 80%, rgba(139, 92, 246, 0.22), transparent 60%),
-    radial-gradient(circle at 55% 45%, rgba(14, 165, 233, 0.18), transparent 60%);
+  bottom: -10%;
+  right: -10%;
+  width: 70vw;
+  height: 70vw;
+  background: radial-gradient(circle, rgba(110, 231, 183, 0.25) 0%, rgba(147, 197, 253, 0.3) 100%);
+  animation: float-2 25s ease-in-out infinite;
+}
+
+/* Additional Orb for extra depth */
+body::before {
+  content: "";
+  position: fixed;
+  top: 40%;
+  left: 30%;
+  width: 50vw;
+  height: 50vw;
+  z-index: -2;
+  background: radial-gradient(circle, rgba(253, 186, 116, 0.2) 0%, rgba(252, 165, 165, 0.15) 100%);
   filter: blur(120px);
+  animation: float-3 22s ease-in-out infinite;
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 /* ===== 5. Utility Classes ===== */
