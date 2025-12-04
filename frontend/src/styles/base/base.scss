@@ -11,29 +11,46 @@
   --font-family-heading: var(--font-family-base);
 
   /* Base Palette */
-  --color-primary: #5564d8; /* 主色 */
-  --color-primary-light: #dee4ff; /* 主色-浅 */
-  --color-primary-dark: #3945a6; /* 主色-深 */
-  --color-accent: #f4b740; /* 强调色 */
+  --color-primary: #5564d8;
+  /* 主色 */
+  --color-primary-light: #dee4ff;
+  /* 主色-浅 */
+  --color-primary-dark: #3945a6;
+  /* 主色-深 */
+  --color-accent: #f4b740;
+  /* 强调色 */
 
   /* Text Colors */
-  --color-text-base: #1d2433; /* 基础文本 */
-  --color-text-secondary: #4b5565; /* 次要文本 */
-  --color-text-muted: #868fa0; /* 禁用/提示文本 */
-  --color-text-light: #f8fafc; /* 亮色文本 (用于深色背景) */
-  --color-text-heading: #111827; /* 标题 */
-  --color-text-logo: #f9fafb; /* Logo文本 */
+  --color-text-base: #1d2433;
+  /* 基础文本 */
+  --color-text-secondary: #4b5565;
+  /* 次要文本 */
+  --color-text-muted: #868fa0;
+  /* 禁用/提示文本 */
+  --color-text-light: #f8fafc;
+  /* 亮色文本 (用于深色背景) */
+  --color-text-heading: #111827;
+  /* 标题 */
+  --color-text-logo: #f9fafb;
+  /* Logo文本 */
 
   /* Background Colors */
-  --color-bg-page: #f2f4f7; /* 页面背景 */
-  --color-bg-sidebar: #111a2b; /* 侧边栏背景 */
-  --color-bg-card: #ffffff; /* 卡片背景 */
-  --color-bg-hover: rgba(255, 255, 255, 0.08); /* 悬浮背景 (侧边栏) */
+  --color-bg-page: #f2f4f7;
+  /* 页面背景 */
+  --color-bg-sidebar: #111a2b;
+  /* 侧边栏背景 */
+  --color-bg-card: #ffffff;
+  /* 卡片背景 */
+  --color-bg-hover: rgba(255, 255, 255, 0.08);
+  /* 悬浮背景 (侧边栏) */
 
   /* Border Colors */
-  --color-border-card: #d5ddf1; /* 卡片边框 */
-  --color-border-sidebar: rgba(255, 255, 255, 0.18); /* 侧边栏边框 */
-  --color-border-input: #c7d0e6; /* 输入框边框 */
+  --color-border-card: #d5ddf1;
+  /* 卡片边框 */
+  --color-border-sidebar: rgba(255, 255, 255, 0.18);
+  /* 侧边栏边框 */
+  --color-border-input: #c7d0e6;
+  /* 输入框边框 */
 
   /* Surface Palette */
   --surface-page: #f2f4f7;
@@ -53,12 +70,15 @@
   --color-info: #3b82f6;
 
   /* Other Properties */
-  --border-radius-sm: 0.375rem; /* 6px */
-  --border-radius-md: 0.5rem; /* 8px */
+  --border-radius-sm: 0.375rem;
+  /* 6px */
+  --border-radius-md: 0.5rem;
+  /* 8px */
   --box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
   --box-shadow-hover: 0 4px 8px rgba(15, 23, 42, 0.08);
   --sidebar-width: 260px;
-  --sidebar-collapsed-width: 72px; /* 折叠后侧边栏宽度，仅显示图标与 Logo */
+  --sidebar-collapsed-width: 72px;
+  /* 折叠后侧边栏宽度，仅显示图标与 Logo */
   --transition-speed: 0.18s;
 }
 
@@ -99,30 +119,78 @@ body {
 
 /* Dynamic Animated Background */
 @keyframes float-1 {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  33% { transform: translate(100px, 50px) rotate(10deg); }
-  66% { transform: translate(-50px, 100px) rotate(-5deg); }
-  100% { transform: translate(0, 0) rotate(0deg); }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  33% {
+    transform: translate(100px, 50px) rotate(10deg);
+  }
+
+  66% {
+    transform: translate(-50px, 100px) rotate(-5deg);
+  }
+
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
 }
 
 @keyframes float-2 {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  33% { transform: translate(-80px, -60px) rotate(-10deg); }
-  66% { transform: translate(60px, -40px) rotate(5deg); }
-  100% { transform: translate(0, 0) rotate(0deg); }
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  33% {
+    transform: translate(-80px, -60px) rotate(-10deg);
+  }
+
+  66% {
+    transform: translate(60px, -40px) rotate(5deg);
+  }
+
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
 }
 
 @keyframes float-3 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-40px, 40px) scale(1.1); }
-  100% { transform: translate(0, 0) scale(1); }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(-40px, 40px) scale(1.1);
+  }
+
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
 }
 
-#app::before,
-#app::after {
+/* Layer 1: SVG Geometric Shapes (Top) */
+#app::before {
   content: "";
   position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: -1;
+  /* Higher than orbs */
+  background-image: url("@/assets/bg-shapes.svg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  opacity: 1;
+}
+
+/* Layer 2: CSS Animated Orbs (Bottom) */
+#app::after,
+body::before {
+  content: "";
+  position: fixed;
   border-radius: 50%;
   filter: blur(100px);
   opacity: 0.6;
@@ -130,7 +198,8 @@ body {
 }
 
 /* Orb 1: Top Left - Soft Blue/Purple */
-#app::before {
+#app::after {
+  z-index: -2;
   top: -10%;
   left: -10%;
   width: 60vw;
@@ -140,29 +209,17 @@ body {
 }
 
 /* Orb 2: Bottom Right - Soft Teal/Blue */
-#app::after {
+body::before {
+  z-index: -3;
   bottom: -10%;
   right: -10%;
   width: 70vw;
   height: 70vw;
   background: radial-gradient(circle, rgba(110, 231, 183, 0.25) 0%, rgba(147, 197, 253, 0.3) 100%);
   animation: float-2 25s ease-in-out infinite;
-}
-
-/* Additional Orb for extra depth */
-body::before {
-  content: "";
-  position: fixed;
-  top: 40%;
-  left: 30%;
-  width: 50vw;
-  height: 50vw;
-  z-index: -2;
-  background: radial-gradient(circle, rgba(253, 186, 116, 0.2) 0%, rgba(252, 165, 165, 0.15) 100%);
-  filter: blur(120px);
-  animation: float-3 22s ease-in-out infinite;
-  border-radius: 50%;
-  pointer-events: none;
+  /* Reset top/left from previous rule if needed, but here we use bottom/right */
+  top: auto;
+  left: auto;
 }
 
 /* ===== 5. Utility Classes ===== */

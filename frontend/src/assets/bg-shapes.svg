@@ -1,0 +1,79 @@
+<svg width="100%" height="100%" viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Soft Gradients -->
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a5b4fc;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#c4b5fd;stop-opacity:0.4" />
+    </linearGradient>
+    <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6ee7b7;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#93c5fd;stop-opacity:0.3" />
+    </linearGradient>
+    <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fdba74;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#fca5a5;stop-opacity:0.3" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Base (Removed for transparency) -->
+  <!-- <rect width="100%" height="100%" fill="#f8fafc" /> -->
+
+  <!-- Top Left Cluster -->
+  <g transform="translate(100, 100)">
+    <!-- Floating Circle -->
+    <circle cx="50" cy="50" r="20" fill="url(#grad1)">
+      <animateTransform attributeName="transform" type="translate" values="0,0; 0,10; 0,0" dur="5s" repeatCount="indefinite" />
+    </circle>
+    <!-- Hollow Ring -->
+    <circle cx="120" cy="80" r="15" fill="none" stroke="#cbd5e1" stroke-width="4">
+      <animateTransform attributeName="transform" type="rotate" values="0 120 80; 360 120 80" dur="20s" repeatCount="indefinite" />
+    </circle>
+    <!-- Triangle -->
+    <path d="M200 40 L220 80 L180 80 Z" fill="url(#grad2)" opacity="0.6">
+       <animateTransform attributeName="transform" type="rotate" values="0 200 60; 10 200 60; 0 200 60" dur="8s" repeatCount="indefinite" />
+    </path>
+    <!-- S-Curve -->
+    <path d="M50 150 Q100 100 150 150 T250 150" fill="none" stroke="#e2e8f0" stroke-width="6" stroke-linecap="round">
+       <animateTransform attributeName="transform" type="translate" values="0,0; 5,0; 0,0" dur="6s" repeatCount="indefinite" />
+    </path>
+    <!-- Small Dots -->
+    <circle cx="180" cy="120" r="4" fill="#94a3b8" opacity="0.5" />
+    <circle cx="240" cy="60" r="3" fill="#94a3b8" opacity="0.4" />
+    <circle cx="80" cy="180" r="5" fill="#94a3b8" opacity="0.3" />
+  </g>
+
+  <!-- Bottom Right Cluster -->
+  <g transform="translate(1100, 600)">
+     <!-- Macaroni Curve -->
+    <path d="M100 100 Q150 50 200 100" fill="none" stroke="url(#grad3)" stroke-width="12" stroke-linecap="round" opacity="0.5">
+        <animateTransform attributeName="transform" type="rotate" values="-10 150 100; 10 150 100; -10 150 100" dur="10s" repeatCount="indefinite" />
+    </path>
+    <!-- Zigzag -->
+    <path d="M50 200 L80 170 L110 200 L140 170" fill="none" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+       <animateTransform attributeName="transform" type="translate" values="0,0; 0,-5; 0,0" dur="4s" repeatCount="indefinite" />
+    </path>
+    <!-- Large Hollow Circle -->
+    <circle cx="250" cy="200" r="40" fill="none" stroke="url(#grad1)" stroke-width="2" opacity="0.4">
+       <animateTransform attributeName="transform" type="scale" values="1; 1.1; 1" dur="7s" repeatCount="indefinite" />
+    </circle>
+    <!-- Solid Dot -->
+    <circle cx="300" cy="100" r="10" fill="#e2e8f0">
+       <animateTransform attributeName="transform" type="translate" values="0,0; 0,15; 0,0" dur="6s" repeatCount="indefinite" />
+    </circle>
+     <!-- Small Dots -->
+    <circle cx="150" cy="250" r="4" fill="#94a3b8" opacity="0.4" />
+    <circle cx="50" cy="100" r="3" fill="#94a3b8" opacity="0.3" />
+  </g>
+
+  <!-- Subtle Background Mesh/Blob (Very faint) -->
+  <circle cx="20%" cy="80%" r="300" fill="url(#grad1)" filter="url(#blur)" opacity="0.1">
+    <animateTransform attributeName="transform" type="translate" values="0,0; 50,-50; 0,0" dur="25s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="80%" cy="20%" r="250" fill="url(#grad2)" filter="url(#blur)" opacity="0.1">
+    <animateTransform attributeName="transform" type="translate" values="0,0; -40,40; 0,0" dur="30s" repeatCount="indefinite" />
+  </circle>
+
+  <filter id="blur">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="60" />
+  </filter>
+</svg>
