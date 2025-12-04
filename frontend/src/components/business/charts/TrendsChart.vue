@@ -48,7 +48,7 @@
 
 <script setup>
 import { computed, ref, watch } from "vue";
-import { use } from "echarts/core";
+import { use, graphic } from "echarts/core";
 import { LineChart } from "echarts/charts";
 import {
   GridComponent,
@@ -161,8 +161,8 @@ const stageMarkArea = computed(() => {
       {
         name: item.name,
         xAxis: item.start_week_label,
-        itemStyle: { opacity: 0.08 },
-        label: { color: "#312e81", fontWeight: 600 },
+        itemStyle: { opacity: 0.04 }, // Even more subtle
+        label: { color: "#5856D6", fontWeight: 600, fontSize: 12 },
       },
       { xAxis: item.end_week_label },
     ]);
@@ -177,26 +177,52 @@ const chartOption = computed(() => {
   const enableZoom = labels.length > 14;
   const sliderStart = 0; // 默认显示全范围
 
+  // Apple-style Colors
+  const colors = {
+    duration: {
+      line: '#5856D6', // Indigo
+      areaStart: 'rgba(88, 86, 214, 0.25)',
+      areaEnd: 'rgba(88, 86, 214, 0.02)'
+    },
+    efficiency: {
+      line: '#FF9500', // Orange
+      areaStart: 'rgba(255, 149, 0, 0.25)',
+      areaEnd: 'rgba(255, 149, 0, 0.02)'
+    }
+  };
+
   return {
-    color: ["#6366f1", "#f97316"],
+    color: [colors.duration.line, colors.efficiency.line],
     tooltip: {
       trigger: "axis",
-      axisPointer: { type: "cross" },
-      backgroundColor: "rgba(15, 23, 42, 0.9)",
-      borderWidth: 0,
-      textStyle: { color: "#f8fafc" },
+      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+      borderColor: 'rgba(0,0,0,0.05)',
+      borderWidth: 1,
+      padding: [12, 16],
+      textStyle: {
+        color: '#1C1C1E',
+        fontSize: 13,
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+      },
+      extraCssText: 'backdrop-filter: blur(20px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 12px;'
     },
     legend: {
       top: 12,
       icon: "circle",
+      itemGap: 24,
+      textStyle: {
+        color: '#8E8E93',
+        fontSize: 13
+      },
       data: [durationSeriesLabel.value, "学习效率"],
     },
     grid: {
-      left: 18,
-      right: 24,
-      top: 86,
-      bottom: enableZoom ? 60 : 32,
+      left: 20,
+      right: 20,
+      top: 80,
+      bottom: enableZoom ? 60 : 20,
       containLabel: true,
+      borderColor: '#E5E5EA'
     },
     dataZoom: enableZoom
       ? [
@@ -206,10 +232,21 @@ const chartOption = computed(() => {
             start: sliderStart,
             end: 100,
             bottom: 16,
-            height: 14,
-            borderRadius: 8,
+            height: 4, // Thinner slider
+            borderRadius: 2,
             brushSelect: false,
-            handleSize: 0,
+            handleSize: 16,
+            handleStyle: {
+                color: '#fff',
+                borderColor: '#D1D1D6',
+                shadowBlur: 2,
+                shadowColor: 'rgba(0,0,0,0.1)'
+            },
+            fillerColor: 'rgba(0, 122, 255, 0.15)',
+            borderColor: 'transparent',
+            backgroundColor: '#F2F2F7',
+            showDataShadow: false,
+            showDetail: false
           },
         ]
       : [],
@@ -218,7 +255,9 @@ const chartOption = computed(() => {
       boundaryGap: false,
       data: labels,
       axisLabel: {
-        color: "#475569",
+        color: "#8E8E93",
+        fontSize: 12,
+        margin: 12,
         formatter: (value) => value.slice(5),
       },
       axisLine: { show: false },
@@ -229,18 +268,18 @@ const chartOption = computed(() => {
         type: "value",
         name: "学习时长 (小时)",
         min: 0,
-        nameTextStyle: { color: "#475569" },
-        axisLabel: { color: "#475569" },
+        nameTextStyle: { color: "#8E8E93", padding: [0, 0, 0, 20] },
+        axisLabel: { color: "#8E8E93", fontSize: 12 },
         splitLine: {
-          lineStyle: { type: "dashed", color: "rgba(148, 163, 184, 0.28)" },
+          lineStyle: { type: "dashed", color: "#E5E5EA" },
         },
       },
       {
         type: "value",
         name: "效率指数",
         min: 0,
-        nameTextStyle: { color: "#475569" },
-        axisLabel: { color: "#475569" },
+        nameTextStyle: { color: "#8E8E93", padding: [0, 20, 0, 0] },
+        axisLabel: { color: "#8E8E93", fontSize: 12 },
         splitLine: { show: false },
       },
     ],
@@ -248,12 +287,28 @@ const chartOption = computed(() => {
       {
         name: durationSeriesLabel.value,
         type: "line",
-        smooth: true,
+        smooth: 0.4,
+        showSymbol: false,
         symbol: "circle",
-        symbolSize: 6,
+        symbolSize: 8,
         data: durationActual,
-        areaStyle: { opacity: 0.16 },
-        lineStyle: { width: 3 },
+        itemStyle: {
+          color: colors.duration.line,
+          borderWidth: 2,
+          borderColor: '#fff'
+        },
+        lineStyle: {
+          width: 3,
+          shadowColor: 'rgba(88, 86, 214, 0.3)',
+          shadowBlur: 10,
+          shadowOffsetY: 4
+        },
+        areaStyle: {
+          color: new graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: colors.duration.areaStart },
+            { offset: 1, color: colors.duration.areaEnd }
+          ])
+        },
         markArea: stageMarkArea.value.length
           ? { silent: true, data: stageMarkArea.value }
           : undefined,
@@ -261,13 +316,30 @@ const chartOption = computed(() => {
       {
         name: "学习效率",
         type: "line",
-        smooth: true,
-        symbol: "diamond",
-        symbolSize: 6,
+        smooth: 0.4,
+        showSymbol: false,
+        symbol: "circle",
+        symbolSize: 8,
         yAxisIndex: 1,
         data: efficiencyActual,
-        lineStyle: { width: 3, color: "#f97316" },
-        areaStyle: { opacity: 0.14 },
+        itemStyle: {
+          color: colors.efficiency.line,
+          borderWidth: 2,
+          borderColor: '#fff'
+        },
+        lineStyle: {
+          width: 3,
+          color: colors.efficiency.line,
+          shadowColor: 'rgba(255, 149, 0, 0.3)',
+          shadowBlur: 10,
+          shadowOffsetY: 4
+        },
+        areaStyle: {
+          color: new graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: colors.efficiency.areaStart },
+            { offset: 1, color: colors.efficiency.areaEnd }
+          ])
+        },
       },
     ],
   };

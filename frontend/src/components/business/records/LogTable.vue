@@ -3,48 +3,44 @@
     <div class="ios-list">
       <div v-for="log in logs" :key="log.id" class="ios-list-item">
         <div class="item-content">
-          <!-- Left: Category & Task -->
-          <div class="item-main">
-            <div class="task-row">
-              <span
-                v-if="log.subcategory"
-                class="category-dot"
-                :class="`category-color-${(log.subcategory.category_id || 0) % 6}`"
-              ></span>
-              <span class="task-name">{{ log.task }}</span>
-            </div>
-            <div class="sub-row">
-              <span class="category-name" v-if="log.subcategory">
-                {{ log.subcategory.name }}
-              </span>
-              <!-- Notes Icon (Click to toggle) -->
-              <span 
-                v-if="log.notes" 
-                class="notes-icon-wrapper"
-                @click.stop="$emit('toggle-notes', log.id)"
-              >
-                <Icon icon="lucide:message-square" class="notes-icon" />
-              </span>
-            </div>
+          <!-- 1. Time -->
+          <div class="col-time">{{ log.time_slot }}</div>
+
+          <!-- 2. Task & Category -->
+          <div class="col-main">
+            <span
+              v-if="log.subcategory"
+              class="category-dot"
+              :class="`category-color-${(log.subcategory.category_id || 0) % 6}`"
+            ></span>
+            <span class="task-name" :title="log.task">{{ log.task }}</span>
+            <span class="category-tag" v-if="log.subcategory">
+              {{ log.subcategory.name }}
+            </span>
+            <!-- Notes Icon (Click to toggle) -->
+            <span 
+              v-if="log.notes" 
+              class="notes-icon-wrapper"
+              @click.stop="$emit('toggle-notes', log.id)"
+              title="查看备注"
+            >
+              <Icon icon="lucide:message-square" class="notes-icon" />
+            </span>
           </div>
 
-          <!-- Right: Time & Duration -->
-          <div class="item-meta">
-            <div class="duration-badge">
-              {{ log.actual_duration }} min
-            </div>
-            <div class="time-slot">
-              {{ log.time_slot }}
-            </div>
+          <!-- 3. Duration -->
+          <div class="col-duration">
+            {{ log.actual_duration }} min
           </div>
           
-          <!-- Actions (Hover/Right) -->
-          <div class="item-actions">
+          <!-- 4. Actions (Hover/Right) -->
+          <div class="col-actions">
              <el-button
               link
               size="small"
               @click="$emit('edit-record', log)"
               class="action-btn"
+              title="编辑"
             >
               <Icon icon="lucide:pencil" />
             </el-button>
@@ -54,6 +50,7 @@
               type="danger"
               @click="$emit('delete-record', log)"
               class="action-btn delete"
+              title="删除"
             >
               <Icon icon="lucide:trash-2" />
             </el-button>
@@ -97,140 +94,146 @@ defineEmits(["toggle-notes", "edit-record", "delete-record"]);
 .ios-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px; /* Reduced gap */
 }
 
 .ios-list-item {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-radius: 10px; /* Slightly smaller radius */
+  padding: 8px 12px; /* Compact padding */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    
+    .col-actions {
+      opacity: 1;
+    }
   }
 }
 
 .item-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
+  height: 28px; /* Fixed height for consistency */
 }
 
-.item-main {
+/* 1. Time Column */
+.col-time {
+  font-size: 15px; /* Increased from 13px */
+  color: #8e8e93;
+  width: 110px; /* Increased width to accommodate larger font */
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 2. Main Column (Task & Category) */
+.col-main {
   flex: 1;
-  min-width: 0;
-  
-  .task-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-    
-    .category-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    
-    .task-name {
-      font-size: 17px; /* Increased */
-      font-weight: 600;
-      color: #000;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  }
-  
-  .sub-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px; /* Increased */
-    color: #8e8e93;
-    height: 20px;
-    
-    .category-name {
-      font-weight: 500;
-    }
-    
-    .notes-icon-wrapper {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      color: #007aff;
-      
-      &:hover {
-        opacity: 0.8;
-      }
-      
-      .notes-icon {
-        width: 16px;
-        height: 16px;
-      }
-    }
-  }
-}
-
-.item-meta {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0; /* Enable truncation */
   
-  .duration-badge {
-    font-size: 17px; /* Increased */
+  .category-dot {
+    width: 8px; /* Increased from 6px */
+    height: 8px; /* Increased from 6px */
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  
+  .task-name {
+    font-size: 17px; /* Increased from 15px */
     font-weight: 600;
     color: #000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
-  .time-slot {
-    font-size: 14px; /* Increased */
+  .category-tag {
+    font-size: 13px; /* Increased from 11px */
     color: #8e8e93;
+    background: #f2f2f7;
+    padding: 2px 8px; /* Slightly more padding */
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  
+  .notes-icon-wrapper {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: #007aff;
+    margin-left: 4px;
+    
+    &:hover {
+      opacity: 0.8;
+    }
+    
+    .notes-icon {
+      width: 16px; /* Increased from 14px */
+      height: 16px; /* Increased from 14px */
+    }
   }
 }
 
-.item-actions {
+/* 3. Duration Column */
+.col-duration {
+  font-size: 16px; /* Increased from 14px */
+  font-weight: 500;
+  color: #000;
+  width: 80px; /* Increased width */
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 4. Actions Column */
+.col-actions {
+  width: 60px;
   display: flex;
-  gap: 4px;
+  justify-content: flex-end;
+  gap: 2px;
   opacity: 0; /* Hidden by default */
   transition: opacity 0.2s ease;
   
   .action-btn {
     padding: 4px;
+    height: 28px; /* Increased from 24px */
+    width: 28px; /* Increased from 24px */
     color: #8e8e93;
     
     &:hover {
       color: #007aff;
+      background-color: rgba(0, 122, 255, 0.1);
     }
     
     &.delete:hover {
       color: #ff3b30;
+      background-color: rgba(255, 59, 48, 0.1);
     }
     
     :deep(.iconify) {
-      width: 18px;
-      height: 18px;
+      width: 18px; /* Increased from 16px */
+      height: 18px; /* Increased from 16px */
     }
   }
 }
 
-.ios-list-item:hover .item-actions {
-  opacity: 1;
-}
-
 .expanded-notes {
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 0.5px solid rgba(60, 60, 67, 0.1);
-  font-size: 14px;
+  font-size: 15px; /* Increased from 13px */
   color: #3c3c43;
   line-height: 1.5;
+  padding-left: 122px; /* Align with task name (Time width + gap) */
 }
 
 /* Category Colors */
