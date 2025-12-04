@@ -48,10 +48,17 @@ body {
 
 #app {
   min-height: 100vh;
-  /* Lighter, softer animated gradient background */
-  background: linear-gradient(-45deg, #e0c3fc, #8ec5fc, #90f7ec, #fbc2eb);
-  background-size: 400% 400%;
-  animation: gradientBG 15s ease infinite;
+  /* Apple-style dynamic light background - Mesh Gradient */
+  background-color: #f5f5f7;
+  background-image: 
+    radial-gradient(at 80% 0%, hsla(189,100%,96%,1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(341,100%,96%,1) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, hsla(355,100%,96%,1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(22,100%,96%,1) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, hsla(240,100%,96%,1) 0px, transparent 50%),
+    radial-gradient(at 0% 0%, hsla(343,100%,96%,1) 0px, transparent 50%);
+  background-size: 200% 200%;
+  animation: gradientBG 20s ease infinite;
 }
 
 @keyframes gradientBG {
