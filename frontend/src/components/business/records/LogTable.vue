@@ -1,7 +1,12 @@
 <template>
   <div class="ios-list-container">
     <div class="ios-list">
-      <div v-for="log in logs" :key="log.id" class="ios-list-item">
+      <div 
+        v-for="log in logs" 
+        :key="log.id" 
+        class="ios-list-item"
+        :class="`category-bg-${(log.subcategory?.category_id || 0) % 6}`"
+      >
         <div class="item-content">
           <!-- 1. Time -->
           <div class="col-time">{{ log.time_slot }}</div>
@@ -98,7 +103,7 @@ defineEmits(["toggle-notes", "edit-record", "delete-record"]);
 }
 
 .ios-list-item {
-  background: #ffffff;
+  /* background: #ffffff;  Removed to allow category-bg classes to take effect */
   border-radius: 10px; /* Slightly smaller radius */
   padding: 8px 12px; /* Compact padding */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -243,4 +248,17 @@ defineEmits(["toggle-notes", "edit-record", "delete-record"]);
 .category-color-3 { background-color: #ff9500; }
 .category-color-4 { background-color: #5856d6; }
 .category-color-5 { background-color: #ff3b30; }
+
+/* Category Backgrounds (Subtle/Pastel) */
+.category-bg-0 { background-color: rgba(0, 122, 255, 0.04); }
+.category-bg-1 { background-color: rgba(255, 45, 85, 0.04); }
+.category-bg-2 { background-color: rgba(52, 199, 89, 0.04); }
+.category-bg-3 { background-color: rgba(255, 149, 0, 0.04); }
+.category-bg-4 { background-color: rgba(88, 86, 214, 0.04); }
+.category-bg-5 { background-color: rgba(255, 59, 48, 0.04); }
+
+/* Hover state remains consistent or slightly darkens */
+.ios-list-item:hover {
+  filter: brightness(0.98); /* Slightly darken on hover instead of generic shadow change only */
+}
 </style>
