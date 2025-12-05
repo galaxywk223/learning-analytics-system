@@ -5,7 +5,7 @@
     :custom-class="'settings-subpage'"
   >
     <template #actions>
-      <button class="btn btn-primary" @click="showAddCategoryModal">
+      <button class="pill-btn primary" @click="showAddCategoryModal">
         <Icon icon="lucide:plus-circle" class="me-2" />添加新分类
       </button>
     </template>
@@ -115,8 +115,10 @@
         <el-input v-model="categoryForm.name" placeholder="输入分类名称" />
       </div>
       <template #footer>
-        <el-button @click="showCategoryModal = false">取消</el-button>
-        <el-button type="primary" @click="saveCategory">保存</el-button>
+        <div class="dialog-footer">
+          <button class="pill-btn secondary" @click="showCategoryModal = false">取消</button>
+          <button class="pill-btn primary" @click="saveCategory">保存</button>
+        </div>
       </template>
     </el-dialog>
 
@@ -131,8 +133,10 @@
         <el-input v-model="subcategoryForm.name" placeholder="输入子类名称" />
       </div>
       <template #footer>
-        <el-button @click="showSubcategoryModal = false">取消</el-button>
-        <el-button type="primary" @click="saveSubcategory">保存</el-button>
+        <div class="dialog-footer">
+          <button class="pill-btn secondary" @click="showSubcategoryModal = false">取消</button>
+          <button class="pill-btn primary" @click="saveSubcategory">保存</button>
+        </div>
       </template>
     </el-dialog>
   </PageContainer>
@@ -282,5 +286,10 @@ onMounted(fetchCategories);
 .category-title-wrapper {
   display: flex;
   flex-direction: column;
+}
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 </style>

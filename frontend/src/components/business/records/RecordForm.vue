@@ -24,18 +24,20 @@
     </div>
 
     <!-- 提交按钮 -->
-    <div class="ios-form-actions">
-      <button class="ios-btn cancel" @click.prevent="emit('cancel')">
-        取消
-      </button>
-      <div class="divider-vertical"></div>
-      <button 
-        class="ios-btn confirm" 
-        @click.prevent="submitForm"
-        :disabled="loading"
-      >
-        {{ isEdit ? "更新" : "保存" }}
-      </button>
+    <!-- 提交按钮 -->
+    <div class="form-footer">
+      <div class="pill-btn-group-horizontal">
+        <button class="pill-btn secondary" @click.prevent="emit('cancel')">
+          取消
+        </button>
+        <button 
+          class="pill-btn primary" 
+          @click.prevent="submitForm"
+          :disabled="loading"
+        >
+          {{ isEdit ? "更新" : "保存" }}
+        </button>
+      </div>
     </div>
   </el-form>
 </template>
@@ -178,45 +180,10 @@ defineExpose({
   gap: 20px;
 }
 
-.ios-form-actions {
-  display: flex;
-  border-top: 0.5px solid rgba(60, 60, 67, 0.29);
+.form-footer {
+  padding: 16px 24px 24px;
+  background: white;
+  border-top: 1px solid #f3f4f6;
   margin-top: auto;
-  
-  .ios-btn {
-    flex: 1;
-    background: transparent;
-    border: none;
-    padding: 14px 0;
-    font-size: 17px;
-    color: #007aff;
-    cursor: pointer;
-    transition: background 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    &:active {
-      background: rgba(0, 0, 0, 0.05);
-    }
-    
-    &.confirm {
-      font-weight: 600;
-    }
-    
-    &.cancel {
-      font-weight: 400;
-    }
-    
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-  
-  .divider-vertical {
-    width: 0.5px;
-    background: rgba(60, 60, 67, 0.29);
-  }
 }
 </style>

@@ -19,8 +19,9 @@
             @keyup.enter="submitAdd"
           />
           <button
-            class="btn-add"
+            class="pill-btn primary"
             type="button"
+            style="padding: 8px 16px; min-width: auto; font-size: 14px"
             :disabled="adding || !form.content.trim()"
             @click="submitAdd"
           >
@@ -84,8 +85,8 @@
         </div>
         
         <div class="dialog-footer">
-          <button type="button" class="btn ghost" @click="editVisible = false">取消</button>
-          <button type="submit" class="btn primary" :disabled="updating">
+          <button type="button" class="pill-btn secondary" @click="editVisible = false">取消</button>
+          <button type="submit" class="pill-btn primary" :disabled="updating">
             {{ updating ? "保存中..." : "保存" }}
           </button>
         </div>
@@ -429,34 +430,5 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-}
-
-.btn {
-  border: none;
-  border-radius: 8px;
-  padding: 8px 20px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn.primary {
-  background: #111827;
-  color: white;
-}
-
-.btn.primary:hover {
-  background: #374151;
-}
-
-.btn.ghost {
-  background: transparent;
-  color: #6b7280;
-}
-
-.btn.ghost:hover {
-  background: #f3f4f6;
-  color: #111827;
 }
 </style>

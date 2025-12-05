@@ -1,0 +1,101 @@
+// _pill-buttons.scss
+// 统一样式的胶囊按钮
+
+.pill-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.5px;
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        filter: grayscale(0.5);
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+}
+
+// 主按钮 (紫色/蓝色渐变)
+.pill-btn.primary {
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+
+    &:hover:not(:disabled) {
+        box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+        transform: translateY(-1px);
+    }
+}
+
+// 危险按钮 (红色/橙色渐变)
+.pill-btn.danger {
+    background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+
+    &:hover:not(:disabled) {
+        box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+        transform: translateY(-1px);
+    }
+}
+
+// 次要按钮 (灰色)
+.pill-btn.secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid transparent; // 占位，防止抖动
+
+    &:hover:not(:disabled) {
+        background: #e5e7eb;
+        color: #111827;
+    }
+}
+
+// 描边按钮
+.pill-btn.outline {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    color: #6b7280;
+
+    &:hover:not(:disabled) {
+        border-color: #9ca3af;
+        color: #374151;
+        background: #f9fafb;
+    }
+}
+
+// 按钮组容器 (垂直排列)
+.pill-btn-group-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+
+    .pill-btn {
+        width: 100%;
+        padding: 14px 24px; // 稍微大一点
+        font-size: 17px;
+    }
+}
+
+// 按钮组容器 (水平排列)
+.pill-btn-group-horizontal {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    justify-content: flex-end;
+
+    .pill-btn {
+        min-width: 100px;
+    }
+}

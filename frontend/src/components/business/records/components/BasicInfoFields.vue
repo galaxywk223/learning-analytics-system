@@ -42,7 +42,6 @@
             v-model="form.duration_hours"
             :min="0"
             :max="24"
-            :controls="false"
             class="ios-number-input"
             placeholder=""
           />
@@ -53,7 +52,6 @@
             v-model="form.duration_minutes"
             :min="0"
             :max="59"
-            :controls="false"
             class="ios-number-input"
             placeholder=""
           />
@@ -200,7 +198,7 @@ defineProps({
 }
 
 .ios-number-input {
-  width: 44px;
+  width: 100px; /* 增加宽度以容纳按钮 */
   
   :deep(.el-input__wrapper) {
     background-color: rgba(118, 118, 128, 0.12) !important;
@@ -213,9 +211,22 @@ defineProps({
     text-align: center;
     height: 32px;
     line-height: 32px;
-    font-size: 17px;
+    font-size: 16px;
     color: #000;
     padding: 0 !important;
+  }
+
+  :deep(.el-input-number__decrease),
+  :deep(.el-input-number__increase) {
+    background: transparent;
+    border: none;
+    color: #007aff;
+    width: 28px;
+    
+    &:hover {
+      color: #0056b3;
+      background: rgba(0,0,0,0.05);
+    }
   }
 }
 </style>

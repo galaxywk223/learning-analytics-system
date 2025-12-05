@@ -122,8 +122,8 @@
         </div>
 
         <div class="dialog-footer">
-          <button type="button" class="btn ghost" @click="dialogVisible = false">取消</button>
-          <button type="submit" class="btn primary" :disabled="loading">
+          <button type="button" class="pill-btn secondary" @click="dialogVisible = false">取消</button>
+          <button type="submit" class="pill-btn primary" :disabled="loading">
             {{ loading ? "保存中..." : "保存" }}
           </button>
         </div>
@@ -495,34 +495,6 @@ function formatDate(dateStr) {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-}
-
-.btn {
-  border: none;
-  border-radius: 8px;
-  padding: 8px 20px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn.primary {
-  background: #0f172a;
-  color: white;
-}
-
-.btn.primary:hover {
-  background: #1e293b;
-}
-
-.btn.ghost {
-  background: transparent;
-  color: #64748b;
-}
-
-.btn.ghost:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  margin-top: 24px;
 }
 </style>
