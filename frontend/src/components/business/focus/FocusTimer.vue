@@ -78,13 +78,7 @@ const timeLabel = computed(() => {
   min-height: 360px;
 
   &::before {
-    content: "";
-    position: absolute;
-    inset: -24px;
-    background: radial-gradient(circle at 50% 40%, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0));
-    /* 去除额外模糊，减少绘制压力 */
-    filter: none;
-    z-index: 0;
+    display: none;
   }
 
   .time-circle {

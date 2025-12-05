@@ -1,6 +1,6 @@
 <template>
   <div class="focus-view">
-    <div class="bg-blobs"></div>
+
     <PageContainer
       :title="{ icon: '🎯', text: isTimerRunning ? '专注中' : '专注计时' }"
       subtitle="保持专注，记录每一步的累积"
@@ -472,43 +472,8 @@ onMounted(async () => {
   overflow: hidden;
 
   &::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(
-        circle at 45% 38%,
-        rgba(99, 102, 241, 0.18),
-        transparent 58%
-      ),
-      radial-gradient(
-        circle at 62% 60%,
-        rgba(14, 165, 233, 0.18),
-        transparent 60%
-      ),
-      radial-gradient(
-        circle at 40% 72%,
-        rgba(236, 72, 153, 0.16),
-        transparent 64%
-      ),
-      radial-gradient(
-        circle at 55% 48%,
-        rgba(250, 204, 21, 0.14),
-        transparent 65%
-      );
-    /* 移除模糊以进一步减轻输入时的渲染开销 */
-    filter: none;
-    z-index: 0;
-    pointer-events: none;
+    display: none;
   }
-}
-
-.bg-blobs {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: transparent;
-  z-index: 0;
 }
 
 .focus-layout {

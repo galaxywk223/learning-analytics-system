@@ -45,13 +45,7 @@
   letter-spacing: -0.5px;
 }
 
-.actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
+
 
 .countdown-card .actions .el-button,
 .expired-card .actions .el-button {
@@ -73,9 +67,7 @@
   transform: scale(1.05);
 }
 
-.countdown-card:hover .actions {
-  opacity: 1;
-}
+
 
 .expired-card .actions {
   opacity: 1;
@@ -160,10 +152,28 @@
   padding: 12px 20px 16px;
   font-size: 13px;
   color: #8e8e93;
-  text-align: center;
   border-top: 1px solid #f2f2f7;
   font-weight: 600;
   flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .target-date {
+    flex: 1;
+    text-align: left;
+  }
+
+  .actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+}
+
+.countdown-card:hover .card-footer .actions {
+  opacity: 1;
 }
 
 /* 状态颜色 */

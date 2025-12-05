@@ -7,20 +7,7 @@
   >
     <div class="card-header">
       <span class="event-title">{{ event.title }}</span>
-      <div class="actions">
-        <el-button link size="small" @click="$emit('edit')" :title="'编辑'">
-          <Icon icon="lucide:edit-3" />
-        </el-button>
-        <el-button
-          link
-          size="small"
-          type="danger"
-          @click="$emit('delete')"
-          :title="'删除'"
-        >
-          <Icon icon="lucide:trash-2" />
-        </el-button>
-      </div>
+
     </div>
     <div class="card-body">
       <div class="progress-ring-container">
@@ -87,7 +74,23 @@
       </div>
       <div class="live-timer">{{ remaining.hms }}</div>
     </div>
-    <div class="card-footer">目标: {{ beijingString }}</div>
+    <div class="card-footer">
+      <span class="target-date">目标: {{ beijingString }}</span>
+      <div class="actions">
+        <el-button link size="small" @click.stop="$emit('edit')" :title="'编辑'">
+          <Icon icon="lucide:edit-3" />
+        </el-button>
+        <el-button
+          link
+          size="small"
+          type="danger"
+          @click.stop="$emit('delete')"
+          :title="'删除'"
+        >
+          <Icon icon="lucide:trash-2" />
+        </el-button>
+      </div>
+    </div>
   </div>
   <div v-else class="expired-card">
     <div class="icon-wrapper">✔</div>
