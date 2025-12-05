@@ -26,8 +26,8 @@
       <div class="progress-ring-container">
         <svg
           class="progress-ring-svg"
-          width="180"
-          height="180"
+          width="120"
+          height="120"
           viewBox="0 0 120 120"
         >
           <defs>
