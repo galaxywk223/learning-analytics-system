@@ -493,8 +493,7 @@ async function handleLeave() {
   gap: 24px;
   padding: 24px 32px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.4);
 }

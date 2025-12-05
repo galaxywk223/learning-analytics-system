@@ -193,8 +193,7 @@ body::before {
   content: "";
   position: fixed;
   border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.6;
+  opacity: 0.45;
   pointer-events: none;
 }
 
@@ -203,10 +202,10 @@ body::before {
   z-index: -2;
   top: -10%;
   left: -10%;
-  width: 60vw;
-  height: 60vw;
+  width: 380px;
+  height: 380px;
   background: radial-gradient(circle, rgba(165, 180, 252, 0.4) 0%, rgba(196, 181, 253, 0.3) 100%);
-  animation: float-1 20s ease-in-out infinite;
+  /* 静态渲染以提升在 Windows 上的性能 */
 }
 
 /* Orb 2: Bottom Right - Soft Teal/Blue */
@@ -214,10 +213,9 @@ body::before {
   z-index: -3;
   bottom: -10%;
   right: -10%;
-  width: 70vw;
-  height: 70vw;
+  width: 460px;
+  height: 460px;
   background: radial-gradient(circle, rgba(110, 231, 183, 0.25) 0%, rgba(147, 197, 253, 0.3) 100%);
-  animation: float-2 25s ease-in-out infinite;
   /* Reset top/left from previous rule if needed, but here we use bottom/right */
   top: auto;
   left: auto;

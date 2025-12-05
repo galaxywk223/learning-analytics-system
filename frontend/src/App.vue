@@ -57,21 +57,7 @@ body {
     radial-gradient(at 0% 100%, hsla(22,100%,96%,1) 0px, transparent 50%),
     radial-gradient(at 80% 100%, hsla(240,100%,96%,1) 0px, transparent 50%),
     radial-gradient(at 0% 0%, hsla(343,100%,96%,1) 0px, transparent 50%);
-  background-size: 200% 200%;
-  animation: gradientBG 20s ease infinite;
-  will-change: transform, background-position;
-}
-
-@keyframes gradientBG {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  background-size: cover;
 }
 
 /* 当用户上传了自定义背景时，通过settings store动态设置 */

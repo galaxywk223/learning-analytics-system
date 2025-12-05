@@ -496,7 +496,8 @@ onMounted(async () => {
         rgba(250, 204, 21, 0.14),
         transparent 65%
       );
-    filter: blur(90px);
+    /* 降低模糊强度以提升在 Windows 上的渲染性能 */
+    filter: blur(32px);
     z-index: 0;
     pointer-events: none;
   }
@@ -539,8 +540,7 @@ onMounted(async () => {
 /* iOS Dialog Styles */
 :deep(.ios-dialog-modal) {
   .el-dialog {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(25px);
+    background: rgba(255, 255, 255, 0.98);
     border-radius: 14px;
     box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 20px 40px rgba(0,0,0,0.2);
     padding: 0;
