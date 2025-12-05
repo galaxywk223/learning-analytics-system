@@ -111,21 +111,10 @@ const availableSubcategories = computed(() => {
 
 // 分类变化时的处理
 const onCategoryChange = () => {
-  // 清空子分类选择
-  const updatedForm = { ...props.formData };
-  updatedForm.subcategoryId = null;
-  emit("update:formData", updatedForm);
+  // 清空子分类选择，仅通知父组件分类已变更
+  props.formData.subcategoryId = null;
   emit("category-change", props.formData.categoryId);
 };
-
-// 监听表单数据变化
-watch(
-  () => props.formData,
-  (newData) => {
-    emit("update:formData", newData);
-  },
-  { deep: true }
-);
 
 // 暴露验证方法给父组件
 defineExpose({
