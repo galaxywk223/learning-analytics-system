@@ -496,8 +496,8 @@ onMounted(async () => {
         rgba(250, 204, 21, 0.14),
         transparent 65%
       );
-    /* 降低模糊强度以提升在 Windows 上的渲染性能 */
-    filter: blur(32px);
+    /* 移除模糊以进一步减轻输入时的渲染开销 */
+    filter: none;
     z-index: 0;
     pointer-events: none;
   }

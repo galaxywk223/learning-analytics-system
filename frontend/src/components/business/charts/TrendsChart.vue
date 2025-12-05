@@ -195,7 +195,7 @@ const chartOption = computed(() => {
     color: [colors.duration.line, colors.efficiency.line],
     tooltip: {
       trigger: "axis",
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
       borderColor: 'rgba(0,0,0,0.05)',
       borderWidth: 1,
       padding: [12, 16],
@@ -204,7 +204,7 @@ const chartOption = computed(() => {
         fontSize: 13,
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
       },
-      extraCssText: 'backdrop-filter: blur(20px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 12px;'
+      extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.12); border-radius: 12px;'
     },
     legend: {
       top: 12,
