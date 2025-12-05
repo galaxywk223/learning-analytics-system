@@ -112,13 +112,7 @@ onMounted(async () => {
   if (!settingsStore.layout.sidebarCollapsed) {
     settingsStore.setSidebarCollapsed(true);
   }
-  const backgroundImage = settingsStore.backgroundImage;
-  if (backgroundImage) {
-    document.body.style.backgroundImage = `url(${backgroundImage})`;
-  } else {
-    document.body.style.backgroundImage = "none";
-  }
-  document.body.style.backgroundColor = "var(--surface-page)";
+  // Removed imperative background setting to prevent FOUC. Handled in App.vue/global styles.
 });
 
 // 鼠标悬停事件（保留用于未来扩展）

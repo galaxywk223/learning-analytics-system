@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :data-theme="currentTheme">
+  <div id="app" :data-theme="currentTheme" :style="appStyles">
     <router-view v-slot="{ Component }">
       <keep-alive :max="5">
         <component :is="Component" :key="$route.fullPath" />
@@ -17,6 +17,18 @@ const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
 
 const currentTheme = computed(() => settingsStore.theme || "palette-purple");
+
+const appStyles = computed(() => {
+  const styles = {};
+  // If custom background image is set via settings
+  if (settingsStore.backgroundImage) {
+    styles.backgroundImage = `url(${settingsStore.backgroundImage})`;
+    styles.backgroundSize = 'cover';
+    styles.backgroundPosition = 'center';
+    styles.backgroundRepeat = 'no-repeat';
+  }
+  return styles;
+});
 
 onMounted(() => {
   // 应用加载时检查登录状态
@@ -48,8 +60,13 @@ body {
 
 #app {
   min-height: 100vh;
-  /* Apple-style dynamic light background - Mesh Gradient */
+  /* Default background setup */
   background-color: #f5f5f7;
+  transition: background-image 0.3s ease, background-color 0.3s ease;
+}
+
+/* Mesh gradient for non-Windows */
+:not(.os-windows) #app {
   background-image: 
     radial-gradient(at 80% 0%, hsla(189,100%,96%,1) 0px, transparent 50%),
     radial-gradient(at 0% 50%, hsla(341,100%,96%,1) 0px, transparent 50%),
@@ -60,18 +77,13 @@ body {
   background-size: cover;
 }
 
-/* Windows 平台性能优化：移除复杂背景渐变 */
+/* Windows or Custom BG: Handle via inline style or specific class overrides */
+/* If custom bg is present, it overrides everything via the style binding in template */
+
+/* Windows platform optimization - default state */
 .os-windows #app {
   background-image: none;
   background-color: #f5f5f7;
-}
-
-/* 当用户上传了自定义背景时，通过settings store动态设置 */
-#app.custom-bg {
-  background-image: var(--custom-bg-url);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
 /* 性能优化：减少动画计算（用户系统级偏好） */
