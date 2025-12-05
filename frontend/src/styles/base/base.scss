@@ -383,6 +383,24 @@ i {
   color: var(--color-text-secondary);
 }
 
+/* Windows 下进一步简化表单与输入框样式，降低 focus/输入时重绘成本 */
+.os-windows :where(.el-form):not(.el-form--inline) {
+  background: transparent;
+  border: none;
+  padding: 12px 0;
+}
+
+.os-windows :where(.el-input__wrapper),
+.os-windows :where(.el-date-editor .el-input__wrapper),
+.os-windows :where(.el-select .el-input__wrapper) {
+  transition: none;
+  box-shadow: none;
+}
+
+.os-windows .el-textarea__inner {
+  transition: none;
+}
+
 /* ===== 9. 全局字体强制应用 ===== */
 html,
 body,

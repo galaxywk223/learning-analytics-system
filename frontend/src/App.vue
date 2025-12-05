@@ -68,7 +68,7 @@ body {
   background-repeat: no-repeat;
 }
 
-/* 性能优化：减少动画计算 */
+/* 性能优化：减少动画计算（用户系统级偏好） */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -77,14 +77,5 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-/* Windows 轻量模式：自动降低动画与过渡开销 */
-.os-windows *,
-.os-windows *::before,
-.os-windows *::after {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.12s !important;
 }
 </style>
