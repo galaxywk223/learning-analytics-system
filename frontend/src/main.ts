@@ -11,6 +11,11 @@ import App from "./App.vue";
 import router from "./router";
 import { setupMessageDefaults } from "@/plugins/message";
 
+// 在 Windows 平台上启用轻量性能模式（降低动画与阴影强度）
+if (typeof navigator !== "undefined" && /Windows/i.test(navigator.userAgent)) {
+  document.documentElement.classList.add("os-windows");
+}
+
 const app = createApp(App);
 
 // 性能优化：使用 Pinia 并启用开发工具（仅开发环境）

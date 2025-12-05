@@ -78,4 +78,13 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Windows 轻量模式：自动降低动画与过渡开销 */
+.os-windows *,
+.os-windows *::before,
+.os-windows *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.12s !important;
+}
 </style>

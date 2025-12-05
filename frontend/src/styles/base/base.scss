@@ -83,6 +83,12 @@
   --transition-speed: 0.18s;
 }
 
+/* Windows 平台下进一步减弱通用阴影，降低重绘开销 */
+.os-windows :root {
+  --box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --box-shadow-hover: 0 2px 4px rgba(15, 23, 42, 0.06);
+}
+
 /* ===== 4. Global Styles & Resets ===== */
 *,
 *::before,
