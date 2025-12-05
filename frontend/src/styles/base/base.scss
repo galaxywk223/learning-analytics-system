@@ -227,6 +227,13 @@ body::before {
   left: auto;
 }
 
+/* Windows 平台性能优化：移除背景光球与纹理 */
+.os-windows #app::before,
+.os-windows #app::after,
+.os-windows body::before {
+  display: none !important;
+}
+
 /* ===== 5. Utility Classes ===== */
 .icon-lg {
   width: 48px;
@@ -395,6 +402,7 @@ i {
 .os-windows :where(.el-select .el-input__wrapper) {
   transition: none;
   box-shadow: none;
+  transform: translateZ(0);
 }
 
 .os-windows .el-textarea__inner {

@@ -60,6 +60,12 @@ body {
   background-size: cover;
 }
 
+/* Windows 平台性能优化：移除复杂背景渐变 */
+.os-windows #app {
+  background-image: none;
+  background-color: #f5f5f7;
+}
+
 /* 当用户上传了自定义背景时，通过settings store动态设置 */
 #app.custom-bg {
   background-image: var(--custom-bg-url);
