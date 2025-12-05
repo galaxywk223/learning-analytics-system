@@ -31,8 +31,6 @@
             </div>
             <div class="stage-meta">
               <span>{{ formatDate(stage.start_date) }}</span>
-              <span class="separator">-</span>
-              <span>{{ stage.end_date ? formatDate(stage.end_date) : "至今" }}</span>
             </div>
           </div>
           
@@ -103,15 +101,7 @@
               :disabled="loading"
             />
           </div>
-          <div class="input-row">
-            <label>结束</label>
-            <input
-              v-model="form.end_date"
-              type="date"
-              :disabled="loading"
-              placeholder="可选"
-            />
-          </div>
+
         </div>
         
         <div class="form-options" v-if="!isEditing">
@@ -174,7 +164,6 @@ function openCreate() {
     id: null,
     name: "",
     start_date: "",
-    end_date: "",
     is_current: false,
   };
   dialogVisible.value = true;
@@ -182,7 +171,8 @@ function openCreate() {
 
 function openEdit(stage) {
   isEditing.value = true;
-  form.value = { ...stage };
+  const { end_date, ...rest } = stage; // Exclude end_date if present in object
+  form.value = { ...rest };
   dialogVisible.value = true;
 }
 
@@ -198,7 +188,6 @@ async function handleSubmit() {
       await stageAPI.update(form.value.id, {
         name: form.value.name,
         start_date: form.value.start_date,
-        end_date: form.value.end_date,
       });
       ElMessage.success("更新成功");
     } else {

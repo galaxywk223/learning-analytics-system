@@ -6,8 +6,12 @@
   >
     <template #actions>
       <div class="actions">
-        <el-button type="primary" @click="addRoot">新增分类</el-button>
-        <el-button :loading="store.loading" @click="refresh">刷新</el-button>
+        <button class="pill-btn primary" @click="addRoot">
+          <span class="icon">+</span> 新增分类
+        </button>
+        <button class="pill-btn secondary" :disabled="store.loading" @click="refresh">
+          刷新
+        </button>
       </div>
     </template>
 
@@ -30,6 +34,7 @@
       :visible="formVisible"
       :category-data="editingCategory"
       :parent-category="parentCategory"
+      :available-parents="treeData"
       :loading="submitLoading"
       @close="closeForm"
       @submit="handleSubmit"
@@ -163,9 +168,11 @@ async function handleSubmit(formData) {
       ElMessage.success("更新成功");
     } else {
       // 创建分类
-      if (parentCategory.value) {
+      // 优先使用 formData.parent_id (用户在表单中选择的)
+      console.log('Creating category with formData:', formData);
+      if (formData.parent_id) {
         // 创建子分类
-        await store.createSubCategory(parentCategory.value.id, formData);
+        await store.createSubCategory(formData.parent_id, formData);
         ElMessage.success("子分类创建成功");
       } else {
         // 创建主分类

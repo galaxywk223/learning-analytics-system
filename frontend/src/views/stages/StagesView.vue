@@ -38,10 +38,6 @@
           <!-- Date Column -->
           <div class="col-date">
             <span class="date-text">{{ formatDate(stage.start_date) }}</span>
-            <span class="separator">→</span>
-            <span class="date-text" :class="{ 'text-present': !stage.end_date }">
-              {{ stage.end_date ? formatDate(stage.end_date) : (stage.id === activeStageId ? '至今' : '未结束') }}
-            </span>
           </div>
 
           <!-- Actions Column -->
@@ -114,20 +110,11 @@
               :disabled="loading"
             />
           </div>
-          <div class="input-row">
-            <label>结束</label>
-            <input
-              v-model="form.end_date"
-              type="date"
-              :disabled="loading"
-              placeholder="可选"
-            />
-          </div>
         </div>
         
         <div class="dialog-footer">
-          <button type="button" class="btn ghost" @click="dialogVisible = false">取消</button>
-          <button type="submit" class="btn primary" :disabled="loading">
+          <button type="button" class="pill-btn secondary" @click="dialogVisible = false">取消</button>
+          <button type="submit" class="pill-btn primary" :disabled="loading">
             {{ loading ? "保存" : "保存" }}
           </button>
         </div>
@@ -178,12 +165,12 @@ function formatDate(d) {
 }
 
 function openCreate() {
+
   isEditing.value = false;
   form.value = {
     id: null,
     name: "",
     start_date: "",
-    end_date: "",
   };
   dialogVisible.value = true;
 }
@@ -194,7 +181,6 @@ function openEdit(stage) {
     id: stage.id,
     name: stage.name,
     start_date: String(stage.start_date).slice(0, 10),
-    end_date: stage.end_date ? String(stage.end_date).slice(0, 10) : "",
   };
   dialogVisible.value = true;
 }
@@ -211,14 +197,12 @@ async function handleSubmit() {
       ok = await stageStore.updateStage(form.value.id, {
         name: form.value.name.trim(),
         start_date: form.value.start_date,
-        end_date: form.value.end_date,
       });
       if (ok) ElMessage.success("更新成功");
     } else {
       ok = await stageStore.createStage({
         name: form.value.name.trim(),
         start_date: form.value.start_date,
-        end_date: form.value.end_date,
       });
       if (ok) ElMessage.success("创建成功");
     }
@@ -524,34 +508,5 @@ function confirmDelete(stage) {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-}
-
-.btn {
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn.primary {
-  background: #111827;
-  color: white;
-}
-
-.btn.primary:hover {
-  background: #374151;
-}
-
-.btn.ghost {
-  background: transparent;
-  color: #6b7280;
-}
-
-.btn.ghost:hover {
-  background: #f3f4f6;
-  color: #111827;
 }
 </style>

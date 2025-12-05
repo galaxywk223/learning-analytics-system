@@ -115,11 +115,7 @@ const canAddChild = computed(() => {
 });
 
 const canDelete = computed(() => {
-  return (
-    props.selectedNode &&
-    props.selectedNode.id &&
-    (!props.selectedNode.children || props.selectedNode.children.length === 0)
-  );
+  return props.selectedNode && props.selectedNode.id;
 });
 
 // 事件处理
