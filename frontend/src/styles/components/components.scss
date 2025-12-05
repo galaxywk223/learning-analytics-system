@@ -191,34 +191,3 @@
   padding: 2rem;
   text-align: center;
 }
-
-/* ===== Global Message Overrides ===== */
-:root {
-  --app-message-offset-x: clamp(16px, 4vw, 48px);
-  --app-message-offset-y: clamp(16px, 5vh, 52px);
-}
-
-.el-message {
-  position: fixed;
-  top: auto !important;
-  bottom: var(--app-message-offset-y);
-  left: auto !important;
-  right: var(--app-message-offset-x);
-  transform: none !important;
-  min-width: 240px;
-  border-radius: 14px;
-  padding: 0.85rem 1.25rem;
-  box-shadow:
-    0 8px 18px rgba(15, 23, 42, 0.16),
-    0 4px 8px rgba(15, 23, 42, 0.12);
-}
-
-.el-message__content {
-  font-weight: 600;
-  line-height: 1.5;
-}
-
-.el-message + .el-message {
-  margin-top: 0;
-  margin-bottom: 12px;
-}

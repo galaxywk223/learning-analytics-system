@@ -1,0 +1,149 @@
+/* Element Plus Component Overrides */
+
+/* --- ElMessage (Toast) --- */
+.el-message {
+    --el-message-bg-color: rgba(255, 255, 255, 0.95);
+    --el-message-border-color: rgba(0, 0, 0, 0.05);
+    --el-message-padding: 12px 24px;
+    --el-message-close-size: 16px;
+    --el-message-close-icon-color: #909399;
+    --el-message-close-hover-color: #303133;
+
+    min-width: 300px;
+    border-radius: 50px !important;
+    /* Perfect pill shape */
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 2px 4px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    padding: 10px 24px !important;
+    top: 24px !important;
+    /* Spacing from top */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.el-message--success {
+    background-color: rgba(240, 253, 244, 0.95) !important;
+    border-color: rgba(22, 163, 74, 0.1) !important;
+    color: #15803d !important;
+}
+
+.el-message--warning {
+    background-color: rgba(255, 251, 235, 0.95) !important;
+    border-color: rgba(217, 119, 6, 0.1) !important;
+    color: #b45309 !important;
+}
+
+.el-message--error {
+    background-color: rgba(254, 242, 242, 0.95) !important;
+    border-color: rgba(220, 38, 38, 0.1) !important;
+    color: #b91c1c !important;
+}
+
+.el-message--info {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    color: #374151 !important;
+}
+
+.el-message .el-message__content {
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+}
+
+/* Fix icon alignment */
+.el-message .el-message__icon {
+    margin-right: 12px;
+    font-size: 18px;
+}
+
+
+/* --- ElMessageBox (Alert/Confirm) --- */
+.el-message-box {
+    border-radius: 16px !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    padding-bottom: 20px !important;
+    font-family: inherit;
+    width: 400px;
+    max-width: 90vw;
+}
+
+/* Header */
+.el-message-box__header {
+    padding: 20px 24px 10px !important;
+}
+
+.el-message-box__title {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+}
+
+.el-message-box__headerbtn {
+    top: 20px !important;
+    right: 20px !important;
+}
+
+/* Content */
+.el-message-box__content {
+    padding: 0 24px 20px !important;
+    color: #4b5563 !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+}
+
+/* Footer buttons */
+.el-message-box__btns {
+    padding: 10px 24px 0 !important;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Transform Element Buttons inside Message Box to Pill Style */
+.el-message-box__btns .el-button {
+    border-radius: 999px !important;
+    padding: 8px 20px !important;
+    height: auto !important;
+    font-weight: 600 !important;
+    border: none !important;
+    transition: all 0.2s ease !important;
+}
+
+.el-message-box__btns .el-button--primary {
+    background-color: #111827 !important;
+    color: white !important;
+}
+
+.el-message-box__btns .el-button--primary:hover {
+    background-color: #374151 !important;
+    transform: translateY(-1px);
+}
+
+.el-message-box__btns .el-button--default {
+    background-color: transparent !important;
+    color: #6b7280 !important;
+    border: 1px solid transparent !important;
+}
+
+.el-message-box__btns .el-button--default:hover {
+    background-color: #f3f4f6 !important;
+    color: #111827 !important;
+}
+
+/* Input inside message box */
+.el-message-box__input .el-input__inner {
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+}
+
+/* Ensure no font encoding issues by forcing system fonts stack */
+.el-message,
+.el-message-box {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji" !important;
+}
