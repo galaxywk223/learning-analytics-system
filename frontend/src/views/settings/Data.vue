@@ -391,6 +391,8 @@ async function confirmClear() {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  position: relative;
+  z-index: 10;
 }
 
 .file-actions {
