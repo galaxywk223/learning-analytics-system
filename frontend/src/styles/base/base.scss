@@ -1,7 +1,8 @@
 /* frontend/src/styles/base/base.scss */
 
 /* ===== 1. Google Font Import ===== */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+/* ===== 1. Google Font Import (Removed for performance in China) ===== */
+/* @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"); */
 
 /* ===== 3. CSS Variables (Theme Colors & Properties) ===== */
 :root {

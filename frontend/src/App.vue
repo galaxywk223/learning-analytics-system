@@ -59,6 +59,7 @@ body {
     radial-gradient(at 0% 0%, hsla(343,100%,96%,1) 0px, transparent 50%);
   background-size: 200% 200%;
   animation: gradientBG 20s ease infinite;
+  will-change: transform, background-position;
 }
 
 @keyframes gradientBG {
