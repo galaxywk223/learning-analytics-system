@@ -255,6 +255,8 @@
 }
 
 .expired-card .actions {
+  display: flex;
+  align-items: center;
   margin-top: 8px;
   justify-content: center;
   gap: 12px;

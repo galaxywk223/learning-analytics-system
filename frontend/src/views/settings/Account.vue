@@ -47,22 +47,24 @@
                 />
               </div>
             </div>
-            <div class="form-actions" v-if="isProfileChanged">
-              <button
-                type="button"
-                class="btn ghost small"
-                @click="resetProfileForm"
-                :disabled="profileLoading"
-              >
-                取消
-              </button>
-              <button
-                type="submit"
-                class="btn primary small"
-                :disabled="profileLoading"
-              >
-                {{ profileLoading ? "保存..." : "保存更改" }}
-              </button>
+            <div class="form-actions">
+              <div class="pill-btn-group-horizontal">
+                <button
+                  type="button"
+                  class="pill-btn secondary"
+                  @click="resetProfileForm"
+                  :disabled="profileLoading || !isProfileChanged"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  class="pill-btn primary"
+                  :disabled="profileLoading || !isProfileChanged"
+                >
+                  {{ profileLoading ? "保存..." : "保存更改" }}
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -114,22 +116,24 @@
                <p class="error-text" v-if="confirmPasswordError">{{ confirmPasswordError }}</p>
             </div>
 
-            <div class="form-actions" v-if="isPasswordFormFilled">
-              <button
-                type="button"
-                class="btn ghost small"
-                @click="resetPasswordForm"
-                :disabled="passwordLoading"
-              >
-                取消
-              </button>
-              <button
-                type="submit"
-                class="btn primary small"
-                :disabled="passwordLoading || !isPasswordFormValid"
-              >
-                {{ passwordLoading ? "修改..." : "修改密码" }}
-              </button>
+            <div class="form-actions">
+              <div class="pill-btn-group-horizontal">
+                <button
+                  type="button"
+                  class="pill-btn secondary"
+                  @click="resetPasswordForm"
+                  :disabled="passwordLoading || !isPasswordFormFilled"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  class="pill-btn primary"
+                  :disabled="passwordLoading || !isPasswordFormValid"
+                >
+                  {{ passwordLoading ? "修改..." : "修改密码" }}
+                </button>
+              </div>
             </div>
           </form>
         </div>
