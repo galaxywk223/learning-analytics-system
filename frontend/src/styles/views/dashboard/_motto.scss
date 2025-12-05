@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Long+Cang&family=ZCOOL+XiaoWei&display=swap");
+/* Google Fonts removed for performance/stability in China region */
 
 .motto-section {
   padding: 0 32px 36px;
@@ -82,8 +82,6 @@
   white-space: nowrap;
   color: var(--color-text-heading);
   font-family:
-    "Long Cang",
-    "ZCOOL XiaoWei",
     "STKaiti",
     "KaiTi",
     "Hiragino Sans GB",
@@ -158,6 +156,7 @@
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }
