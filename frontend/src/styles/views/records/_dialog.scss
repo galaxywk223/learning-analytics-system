@@ -74,12 +74,10 @@
 
 :deep(.el-overlay) {
   background-color: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(10px);
 }
 
 :deep(.el-skeleton) {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);

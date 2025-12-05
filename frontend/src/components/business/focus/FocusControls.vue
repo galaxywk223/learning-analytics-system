@@ -186,7 +186,6 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
   background: rgba(118, 118, 128, 0.12);
   color: #000000;
   box-shadow: none;
-  backdrop-filter: blur(10px);
 
   &:hover {
     background: rgba(118, 118, 128, 0.24);

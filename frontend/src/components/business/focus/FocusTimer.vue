@@ -81,8 +81,8 @@ const timeLabel = computed(() => {
     content: "";
     position: absolute;
     inset: -24px;
-    background: radial-gradient(circle at 50% 40%, rgba(99, 102, 241, 0.16), rgba(99, 102, 241, 0));
-    filter: blur(32px);
+    background: radial-gradient(circle at 50% 40%, rgba(99, 102, 241, 0.12), rgba(99, 102, 241, 0));
+    filter: blur(20px);
     z-index: 0;
   }
 
@@ -94,7 +94,6 @@ const timeLabel = computed(() => {
 
     .progress-ring {
       transform: rotate(-90deg);
-      filter: drop-shadow(0 12px 40px rgba(99, 102, 241, 0.12));
 
       &-bg {
         stroke: rgba(99, 102, 241, 0.12);

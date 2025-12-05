@@ -144,8 +144,7 @@ defineExpose({
     gap: 1.2rem;
     padding: clamp(1.8rem, 3vw, 2.1rem);
     border-radius: 24px;
-    background: rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.96);
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
   }

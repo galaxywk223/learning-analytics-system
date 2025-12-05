@@ -245,7 +245,6 @@ async function handleSubmit() {
 /* Dialog & Overlay - iOS Premium */
 .milestone-form-dialog :deep(.el-overlay) {
   background-color: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(8px);
 }
 
 .milestone-form-dialog :deep(.el-dialog) {
@@ -253,8 +252,7 @@ async function handleSubmit() {
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
   padding: 0;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.98);
 }
 
 .milestone-form-dialog :deep(.el-dialog__header) {
