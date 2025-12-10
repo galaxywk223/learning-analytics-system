@@ -4,9 +4,7 @@
 export { useAuthStore } from "./modules/auth";
 export { useCategoryStore } from "./modules/category";
 export { useChartsStore } from "./modules/charts";
-export { useCountdownStore } from "./modules/countdown";
-export { useDailyPlanStore } from "./modules/dailyPlan";
-export { useDashboardStore } from "./modules/dashboard";
+
 export { useLeaderboardStore } from "./modules/leaderboard";
 export { useMilestoneStore } from "./modules/milestone";
 export { useMottoStore } from "./modules/motto";

@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :data-theme="currentTheme" :style="appStyles">
+  <div id="app">
     <router-view v-slot="{ Component }">
       <keep-alive :max="5">
         <component :is="Component" :key="$route.fullPath" />
@@ -9,26 +9,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from "vue";
+import { onMounted } from "vue";
 import { useAuthStore } from "@/stores/modules/auth";
 import { useSettingsStore } from "@/stores/modules/settings";
 
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
-
-const currentTheme = computed(() => settingsStore.theme || "palette-purple");
-
-const appStyles = computed(() => {
-  const styles = {};
-  // If custom background image is set via settings
-  if (settingsStore.backgroundImage) {
-    styles.backgroundImage = `url(${settingsStore.backgroundImage})`;
-    styles.backgroundSize = 'cover';
-    styles.backgroundPosition = 'center';
-    styles.backgroundRepeat = 'no-repeat';
-  }
-  return styles;
-});
 
 onMounted(() => {
   // 应用加载时检查登录状态

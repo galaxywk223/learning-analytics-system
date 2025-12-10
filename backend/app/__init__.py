@@ -186,7 +186,6 @@ def setup_logging(app):
         except Exception as e:
             app.logger.warning(f"Sentry initialization failed: {e}")
 
-
 def register_blueprints(app):
     """注册所有蓝图"""
     from app.api import auth, users, stages, categories, records, charts
@@ -199,15 +198,11 @@ def register_blueprints(app):
     app.register_blueprint(categories.bp, url_prefix="/api/categories")
     app.register_blueprint(records.bp, url_prefix="/api/records")
     app.register_blueprint(charts.bp, url_prefix="/api/charts")
-    # app.register_blueprint(todos.bp, url_prefix="/api/todos")  # Removed
     app.register_blueprint(milestones.bp, url_prefix="/api/milestones")
-    # app.register_blueprint(daily_plans.bp, url_prefix="/api/daily-plans")  # 屏蔽每日计划
     app.register_blueprint(countdowns.bp, url_prefix="/api/countdowns")
-    app.register_blueprint(mottos.bp, url_prefix="/api/mottos")  # 恢复座右铭
+    app.register_blueprint(mottos.bp, url_prefix="/api/mottos")
     app.register_blueprint(leaderboard.bp, url_prefix="/api/leaderboard")
     app.register_blueprint(ai.bp, url_prefix="/api/ai")
-
-
 def register_error_handlers(app):
     """注册错误处理器"""
 

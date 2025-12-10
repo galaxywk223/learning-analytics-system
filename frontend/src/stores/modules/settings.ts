@@ -3,9 +3,6 @@ import request from "@/utils/request";
 
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
-    theme: localStorage.getItem("ll_theme") || "palette-purple",
-    // pendingTheme: 临时选择但尚未保存到后端的主题
-    pendingTheme: localStorage.getItem("ll_theme") || "palette-purple",
     activeStageId: Number(localStorage.getItem("ll_active_stage_id") || 0),
     layout: {
       // 默认折叠侧边栏，仅在用户明确设为 "0" 时展开
@@ -25,11 +22,6 @@ export const useSettingsStore = defineStore("settings", {
           method: "get",
         })) as any;
         if (settings) {
-          if (settings.theme) {
-            this.theme = settings.theme;
-            this.pendingTheme = settings.theme; // 保持与已保存主题同步
-            localStorage.setItem("ll_theme", settings.theme);
-          }
           if (settings.active_stage_id) {
             this.activeStageId = settings.active_stage_id;
             localStorage.setItem(
@@ -53,7 +45,6 @@ export const useSettingsStore = defineStore("settings", {
           url: "/api/users/settings",
           method: "post",
           data: {
-            theme: this.theme,
             active_stage_id: this.activeStageId,
           },
         });
@@ -61,20 +52,6 @@ export const useSettingsStore = defineStore("settings", {
         console.error("保存用户设置失败:", error);
         throw error;
       }
-    },
-    // 仅修改待提交主题，不立即保存
-    setTheme(val) {
-      this.pendingTheme = val;
-    },
-    // 提交当前 pendingTheme 为正式主题
-    async applyTheme() {
-      if (!this.pendingTheme) return;
-      this.theme = this.pendingTheme;
-      localStorage.setItem("ll_theme", this.theme);
-      await this.saveSettings();
-    },
-    resetPendingTheme() {
-      this.pendingTheme = this.theme;
     },
     setActiveStage(stageId) {
       this.activeStageId = stageId;

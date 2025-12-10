@@ -15,11 +15,12 @@ from .analytics import WeeklyData, DailyData
 # 导入应用功能模型
 from .features import CountdownEvent, Motto
 
+
+
 # 导入里程碑模型
 from .milestones import MilestoneCategory, Milestone, MilestoneAttachment
 
-# 导入日程计划模型
-from .planning import DailyPlanItem
+# 导入 AI 模型
 from .ai import AIInsight
 
 # 导出所有模型，保持向后兼容性
@@ -43,8 +44,7 @@ __all__ = [
     "MilestoneCategory",
     "Milestone",
     "MilestoneAttachment",
-    # 日程计划模型
-    "DailyPlanItem",
     # AI
     "AIInsight",
 ]
+

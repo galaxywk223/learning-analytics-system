@@ -211,8 +211,12 @@ def get_settings():
     current_user_id = get_jwt_identity()
     settings = Setting.query.filter_by(user_id=current_user_id).all()
 
-    # Filter out background_image if it exists in DB but we don't want to send it
-    data = {s.key: s.value for s in settings if s.key != "background_image"}
+    # Filter out background_image and theme if they exist in DB but we don't want to send them
+    data = {
+        s.key: s.value
+        for s in settings
+        if s.key not in ["background_image", "theme"]
+    }
 
     return jsonify({"success": True, "settings": data}), 200
 
@@ -228,9 +232,10 @@ def update_settings():
         return jsonify({"success": False, "message": "请提供设置数据"}), 400
 
     try:
-        # Ignore background_image in updates
-        if "background_image" in data:
-            del data["background_image"]
+        # Ignore background_image and theme in updates
+        for forbidden in ["background_image", "theme"]:
+            if forbidden in data:
+                del data[forbidden]
 
         for key, value in data.items():
             setting = Setting.query.filter_by(key=key, user_id=current_user_id).first()

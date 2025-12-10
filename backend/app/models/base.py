@@ -45,9 +45,7 @@ class User(db.Model):
         "Motto", backref="user", lazy="dynamic", cascade="all, delete-orphan"
     )
 
-    daily_plans = db.relationship(
-        "DailyPlanItem", backref="user", lazy="dynamic", cascade="all, delete-orphan"
-    )
+
 
     def set_password(self, password):
         """设置密码"""

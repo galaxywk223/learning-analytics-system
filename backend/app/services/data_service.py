@@ -14,7 +14,6 @@ from app.models import (
     Category,
     CountdownEvent,
     DailyData,
-    DailyPlanItem,
     LogEntry,
     Milestone,
     MilestoneAttachment,
@@ -39,7 +38,6 @@ MODELS_TO_HANDLE = [
     Milestone,
     MilestoneAttachment,
     CountdownEvent,
-    DailyPlanItem,
 ]
 
 # 缓存各模型的真实字段，用于导入时剔除派生属性
@@ -52,7 +50,6 @@ MODEL_COLUMN_MAP = {
 # 这样可避免不同用户/历史备份之间的主键碰撞
 LEAF_USER_TABLES = (
     Motto,
-    DailyPlanItem,
     CountdownEvent,
 )
 
@@ -224,7 +221,8 @@ def import_data_for_user(user, zip_stream):
                 MilestoneAttachment.__tablename__,
                 CountdownEvent.__tablename__,
                 Motto.__tablename__,
-                DailyPlanItem.__tablename__,
+                CountdownEvent.__tablename__,
+                Motto.__tablename__,
             ]
 
             pending_records = {}
