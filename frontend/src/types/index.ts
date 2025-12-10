@@ -121,28 +121,6 @@ export interface Motto {
   created_at: string;
 }
 
-// 待办事项类型
-export interface TodoItem {
-  id: number;
-  content: string;
-  is_completed: boolean;
-  priority?: "low" | "medium" | "high";
-  due_date?: string;
-  user_id: number;
-  created_at: string;
-  updated_at?: string;
-}
-
-// 每日计划类型
-export interface DailyPlan {
-  id: number;
-  plan_date: string;
-  content: string;
-  is_completed: boolean;
-  user_id: number;
-  created_at: string;
-}
-
 // 图表数据类型
 export interface ChartData {
   labels: string[];

@@ -37,11 +37,9 @@ export const ROUTE_PATHS = {
   RECORDS: "/records",
   CATEGORIES: "/categories",
   STAGES: "/stages",
-  TODOS: "/todos",
   MILESTONES: "/milestones",
   COUNTDOWN: "/countdown",
   CHARTS: "/charts",
-  DAILY_PLAN: "/dailyplan",
   SETTINGS: "/settings",
 };
 

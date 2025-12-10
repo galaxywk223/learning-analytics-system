@@ -10,38 +10,6 @@ export const LOADING_STATUS = {
   ERROR: "error",
 };
 
-// 待办状态
-export const TODO_STATUS = {
-  PENDING: "pending",
-  IN_PROGRESS: "in_progress",
-  COMPLETED: "completed",
-  CANCELLED: "cancelled",
-};
-
-// 待办优先级
-export const TODO_PRIORITY = {
-  LOW: "low",
-  MEDIUM: "medium",
-  HIGH: "high",
-  URGENT: "urgent",
-};
-
-// 待办优先级文本
-export const TODO_PRIORITY_TEXT = {
-  [TODO_PRIORITY.LOW]: "低",
-  [TODO_PRIORITY.MEDIUM]: "中",
-  [TODO_PRIORITY.HIGH]: "高",
-  [TODO_PRIORITY.URGENT]: "紧急",
-};
-
-// 待办优先级颜色
-export const TODO_PRIORITY_COLORS = {
-  [TODO_PRIORITY.LOW]: "#909399",
-  [TODO_PRIORITY.MEDIUM]: "#409EFF",
-  [TODO_PRIORITY.HIGH]: "#E6A23C",
-  [TODO_PRIORITY.URGENT]: "#F56C6C",
-};
-
 // 主题模式
 export const THEME_MODE = {
   LIGHT: "light",

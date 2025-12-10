@@ -41,13 +41,7 @@ export const API_ENDPOINTS = {
   },
 
   // 待办
-  TODOS: {
-    LIST: "/todos",
-    CREATE: "/todos",
-    UPDATE: (id) => `/todos/${id}`,
-    DELETE: (id) => `/todos/${id}`,
-    TOGGLE: (id) => `/todos/${id}/toggle`,
-  },
+
 
   // 倒计时
   COUNTDOWN: {

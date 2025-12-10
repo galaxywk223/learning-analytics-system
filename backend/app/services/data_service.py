@@ -126,7 +126,7 @@ def _clear_user_data(user):
     Motto.query.filter_by(user_id=user.id).delete(synchronize_session=False)
 
     CountdownEvent.query.filter_by(user_id=user.id).delete(synchronize_session=False)
-    DailyPlanItem.query.filter_by(user_id=user.id).delete(synchronize_session=False)
+
     Setting.query.filter_by(user_id=user.id).delete(synchronize_session=False)
     Category.query.filter_by(user_id=user.id).delete(synchronize_session=False)
     MilestoneCategory.query.filter_by(user_id=user.id).delete(synchronize_session=False)

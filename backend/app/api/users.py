@@ -90,9 +90,6 @@ def dashboard_summary():
             "remaining_days": remaining_days,
         }
 
-    # 待办数量
-    pending_todos = 0
-
     # 里程碑数量
     milestones_count = Milestone.query.filter_by(user_id=current_user_id).count()
 
@@ -122,9 +119,7 @@ def dashboard_summary():
                 "latest_record_date": latest_record_date,
                 "countdown_total": countdown_total,
                 "next_countdown": next_countdown_payload,
-                "pending_todos": pending_todos,
                 "milestones_count": milestones_count,
-                "daily_plan": {"completed": 0, "total": 0},
                 # "daily_plan": {"completed": completed_today, "total": total_today},  # 屏蔽
                 # 恢复随机格言（与旧项目结构一致，仅返回 id 与 content）
                 "random_motto": (

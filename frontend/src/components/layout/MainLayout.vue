@@ -1,7 +1,6 @@
 <template>
   <div
     class="page-wrapper"
-    :data-theme="currentTheme"
     :class="{ 'sidebar-collapsed': true }"
   >
     <!-- 侧边栏 -->
@@ -102,9 +101,6 @@ import { Icon } from "@iconify/vue";
 import { useSettingsStore } from "@/stores/modules/settings";
 
 const settingsStore = useSettingsStore();
-
-// 获取当前主题
-const currentTheme = computed(() => settingsStore.theme || "palette-purple");
 
 // 应用背景图片
 onMounted(async () => {
