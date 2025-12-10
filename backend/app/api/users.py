@@ -211,9 +211,10 @@ def get_settings():
     current_user_id = get_jwt_identity()
     settings = Setting.query.filter_by(user_id=current_user_id).all()
 
-    return jsonify(
-        {"success": True, "settings": {s.key: s.value for s in settings}}
-    ), 200
+    # Filter out background_image if it exists in DB but we don't want to send it
+    data = {s.key: s.value for s in settings if s.key != "background_image"}
+
+    return jsonify({"success": True, "settings": data}), 200
 
 
 @bp.route("/settings", methods=["POST"])
@@ -227,6 +228,10 @@ def update_settings():
         return jsonify({"success": False, "message": "请提供设置数据"}), 400
 
     try:
+        # Ignore background_image in updates
+        if "background_image" in data:
+            del data["background_image"]
+
         for key, value in data.items():
             setting = Setting.query.filter_by(key=key, user_id=current_user_id).first()
             if setting:
@@ -244,98 +249,4 @@ def update_settings():
         return jsonify({"success": False, "message": "更新失败"}), 500
 
 
-@bp.route("/upload/background", methods=["POST"])
-@jwt_required()
-def upload_background():
-    """上传背景图片"""
-    current_user_id = get_jwt_identity()
 
-    if "file" not in request.files:
-        return jsonify({"success": False, "message": "没有文件被上传"}), 400
-
-    file = request.files["file"]
-
-    if file.filename == "":
-        return jsonify({"success": False, "message": "文件名为空"}), 400
-
-    if not allowed_file(file.filename, ALLOWED_IMAGE_EXTENSIONS):
-        return jsonify(
-            {"success": False, "message": "不支持的文件格式,仅支持png、jpg、jpeg、gif"}
-        ), 400
-
-    try:
-        # 生成安全的文件名
-        timestamp = int(datetime.now().timestamp())
-        ext = file.filename.rsplit(".", 1)[1].lower()
-        filename = f"bg_{current_user_id}_{timestamp}.{ext}"
-        filename = secure_filename(filename)
-
-        # 确保上传目录存在
-        upload_folder = current_app.config.get("BACKGROUND_UPLOADS")
-        if not upload_folder:
-            return jsonify({"success": False, "message": "上传功能未配置"}), 500
-
-        user_upload_dir = os.path.join(upload_folder, str(current_user_id))
-        os.makedirs(user_upload_dir, exist_ok=True)
-
-        # 保存文件
-        file_path = os.path.join(user_upload_dir, filename)
-        file.save(file_path)
-
-        # 更新用户设置
-        relative_path = f"{current_user_id}/{filename}"
-        setting = Setting.query.filter_by(
-            key="background_image", user_id=current_user_id
-        ).first()
-        if setting:
-            setting.value = relative_path
-        else:
-            setting = Setting(
-                key="background_image", value=relative_path, user_id=current_user_id
-            )
-            db.session.add(setting)
-
-        db.session.commit()
-
-        return jsonify(
-            {
-                "success": True,
-                "message": "背景图片上传成功",
-                "background_image": relative_path,
-            }
-        ), 200
-
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f"Background upload error: {e}")
-        return jsonify({"success": False, "message": "上传失败"}), 500
-
-
-@bp.route("/upload/background", methods=["DELETE"])
-@jwt_required()
-def delete_background():
-    """删除背景图片"""
-    current_user_id = get_jwt_identity()
-
-    try:
-        setting = Setting.query.filter_by(
-            key="background_image", user_id=current_user_id
-        ).first()
-        if setting:
-            # 删除文件
-            if setting.value:
-                upload_folder = current_app.config.get("BACKGROUND_UPLOADS")
-                file_path = os.path.join(upload_folder, setting.value)
-                if os.path.exists(file_path):
-                    os.remove(file_path)
-
-            # 删除设置记录
-            db.session.delete(setting)
-            db.session.commit()
-
-        return jsonify({"success": True, "message": "背景图片已删除"}), 200
-
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f"Background delete error: {e}")
-        return jsonify({"success": False, "message": "删除失败"}), 500

@@ -6,7 +6,6 @@ export const useSettingsStore = defineStore("settings", {
     theme: localStorage.getItem("ll_theme") || "palette-purple",
     // pendingTheme: 临时选择但尚未保存到后端的主题
     pendingTheme: localStorage.getItem("ll_theme") || "palette-purple",
-    backgroundImage: localStorage.getItem("ll_background") || "",
     activeStageId: Number(localStorage.getItem("ll_active_stage_id") || 0),
     layout: {
       // 默认折叠侧边栏，仅在用户明确设为 "0" 时展开
@@ -30,10 +29,6 @@ export const useSettingsStore = defineStore("settings", {
             this.theme = settings.theme;
             this.pendingTheme = settings.theme; // 保持与已保存主题同步
             localStorage.setItem("ll_theme", settings.theme);
-          }
-          if (settings.background_image) {
-            this.backgroundImage = settings.background_image;
-            localStorage.setItem("ll_background", settings.background_image);
           }
           if (settings.active_stage_id) {
             this.activeStageId = settings.active_stage_id;
@@ -59,7 +54,6 @@ export const useSettingsStore = defineStore("settings", {
           method: "post",
           data: {
             theme: this.theme,
-            background_image: this.backgroundImage,
             active_stage_id: this.activeStageId,
           },
         });
@@ -82,25 +76,6 @@ export const useSettingsStore = defineStore("settings", {
     resetPendingTheme() {
       this.pendingTheme = this.theme;
     },
-    setBackgroundImage(url) {
-      this.backgroundImage = url;
-      localStorage.setItem("ll_background", url || "");
-      this.saveSettings();
-    },
-    async removeBackground() {
-      try {
-        await request({
-          url: "/api/users/upload/background",
-          method: "delete",
-        });
-        this.backgroundImage = "";
-        localStorage.setItem("ll_background", "");
-        await this.saveSettings();
-      } catch (e) {
-        console.error("删除背景失败:", e);
-        throw e;
-      }
-    },
     setActiveStage(stageId) {
       this.activeStageId = stageId;
       localStorage.setItem("ll_active_stage_id", String(stageId || 0));
@@ -112,3 +87,4 @@ export const useSettingsStore = defineStore("settings", {
     },
   },
 });
+

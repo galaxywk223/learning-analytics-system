@@ -222,6 +222,9 @@ def import_data_for_user(user, zip_stream):
                 DailyData.__tablename__,
                 WeeklyData.__tablename__,
                 MilestoneAttachment.__tablename__,
+                CountdownEvent.__tablename__,
+                Motto.__tablename__,
+                DailyPlanItem.__tablename__,
             ]
 
             pending_records = {}
