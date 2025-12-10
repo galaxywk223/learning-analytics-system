@@ -12,7 +12,6 @@ from app.models import (
     User,
     Setting,
     LogEntry,
-    Todo,
     Milestone,
     CountdownEvent,
     Stage,
@@ -92,9 +91,7 @@ def dashboard_summary():
         }
 
     # 待办数量
-    pending_todos = Todo.query.filter_by(
-        user_id=current_user_id, is_completed=False
-    ).count()
+    pending_todos = 0
 
     # 里程碑数量
     milestones_count = Milestone.query.filter_by(user_id=current_user_id).count()

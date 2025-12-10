@@ -13,7 +13,7 @@ from .learning import Stage, Category, SubCategory, LogEntry
 from .analytics import WeeklyData, DailyData
 
 # 导入应用功能模型
-from .features import CountdownEvent, Motto, Todo
+from .features import CountdownEvent, Motto
 
 # 导入里程碑模型
 from .milestones import MilestoneCategory, Milestone, MilestoneAttachment
@@ -38,7 +38,7 @@ __all__ = [
     # 应用功能模型
     "CountdownEvent",
     "Motto",
-    "Todo",
+
     # 里程碑模型
     "MilestoneCategory",
     "Milestone",

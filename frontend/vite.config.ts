@@ -12,6 +12,9 @@ const resolvePackageName = (id: string) => {
   return segments[0].startsWith("@") ? `${segments[0]}/${segments[1]}` : segments[0];
 };
 
+const DEV_PORT =
+  Number(process.env.VITE_PORT || process.env.PORT || "") || 0; // 0 = let OS pick a free port
+
 export default defineConfig({
   plugins: [
     vue({
@@ -72,9 +75,11 @@ export default defineConfig({
   },
 
   server: {
+    // 强制绑定 IPv4 回环，绕过某些环境对 ::1/0.0.0.0 的权限限制
     host: "127.0.0.1",
-    port: 5173,
-    strictPort: false,
+    // 默认让操作系统分配空闲端口；如需固定端口可设置环境变量 VITE_PORT/PORT
+    port: DEV_PORT || 0,
+    strictPort: false, // 如果指定端口不可用或权限受限，自动切到其他可用端口
     proxy: {
       "/api": {
         target: "http://localhost:5000",

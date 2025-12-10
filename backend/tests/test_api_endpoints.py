@@ -12,7 +12,7 @@ from app.models import (
     WeeklyData,
     DailyData,
     CountdownEvent,
-    Todo,
+
     Milestone,
     Motto,
     Setting,
@@ -95,7 +95,7 @@ def test_dashboard_summary_with_data(client, db_session):
     db_session.session.add(
         CountdownEvent(title="考试", target_datetime_utc=future_dt, user_id=user_id)
     )
-    db_session.session.add(Todo(content="待办1", user_id=user_id))
+
     db_session.session.add(
         Milestone(title="里程碑1", event_date=date.today(), user_id=user_id)
     )
@@ -106,7 +106,7 @@ def test_dashboard_summary_with_data(client, db_session):
     data = resp.get_json()["data"]
     assert data["today_duration_minutes"] == 120
     assert data["next_countdown"] is not None
-    assert data["pending_todos"] == 1
+    assert data["pending_todos"] == 0
     assert data["milestones_count"] == 1
     assert data["random_motto"] is not None
 

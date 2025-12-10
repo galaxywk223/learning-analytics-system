@@ -105,7 +105,7 @@ def create_app(config_name=None):
                     "charts": "/api/charts",
                     "leaderboard": "/api/leaderboard",
                     "ai": "/api/ai",
-                    "todos": "/api/todos",
+
                     "milestones": "/api/milestones",
                     # "daily-plans": "/api/daily-plans",  # 屏蔽
                     "countdowns": "/api/countdowns",
@@ -150,11 +150,47 @@ def setup_logging(app):
         except Exception as e:
             app.logger.warning(f"Sentry initialization failed: {e}")
 
+    return app
+
+
+def setup_logging(app):
+    """配置日志"""
+    from pythonjsonlogger import jsonlogger
+
+    root_logger = logging.getLogger()
+
+    # 避免重复添加handler
+    if not any(isinstance(h, logging.StreamHandler) for h in root_logger.handlers):
+        handler = logging.StreamHandler()
+        formatter = jsonlogger.JsonFormatter(
+            "%(asctime)s %(levelname)s %(name)s %(message)s"
+        )
+        handler.setFormatter(formatter)
+        root_logger.addHandler(handler)
+
+    root_logger.setLevel(app.config["LOG_LEVEL"])
+
+    # Sentry集成(可选)
+    sentry_dsn = os.getenv("SENTRY_DSN")
+    if sentry_dsn:
+        try:
+            import sentry_sdk
+            from sentry_sdk.integrations.flask import FlaskIntegration
+
+            sentry_sdk.init(
+                dsn=sentry_dsn,
+                integrations=[FlaskIntegration()],
+                traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.0")),
+            )
+            app.logger.info("Sentry initialized")
+        except Exception as e:
+            app.logger.warning(f"Sentry initialization failed: {e}")
+
 
 def register_blueprints(app):
     """注册所有蓝图"""
     from app.api import auth, users, stages, categories, records, charts
-    from app.api import todos, milestones, countdowns, mottos, leaderboard, ai
+    from app.api import milestones, countdowns, mottos, leaderboard, ai
 
     # 注册API蓝图
     app.register_blueprint(auth.bp, url_prefix="/api/auth")
@@ -163,7 +199,7 @@ def register_blueprints(app):
     app.register_blueprint(categories.bp, url_prefix="/api/categories")
     app.register_blueprint(records.bp, url_prefix="/api/records")
     app.register_blueprint(charts.bp, url_prefix="/api/charts")
-    app.register_blueprint(todos.bp, url_prefix="/api/todos")
+    # app.register_blueprint(todos.bp, url_prefix="/api/todos")  # Removed
     app.register_blueprint(milestones.bp, url_prefix="/api/milestones")
     # app.register_blueprint(daily_plans.bp, url_prefix="/api/daily-plans")  # 屏蔽每日计划
     app.register_blueprint(countdowns.bp, url_prefix="/api/countdowns")

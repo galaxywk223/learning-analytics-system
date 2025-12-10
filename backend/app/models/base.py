@@ -44,9 +44,7 @@ class User(db.Model):
     mottos = db.relationship(
         "Motto", backref="user", lazy="dynamic", cascade="all, delete-orphan"
     )
-    todos = db.relationship(
-        "Todo", backref="user", lazy="dynamic", cascade="all, delete-orphan"
-    )
+
     daily_plans = db.relationship(
         "DailyPlanItem", backref="user", lazy="dynamic", cascade="all, delete-orphan"
     )

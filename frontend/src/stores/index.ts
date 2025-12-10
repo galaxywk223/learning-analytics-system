@@ -13,5 +13,5 @@ export { useMottoStore } from "./modules/motto";
 export { useRecordsStore } from "./modules/records";
 export { useSettingsStore } from "./modules/settings";
 export { useStageStore } from "./modules/stage";
-export { useTodoStore } from "./modules/todo";
+
 export { useAIAssistantStore } from "./modules/aiAssistant";

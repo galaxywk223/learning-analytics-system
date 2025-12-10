@@ -54,12 +54,6 @@ const routes: RouteRecordRaw[] = [
         meta: { title: "阶段管理" },
       },
       {
-        path: "todos",
-        name: "Todos",
-        component: () => import("@/views/todos/TodosView.vue"),
-        meta: { title: "待办事项" },
-      },
-      {
         path: "milestones",
         name: "Milestones",
         component: () => import("@/views/milestones/MilestonesView.vue"),

@@ -341,8 +341,9 @@ const rankingLabel = computed(
 );
 
 const aiPlanStatus = computed(() => {
-  const pending = dashboardStore.summary?.pending_todos ?? 0;
-  return pending > 0 ? `待办 ${pending} 项` : "已生成今日计划";
+  // const pending = dashboardStore.summary?.pending_todos ?? 0;
+  // return pending > 0 ? `待办 ${pending} 项` : "已生成今日计划";
+  return "已生成今日计划";
 });
 
 const last7Days = computed(() => {

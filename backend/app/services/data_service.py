@@ -1,28 +1,29 @@
 # -*- coding: utf-8 -*-
 """数据导入导出服务"""
+
 import io
 import json
 import os
 import zipfile
 from datetime import date, datetime
+
 from flask import current_app
 
 from app import db
 from app.models import (
-    Stage,
     Category,
-    SubCategory,
-    LogEntry,
-    DailyData,
-    WeeklyData,
-    Motto,
-    Todo,
-    Milestone,
-    MilestoneCategory,
-    MilestoneAttachment,
-    DailyPlanItem,
-    Setting,
     CountdownEvent,
+    DailyData,
+    DailyPlanItem,
+    LogEntry,
+    Milestone,
+    MilestoneAttachment,
+    MilestoneCategory,
+    Motto,
+    Setting,
+    Stage,
+    SubCategory,
+    WeeklyData,
 )
 
 MODELS_TO_HANDLE = [
@@ -34,7 +35,6 @@ MODELS_TO_HANDLE = [
     DailyData,
     WeeklyData,
     Motto,
-    Todo,
     MilestoneCategory,
     Milestone,
     MilestoneAttachment,
@@ -52,10 +52,10 @@ MODEL_COLUMN_MAP = {
 # 这样可避免不同用户/历史备份之间的主键碰撞
 LEAF_USER_TABLES = (
     Motto,
-    Todo,
     DailyPlanItem,
     CountdownEvent,
 )
+
 
 def _prune_unknown_fields(table_name: str, payload: dict) -> dict:
     """Drop keys that are not actual table columns to avoid assigning read-only properties."""
@@ -91,7 +91,6 @@ def _clear_user_data(user):
         f"Starting to clear all data for user: {user.username} (ID: {user.id})"
     )
 
-    # 使用 UPLOAD_FOLDER 而不是 MILESTONE_UPLOADS
     upload_folder = current_app.config.get("UPLOAD_FOLDER")
     if upload_folder:
         user_upload_folder = os.path.join(upload_folder, str(user.id))
@@ -99,7 +98,7 @@ def _clear_user_data(user):
             for filename in os.listdir(user_upload_folder):
                 try:
                     os.remove(os.path.join(user_upload_folder, filename))
-                except Exception as e:
+                except Exception as e:  # pragma: no cover - defensive logging
                     current_app.logger.error(
                         f"Failed to remove attachment file {filename}: {e}"
                     )
@@ -128,7 +127,7 @@ def _clear_user_data(user):
     Milestone.query.filter_by(user_id=user.id).delete(synchronize_session=False)
 
     Motto.query.filter_by(user_id=user.id).delete(synchronize_session=False)
-    Todo.query.filter_by(user_id=user.id).delete(synchronize_session=False)
+
     CountdownEvent.query.filter_by(user_id=user.id).delete(synchronize_session=False)
     DailyPlanItem.query.filter_by(user_id=user.id).delete(synchronize_session=False)
     Setting.query.filter_by(user_id=user.id).delete(synchronize_session=False)
@@ -154,14 +153,12 @@ def export_data_for_user(user):
         with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
             for model in MODELS_TO_HANDLE:
                 records = _query_user_records(model, user.id)
-
                 data = [record.to_dict() for record in records]
                 json_data = json.dumps(data, indent=4, ensure_ascii=False)
                 zf.writestr(f"data/{model.__tablename__}.json", json_data)
 
             current_app.logger.info("Exported all database tables to JSON.")
 
-            # 使用 UPLOAD_FOLDER 而不是 MILESTONE_UPLOADS
             upload_folder = current_app.config.get("UPLOAD_FOLDER")
             current_app.logger.info(f"[导出附件] UPLOAD_FOLDER配置: {upload_folder}")
 
@@ -197,36 +194,34 @@ def export_data_for_user(user):
         return True, buffer, filename
     except Exception as e:
         current_app.logger.error(
-            f"Export failed for user {user.username}: {e}", exc_info=True
+            f"Data export failed for user {user.username}: {e}", exc_info=True
         )
         return False, None, None
 
 
-def import_data_for_user(user, zip_file_stream):
+def import_data_for_user(user, zip_stream):
     """
-    ��һ��ZIP�ļ�����Ϊָ���û���������,�˲�����������û��������ݡ�
+    从 zip 流导入数据到指定用户，导入前会清空用户已有数据。
     """
-    current_app.logger.info(f"Starting data import for user: {user.username}")
-    try:
-        _clear_user_data(user)
+    if not zip_stream:
+        return False, "未提供 zip 文件"
 
-        with zipfile.ZipFile(zip_file_stream, "r") as zf:
+    try:
+        with zipfile.ZipFile(zip_stream) as zf:
+            _clear_user_data(user)
+
             model_map = {model.__tablename__: model for model in MODELS_TO_HANDLE}
             import_order = [
-                "setting",
-                "stage",
-                "category",
-                "milestone_category",
-                "motto",
-                "todo",
-                "countdown_event",
-                "daily_plan_item",
-                "sub_category",
-                "milestone",
-                "log_entry",
-                "daily_data",
-                "weekly_data",
-                "milestone_attachment",
+                Setting.__tablename__,
+                Stage.__tablename__,
+                Category.__tablename__,
+                SubCategory.__tablename__,
+                MilestoneCategory.__tablename__,
+                Milestone.__tablename__,
+                LogEntry.__tablename__,
+                DailyData.__tablename__,
+                WeeklyData.__tablename__,
+                MilestoneAttachment.__tablename__,
             ]
 
             pending_records = {}
@@ -237,11 +232,11 @@ def import_data_for_user(user, zip_file_stream):
                         pending_records[table_name] = json.load(json_file)
 
             id_maps = {
-                "stage": {},
-                "category": {},
-                "sub_category": {},
-                "milestone_category": {},
-                "milestone": {},
+                Stage.__tablename__: {},
+                Category.__tablename__: {},
+                SubCategory.__tablename__: {},
+                MilestoneCategory.__tablename__: {},
+                Milestone.__tablename__: {},
             }
 
             category_name_cache: dict[str, int] = {}
@@ -263,7 +258,7 @@ def import_data_for_user(user, zip_file_stream):
 
                 original_id = cat_info.get("id")
                 if original_id:
-                    mapped = _map_id("category", original_id)
+                    mapped = _map_id(Category.__tablename__, original_id)
                     if mapped:
                         return mapped
 
@@ -274,14 +269,14 @@ def import_data_for_user(user, zip_file_stream):
                 if name in category_name_cache:
                     cat_id = category_name_cache[name]
                     if original_id:
-                        _store_mapping("category", original_id, cat_id)
+                        _store_mapping(Category.__tablename__, original_id, cat_id)
                     return cat_id
 
                 existing = Category.query.filter_by(name=name, user_id=user.id).first()
                 if existing:
                     category_name_cache[name] = existing.id
                     if original_id:
-                        _store_mapping("category", original_id, existing.id)
+                        _store_mapping(Category.__tablename__, original_id, existing.id)
                     return existing.id
 
                 new_category = Category(name=name, user_id=user.id)
@@ -289,7 +284,7 @@ def import_data_for_user(user, zip_file_stream):
                 db.session.flush()
                 category_name_cache[name] = new_category.id
                 if original_id:
-                    _store_mapping("category", original_id, new_category.id)
+                    _store_mapping(Category.__tablename__, original_id, new_category.id)
                 current_app.logger.info(
                     "Reconstructed missing category '%s' (new id=%s)",
                     name,
@@ -303,7 +298,7 @@ def import_data_for_user(user, zip_file_stream):
 
                 original_id = sub_info.get("id") if sub_info else fallback_original_id
                 if original_id:
-                    mapped = _map_id("sub_category", original_id)
+                    mapped = _map_id(SubCategory.__tablename__, original_id)
                     if mapped:
                         return mapped
 
@@ -311,11 +306,13 @@ def import_data_for_user(user, zip_file_stream):
                 category_id_hint = (sub_info or {}).get("category_id")
                 category_info = (sub_info or {}).get("category")
 
-                mapped_category = _map_id("category", category_id_hint)
+                mapped_category = _map_id(Category.__tablename__, category_id_hint)
                 if mapped_category is None:
                     mapped_category = _ensure_category_from_info(category_info)
                 if mapped_category is None and category_id_hint is not None:
-                    mapped_category = _map_id("milestone_category", category_id_hint)
+                    mapped_category = _map_id(
+                        MilestoneCategory.__tablename__, category_id_hint
+                    )
 
                 if mapped_category is None:
                     current_app.logger.warning(
@@ -328,7 +325,7 @@ def import_data_for_user(user, zip_file_stream):
                 if cache_key in subcategory_name_cache:
                     sub_id = subcategory_name_cache[cache_key]
                     if original_id:
-                        _store_mapping("sub_category", original_id, sub_id)
+                        _store_mapping(SubCategory.__tablename__, original_id, sub_id)
                     return sub_id
 
                 new_name = name or f"未命名标签-{original_id or mapped_category}"
@@ -337,7 +334,7 @@ def import_data_for_user(user, zip_file_stream):
                 db.session.flush()
                 subcategory_name_cache[cache_key] = new_sub.id
                 if original_id:
-                    _store_mapping("sub_category", original_id, new_sub.id)
+                    _store_mapping(SubCategory.__tablename__, original_id, new_sub.id)
                 current_app.logger.info(
                     "Reconstructed missing subcategory '%s' (new id=%s, category_id=%s)",
                     new_name,
@@ -358,8 +355,12 @@ def import_data_for_user(user, zip_file_stream):
                 for record in records:
                     record_data = dict(record)
                     original_id = record_data.pop("id", None)
-                    sub_info = record_data.get("subcategory") if table_name == "log_entry" else None
-                    if table_name == "log_entry":
+                    sub_info = (
+                        record_data.get("subcategory")
+                        if table_name == LogEntry.__tablename__
+                        else None
+                    )
+                    if table_name == LogEntry.__tablename__:
                         record_data.pop("subcategory", None)
 
                     if "user_id" in model.__table__.columns:
@@ -373,7 +374,9 @@ def import_data_for_user(user, zip_file_stream):
                                 or key.endswith("_utc")
                             ):
                                 try:
-                                    dt_obj = datetime.fromisoformat(value.replace("Z", "+00:00"))
+                                    dt_obj = datetime.fromisoformat(
+                                        value.replace("Z", "+00:00")
+                                    )
                                     record_data[key] = dt_obj.replace(tzinfo=None)
                                 except ValueError as ve:
                                     current_app.logger.warning(
@@ -390,30 +393,32 @@ def import_data_for_user(user, zip_file_stream):
                     record_data = _prune_unknown_fields(table_name, record_data)
 
                     try:
-                        if table_name == "stage":
+                        if table_name == Stage.__tablename__:
                             new_stage = model(**record_data)
                             db.session.add(new_stage)
                             db.session.flush()
-                            _store_mapping("stage", original_id, new_stage.id)
+                            _store_mapping(table_name, original_id, new_stage.id)
                             continue
 
-                        if table_name == "category":
+                        if table_name == Category.__tablename__:
                             new_category = model(**record_data)
                             db.session.add(new_category)
                             db.session.flush()
-                            _store_mapping("category", original_id, new_category.id)
+                            _store_mapping(table_name, original_id, new_category.id)
                             category_name_cache[new_category.name] = new_category.id
                             continue
 
-                        if table_name == "milestone_category":
+                        if table_name == MilestoneCategory.__tablename__:
                             new_mc = model(**record_data)
                             db.session.add(new_mc)
                             db.session.flush()
-                            _store_mapping("milestone_category", original_id, new_mc.id)
+                            _store_mapping(table_name, original_id, new_mc.id)
                             continue
 
-                        if table_name == "sub_category":
-                            parent_id = _map_id("category", record_data.get("category_id"))
+                        if table_name == SubCategory.__tablename__:
+                            parent_id = _map_id(
+                                Category.__tablename__, record_data.get("category_id")
+                            )
                             if parent_id is None:
                                 current_app.logger.warning(
                                     "Skipping sub_category %s due to missing category mapping",
@@ -424,23 +429,27 @@ def import_data_for_user(user, zip_file_stream):
                             new_sub = model(**record_data)
                             db.session.add(new_sub)
                             db.session.flush()
-                            _store_mapping("sub_category", original_id, new_sub.id)
+                            _store_mapping(table_name, original_id, new_sub.id)
                             sub_key = f"{parent_id}:{new_sub.name}"
                             subcategory_name_cache[sub_key] = new_sub.id
                             continue
 
-                        if table_name == "milestone":
+                        if table_name == Milestone.__tablename__:
                             category_id = record_data.get("category_id")
                             if category_id is not None:
-                                record_data["category_id"] = _map_id("milestone_category", category_id)
+                                record_data["category_id"] = _map_id(
+                                    MilestoneCategory.__tablename__, category_id
+                                )
                             new_milestone = model(**record_data)
                             db.session.add(new_milestone)
                             db.session.flush()
-                            _store_mapping("milestone", original_id, new_milestone.id)
+                            _store_mapping(table_name, original_id, new_milestone.id)
                             continue
 
-                        if table_name == "log_entry":
-                            mapped_stage = _map_id("stage", record_data.get("stage_id"))
+                        if table_name == LogEntry.__tablename__:
+                            mapped_stage = _map_id(
+                                Stage.__tablename__, record_data.get("stage_id")
+                            )
                             if mapped_stage is None:
                                 current_app.logger.warning(
                                     "Skipping log entry dated %s due to missing stage mapping",
@@ -449,15 +458,22 @@ def import_data_for_user(user, zip_file_stream):
                                 continue
                             record_data["stage_id"] = mapped_stage
                             sub_old = record_data.get("subcategory_id")
-                            mapped_sub = _map_id("sub_category", sub_old)
+                            mapped_sub = _map_id(SubCategory.__tablename__, sub_old)
                             if not mapped_sub:
-                                mapped_sub = _ensure_subcategory_from_info(sub_info, sub_old)
+                                mapped_sub = _ensure_subcategory_from_info(
+                                    sub_info, sub_old
+                                )
                             record_data["subcategory_id"] = mapped_sub
                             db.session.add(model(**record_data))
                             continue
 
-                        if table_name in {"daily_data", "weekly_data"}:
-                            mapped_stage = _map_id("stage", record_data.get("stage_id"))
+                        if table_name in {
+                            DailyData.__tablename__,
+                            WeeklyData.__tablename__,
+                        }:
+                            mapped_stage = _map_id(
+                                Stage.__tablename__, record_data.get("stage_id")
+                            )
                             if mapped_stage is None:
                                 current_app.logger.warning(
                                     "Skipping %s record due to missing stage mapping",
@@ -468,8 +484,10 @@ def import_data_for_user(user, zip_file_stream):
                             db.session.add(model(**record_data))
                             continue
 
-                        if table_name == "milestone_attachment":
-                            milestone_id = _map_id("milestone", record_data.get("milestone_id"))
+                        if table_name == MilestoneAttachment.__tablename__:
+                            milestone_id = _map_id(
+                                Milestone.__tablename__, record_data.get("milestone_id")
+                            )
                             if milestone_id is None:
                                 current_app.logger.warning(
                                     "Skipping milestone attachment because parent milestone was not imported."
@@ -484,7 +502,7 @@ def import_data_for_user(user, zip_file_stream):
                             continue
 
                         db.session.add(model(**record_data))
-                    except Exception as e:
+                    except Exception as e:  # pragma: no cover - defensive logging
                         current_app.logger.error(
                             f"Failed to add {model.__name__} record: {e}, data: {record_data}"
                         )
@@ -532,14 +550,16 @@ def import_data_for_user(user, zip_file_stream):
 
         db.session.commit()
         current_app.logger.info("Data import committed successfully.")
-        return True, "���ݵ���ɹ�!���о������ѱ����ǡ�"
+        return True, "导入成功"
 
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(
             f"Data import failed for user {user.username}: {e}", exc_info=True
         )
-        return False, f"����ʧ��,�������ش���: {e}"
+        return False, f"导入失败: {e}"
+
+
 def clear_all_user_data(user):
     """
     清空用户的所有数据(包括附件)

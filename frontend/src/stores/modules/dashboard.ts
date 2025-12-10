@@ -11,7 +11,7 @@ export const useDashboardStore = defineStore("dashboard", {
       latest_record_date: null,
       next_countdown: null,
       countdown_total: 0,
-      pending_todos: 0,
+
       milestones_count: 0,
       daily_plan: { completed: 0, total: 0 },
       random_motto: null,
