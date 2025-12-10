@@ -32,9 +32,9 @@ export const formRules: FormRules = {
   task: [
     { required: true, message: "请输入任务名称", trigger: "blur" },
     {
-      min: 2,
+      min: 1,
       max: 100,
-      message: "任务名称长度在 2 到 100 个字符",
+      message: "任务名称不能为空",
       trigger: "blur",
     },
   ],
