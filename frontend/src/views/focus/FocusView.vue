@@ -114,7 +114,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onActivated } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useCategoryStore } from "@/stores/category";
@@ -379,6 +379,7 @@ const saveRecord = async () => {
 
     ElMessage.success("专注记录已保存！");
 
+    loading.value = false; // 确保重置加载状态
     setTimeout(() => {
       router.push("/records");
     }, 1500);
@@ -455,12 +456,16 @@ const goBack = () => {
 onMounted(async () => {
   await loadData();
 
-  // 尝试恢复之前的专注状态
-  const savedFormData = restoreState();
   if (savedFormData) {
     focusForm.value = savedFormData;
     ElMessage.success("已恢复上次的专注记录");
   }
+});
+
+onActivated(() => {
+  // 每次进入页面时重置加载状态和弹窗，防止因 keep-alive 导致的卡死
+  loading.value = false;
+  stopDialogVisible.value = false;
 });
 </script>
 
