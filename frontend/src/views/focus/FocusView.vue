@@ -456,6 +456,9 @@ const goBack = () => {
 onMounted(async () => {
   await loadData();
 
+
+
+  const savedFormData = restoreState();
   if (savedFormData) {
     focusForm.value = savedFormData;
     ElMessage.success("已恢复上次的专注记录");

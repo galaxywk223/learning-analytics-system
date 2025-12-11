@@ -117,7 +117,7 @@ async function submitAdd() {
   if (!content) return;
   adding.value = true;
   try {
-    await mottoStore.add(content);
+    await mottoStore.add({ content });
     form.value.content = "";
     ElMessage.success("添加成功");
   } catch (e) {
