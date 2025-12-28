@@ -6,7 +6,7 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
 from app.models import Motto
-import random
+import secrets
 
 bp = Blueprint("mottos", __name__)
 
@@ -37,7 +37,7 @@ def get_random_motto():
             {"success": True, "content": fallback_content, "motto": None}
         ), 200
 
-    random_motto = random.choice(mottos)
+    random_motto = secrets.choice(mottos)
     # 兼容旧结构增加 content 字段
     return jsonify(
         {

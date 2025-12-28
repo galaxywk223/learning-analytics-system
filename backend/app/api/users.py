@@ -15,7 +15,7 @@ from app.models import (
     Stage,
     Motto,
 )
-import random
+import secrets
 
 bp = Blueprint("users", __name__)
 
@@ -126,7 +126,7 @@ def dashboard_summary():
                             lambda _rnd: {"id": _rnd.id, "content": _rnd.content}
                             if _rnd
                             else None
-                        )(random.choice(_all) if _all else None)
+                        )(secrets.choice(_all) if _all else None)
                     )
                 )(Motto.query.filter_by(user_id=current_user_id).all()),
             },

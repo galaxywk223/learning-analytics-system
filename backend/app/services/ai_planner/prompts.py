@@ -94,25 +94,47 @@ def _build_analysis_prompt(
         lines.append("- 高频任务概览：\n" + "\n".join(task_lines))
 
     # 时间分布偏好
-    try:
-        wd_sorted = sorted(stats.get("weekday_stats", []), key=lambda x: x.get("minutes", 0), reverse=True)
+    weekday_stats = stats.get("weekday_stats")
+    if isinstance(weekday_stats, list):
+        wd_sorted = sorted(
+            weekday_stats, key=lambda x: x.get("minutes", 0), reverse=True
+        )
         top_wd = [w for w in wd_sorted[:2] if w.get("minutes", 0) > 0]
         if top_wd:
-            wd_map = {0: "周一", 1: "周二", 2: "周三", 3: "周四", 4: "周五", 5: "周六", 6: "周日"}
+            wd_map = {
+                0: "周一",
+                1: "周二",
+                2: "周三",
+                3: "周四",
+                4: "周五",
+                5: "周六",
+                6: "周日",
+            }
             lines.append(
-                "- 偏好日：" + "；".join([f"{wd_map.get(w['weekday'], w['weekday'])}（{w['hours']}h）" for w in top_wd])
+                "- 偏好日："
+                + "；".join(
+                    [
+                        f"{wd_map.get(w['weekday'], w['weekday'])}（{w['hours']}h）"
+                        for w in top_wd
+                    ]
+                )
             )
-    except Exception:
-        pass
-    try:
-        hr_sorted = sorted(stats.get("hour_stats", []), key=lambda x: x.get("minutes", 0), reverse=True)
+    hour_stats = stats.get("hour_stats")
+    if isinstance(hour_stats, list):
+        hr_sorted = sorted(
+            hour_stats, key=lambda x: x.get("minutes", 0), reverse=True
+        )
         top_hr = [h for h in hr_sorted[:3] if h.get("minutes", 0) > 0]
         if top_hr:
             lines.append(
-                "- 高效时段：" + "；".join([f"{h['hour']:02d}:00（{h['hours']}h）" for h in top_hr])
+                "- 高效时段："
+                + "；".join(
+                    [
+                        f"{h['hour']:02d}:00（{h['hours']}h）"
+                        for h in top_hr
+                    ]
+                )
             )
-    except Exception:
-        pass
 
     # 与上一周期对比
     if prev_stats and prev_stats.get("total_minutes") is not None:

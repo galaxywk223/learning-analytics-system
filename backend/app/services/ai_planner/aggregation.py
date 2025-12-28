@@ -60,19 +60,18 @@ def _aggregate_learning_data(
         minutes = int(log.actual_duration or 0)
         log_day = log.log_date
         daily_minutes[log_day] += minutes
-        try:
-            # 「活跃时段」统计：使用开始时间 hour，如果缺失则跳过
-            if getattr(log, "start_time", None):
-                hour = int(str(log.start_time)[0:2])  # 支持 "HH:MM:SS" 或 datetime
-                if 0 <= hour <= 23:
-                    hour_minutes[hour] += minutes
-        except Exception:
-            pass
-        try:
-            weekday = log_day.weekday()
-            weekday_minutes[weekday] += minutes
-        except Exception:
-            pass
+        # 「活跃时段」统计：使用开始时间 hour，如果缺失则跳过
+        start_time = getattr(log, "start_time", None)
+        if start_time:
+            hour = getattr(start_time, "hour", None)
+            if hour is None:
+                hour_text = str(start_time)[:2]  # 支持 "HH:MM:SS" 或 datetime
+                if hour_text.isdigit():
+                    hour = int(hour_text)
+            if isinstance(hour, int) and 0 <= hour <= 23:
+                hour_minutes[hour] += minutes
+        if log_day:
+            weekday_minutes[log_day.weekday()] += minutes
 
         task_name = (log.task or '').strip() or '未命名任务'
 
