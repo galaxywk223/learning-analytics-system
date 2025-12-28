@@ -183,12 +183,10 @@ def _aggregate_learning_data(
         # 计算 streak
         run = 0
         current = start_date
-        last_day_with_log = None
         while current <= end_date:
             if current in daily_minutes and daily_minutes[current] > 0:
                 run += 1
                 longest_streak = max(longest_streak, run)
-                last_day_with_log = current
             else:
                 run = 0
             current += timedelta(days=1)

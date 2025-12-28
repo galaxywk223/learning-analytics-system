@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from datetime import date
 from typing import Dict, Optional
 
 from flask import current_app
 
-from app.models import AIInsight, Stage
+from app.models import AIInsight
 
 from .aggregation import _aggregate_learning_data
 from .date_ranges import (
@@ -42,7 +41,7 @@ def generate_analysis(
     prompt = _build_analysis_prompt(scope, stats, stage, period_label, prev_stats)
     try:
         output_text = _call_qwen(prompt)
-    except AIPlannerError as exc:
+    except AIPlannerError:
         # 兜底：允许用模板生成，避免前端空结果
         if current_app.config.get("AI_ENABLE_FALLBACK", True):
             output_text = _fallback_analysis_text(scope, stats, period_label, prev_stats)
@@ -96,9 +95,15 @@ def generate_plan(
     )
     try:
         output_text = _call_qwen(prompt)
-    except AIPlannerError as exc:
+    except AIPlannerError:
         if current_app.config.get("AI_ENABLE_FALLBACK", True):
-            output_text = _fallback_plan_text(scope, stats, period_label, next_period_label or "后续阶段", next_days)
+            output_text = _fallback_plan_text(
+                scope,
+                stats,
+                period_label,
+                next_period_label or "后续阶段",
+                next_days,
+            )
         else:
             raise
     insight = _save_insight(

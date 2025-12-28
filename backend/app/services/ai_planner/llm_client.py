@@ -1,15 +1,29 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, TYPE_CHECKING
 import time
 
 from flask import current_app
 
-try:
+if TYPE_CHECKING:
     from openai import APIConnectionError, APIStatusError, OpenAI, RateLimitError
-except ImportError:  # pragma: no cover - handled at runtime
-    OpenAI = None  # type: ignore[assignment]
-    APIConnectionError = APIStatusError = RateLimitError = Exception  # type: ignore[assignment]
+else:
+    OpenAI: Any = None
+    APIConnectionError: Any = Exception
+    APIStatusError: Any = Exception
+    RateLimitError: Any = Exception
+    try:  # pragma: no cover - handled at runtime
+        from openai import APIConnectionError as _APIConnectionError
+        from openai import APIStatusError as _APIStatusError
+        from openai import OpenAI as _OpenAI
+        from openai import RateLimitError as _RateLimitError
+    except ImportError:
+        pass
+    else:
+        OpenAI = _OpenAI
+        APIConnectionError = _APIConnectionError
+        APIStatusError = _APIStatusError
+        RateLimitError = _RateLimitError
 
 from .errors import AIPlannerError
 

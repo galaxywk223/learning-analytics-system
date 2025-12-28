@@ -331,7 +331,7 @@ def upload_attachment(milestone_id):
         return jsonify({"success": False, "message": "里程碑不存在"}), 404
 
     if "file" not in request.files:
-        current_app.logger.warning(f"[上传附件] 请求中没有文件")
+        current_app.logger.warning("[上传附件] 请求中没有文件")
         return jsonify({"success": False, "message": "没有文件被上传"}), 400
 
     file = request.files["file"]
@@ -360,7 +360,7 @@ def upload_attachment(milestone_id):
         # 确保上传目录存在（使用 UPLOAD_FOLDER）
         upload_folder = current_app.config.get("UPLOAD_FOLDER")
         if not upload_folder:
-            current_app.logger.error(f"[上传附件] UPLOAD_FOLDER 未配置")
+            current_app.logger.error("[上传附件] UPLOAD_FOLDER 未配置")
             return jsonify({"success": False, "message": "上传功能未配置"}), 500
 
         user_upload_dir = os.path.join(upload_folder, str(current_user_id))

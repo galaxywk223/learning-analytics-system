@@ -1,11 +1,9 @@
 """用户API蓝图"""
 
-import os
-from datetime import datetime, date as _date
-import pytz as _pytz
+from datetime import date as _date
+import pytz as _pytz  # type: ignore[import-untyped]
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from werkzeug.utils import secure_filename
 from sqlalchemy import func
 from app import db
 from app.models import (
@@ -68,7 +66,7 @@ def dashboard_summary():
 
     # 下一个倒计时事件
     from datetime import datetime as _dt
-    import pytz
+    import pytz  # type: ignore[import-untyped]
 
     utc_now = _dt.utcnow().replace(tzinfo=pytz.utc)
     next_event_query = CountdownEvent.query.filter(

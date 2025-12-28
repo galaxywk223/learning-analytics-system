@@ -519,14 +519,16 @@ def get_category_trend_series(
                 "end": end_date.isoformat(),
             }
         # 否则仍按周聚合（结果也为 0）
-        week_map: dict[date, float] = {}
+        zero_week_map: dict[date, float] = {}
         for day in days:
             start_of_week = _week_start(day)
-            week_map[start_of_week] = round(week_map.get(start_of_week, 0) + 0, 2)
-        weeks = sorted(week_map.keys()) or [_week_start(start_date)]
+            zero_week_map[start_of_week] = round(
+                zero_week_map.get(start_of_week, 0) + 0, 2
+            )
+        weeks = sorted(zero_week_map.keys()) or [_week_start(start_date)]
         return {
             "labels": [week.isoformat() for week in weeks],
-            "data": [week_map.get(week, 0) for week in weeks],
+            "data": [zero_week_map.get(week, 0) for week in weeks],
             "granularity": "weekly",
             "start": start_date.isoformat(),
             "end": end_date.isoformat(),

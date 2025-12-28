@@ -10,6 +10,8 @@ from datetime import date, datetime
 from flask import current_app
 
 from app import db
+from typing import Any
+
 from app.models import (
     Category,
     CountdownEvent,
@@ -25,7 +27,7 @@ from app.models import (
     WeeklyData,
 )
 
-MODELS_TO_HANDLE = [
+MODELS_TO_HANDLE: list[type[Any]] = [
     Setting,
     Stage,
     Category,

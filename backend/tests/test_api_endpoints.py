@@ -2,7 +2,7 @@
 Using backend/app package directly (scheme A)."""
 
 from datetime import date, datetime, timedelta
-import pytz
+import pytz  # type: ignore[import-untyped]
 import pytest
 
 from app import create_app, db

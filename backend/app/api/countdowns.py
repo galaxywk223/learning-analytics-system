@@ -7,7 +7,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
 from app import db
 from app.models import CountdownEvent
-import pytz
+import pytz  # type: ignore[import-untyped]
 
 bp = Blueprint("countdowns", __name__)
 

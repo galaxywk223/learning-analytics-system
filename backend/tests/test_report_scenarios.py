@@ -1,7 +1,5 @@
-
-import pytest
 from unittest.mock import patch
-from datetime import date, datetime
+from datetime import date
 from app.models import Stage, LogEntry
 from app.services.ai_planner.errors import AIPlannerError
 

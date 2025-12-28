@@ -4,16 +4,17 @@ Flask应用工厂
 
 import os
 import logging
+from typing import Any
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_cors import CORS
+from flask_migrate import Migrate  # type: ignore[import-untyped]
+from flask_cors import CORS  # type: ignore[import-untyped]
 from flask_jwt_extended import JWTManager
 from config import config
 import matplotlib
 
 # 初始化扩展
-db = SQLAlchemy()
+db: Any = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 cors = CORS()
@@ -152,39 +153,6 @@ def setup_logging(app):
 
     return app
 
-
-def setup_logging(app):
-    """配置日志"""
-    from pythonjsonlogger import jsonlogger
-
-    root_logger = logging.getLogger()
-
-    # 避免重复添加handler
-    if not any(isinstance(h, logging.StreamHandler) for h in root_logger.handlers):
-        handler = logging.StreamHandler()
-        formatter = jsonlogger.JsonFormatter(
-            "%(asctime)s %(levelname)s %(name)s %(message)s"
-        )
-        handler.setFormatter(formatter)
-        root_logger.addHandler(handler)
-
-    root_logger.setLevel(app.config["LOG_LEVEL"])
-
-    # Sentry集成(可选)
-    sentry_dsn = os.getenv("SENTRY_DSN")
-    if sentry_dsn:
-        try:
-            import sentry_sdk
-            from sentry_sdk.integrations.flask import FlaskIntegration
-
-            sentry_sdk.init(
-                dsn=sentry_dsn,
-                integrations=[FlaskIntegration()],
-                traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.0")),
-            )
-            app.logger.info("Sentry initialized")
-        except Exception as e:
-            app.logger.warning(f"Sentry initialization failed: {e}")
 
 def register_blueprints(app):
     """注册所有蓝图"""
