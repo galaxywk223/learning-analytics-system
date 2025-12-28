@@ -2,14 +2,14 @@
 <template>
   <div class="focus-form">
     <el-form
-      :model="formData"
-      :rules="rules"
       ref="formRef"
+      :model="localForm"
+      :rules="rules"
       label-position="top"
     >
       <el-form-item label="记录名称" prop="name">
         <el-input
-          v-model="formData.name"
+          v-model="localForm.name"
           placeholder="请输入本次专注的内容"
           :maxlength="50"
           show-word-limit
@@ -20,7 +20,7 @@
       <div class="category-row">
         <el-form-item label="分类" prop="categoryId" class="category-item">
           <el-select
-            v-model="formData.categoryId"
+            v-model="localForm.categoryId"
             placeholder="请选择分类"
             style="width: 100%"
             size="large"
@@ -41,12 +41,12 @@
 
         <el-form-item label="子分类" prop="subcategoryId" class="category-item">
           <el-select
-            v-model="formData.subcategoryId"
+            v-model="localForm.subcategoryId"
             placeholder="请选择子分类"
             style="width: 100%"
             size="large"
             filterable
-            :disabled="!formData.categoryId || !availableSubcategories.length"
+            :disabled="!localForm.categoryId || !availableSubcategories.length"
           >
             <el-option
               v-for="subcat in availableSubcategories"
@@ -56,8 +56,8 @@
             />
           </el-select>
           <div
+            v-if="localForm.categoryId && !availableSubcategories.length"
             class="el-form-item__tip"
-            v-if="formData.categoryId && !availableSubcategories.length"
           >
             该分类下暂无子分类
           </div>
@@ -92,6 +92,24 @@ const props = defineProps({
 // Emits
 const emit = defineEmits(["update:formData", "category-change"]);
 
+const localForm = ref({});
+
+watch(
+  () => props.formData,
+  (value) => {
+    localForm.value = { ...(value || {}) };
+  },
+  { deep: true, immediate: true },
+);
+
+watch(
+  localForm,
+  (value) => {
+    emit("update:formData", { ...(value || {}) });
+  },
+  { deep: true },
+);
+
 // 表单验证规则
 const rules = {
   name: [
@@ -103,17 +121,17 @@ const rules = {
 
 // 可用的子分类
 const availableSubcategories = computed(() => {
-  if (!props.formData.categoryId) return [];
+  if (!localForm.value.categoryId) return [];
   return props.subcategories.filter(
-    (sub) => sub.category_id === props.formData.categoryId
+    (sub) => sub.category_id === localForm.value.categoryId,
   );
 });
 
 // 分类变化时的处理
 const onCategoryChange = () => {
   // 清空子分类选择，仅通知父组件分类已变更
-  props.formData.subcategoryId = null;
-  emit("category-change", props.formData.categoryId);
+  localForm.value.subcategoryId = null;
+  emit("category-change", localForm.value.categoryId);
 };
 
 // 暴露验证方法给父组件
@@ -171,7 +189,10 @@ defineExpose({
     box-shadow: none !important;
     padding: 12px 14px;
     min-height: 48px;
-    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      box-shadow 0.2s ease;
 
     &:hover {
       border-color: rgba(99, 102, 241, 0.65);

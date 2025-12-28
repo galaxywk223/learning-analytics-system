@@ -15,7 +15,7 @@
         暂无可视化数据，记录新的学习时长后即可查看趋势。
       </p>
     </div>
-    <div v-else class="trend-chart-card__panel" v-loading="loading">
+    <div v-else v-loading="loading" class="trend-chart-card__panel">
       <header class="trend-chart-card__header">
         <div class="trend-chart-card__titles">
           <h3>学习趋势</h3>
@@ -90,7 +90,7 @@ watch(
   (newView) => {
     if (!newView || newView === currentView.value) return;
     currentView.value = newView === "daily" ? "daily" : "weekly";
-  }
+  },
 );
 
 const sanitizeSeries = (values, { allowZero = true } = {}) => {
@@ -108,7 +108,7 @@ const sanitizeSeries = (values, { allowZero = true } = {}) => {
 };
 
 const viewBadge = computed(() =>
-  currentView.value === "weekly" ? "周视图" : "日视图"
+  currentView.value === "weekly" ? "周视图" : "日视图",
 );
 
 const switchView = (view) => {
@@ -119,7 +119,7 @@ const switchView = (view) => {
 };
 
 const durationSeriesLabel = computed(() =>
-  currentView.value === "weekly" ? "平均学习时长" : "学习时长"
+  currentView.value === "weekly" ? "平均学习时长" : "学习时长",
 );
 
 const viewSource = computed(() => {
@@ -155,7 +155,7 @@ const stageMarkArea = computed(() => {
       (item) =>
         item &&
         labelSet.has(item.start_week_label) &&
-        labelSet.has(item.end_week_label)
+        labelSet.has(item.end_week_label),
     )
     .map((item) => [
       {
@@ -169,7 +169,7 @@ const stageMarkArea = computed(() => {
 });
 
 const showStageHelper = computed(
-  () => currentView.value === "weekly" && stageMarkArea.value.length > 0
+  () => currentView.value === "weekly" && stageMarkArea.value.length > 0,
 );
 
 const chartOption = computed(() => {
@@ -180,39 +180,41 @@ const chartOption = computed(() => {
   // Apple-style Colors
   const colors = {
     duration: {
-      line: '#5856D6', // Indigo
-      areaStart: 'rgba(88, 86, 214, 0.25)',
-      areaEnd: 'rgba(88, 86, 214, 0.02)'
+      line: "#5856D6", // Indigo
+      areaStart: "rgba(88, 86, 214, 0.25)",
+      areaEnd: "rgba(88, 86, 214, 0.02)",
     },
     efficiency: {
-      line: '#FF9500', // Orange
-      areaStart: 'rgba(255, 149, 0, 0.25)',
-      areaEnd: 'rgba(255, 149, 0, 0.02)'
-    }
+      line: "#FF9500", // Orange
+      areaStart: "rgba(255, 149, 0, 0.25)",
+      areaEnd: "rgba(255, 149, 0, 0.02)",
+    },
   };
 
   return {
     color: [colors.duration.line, colors.efficiency.line],
     tooltip: {
       trigger: "axis",
-      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-      borderColor: 'rgba(0,0,0,0.05)',
+      backgroundColor: "rgba(255, 255, 255, 0.9)",
+      borderColor: "rgba(0,0,0,0.05)",
       borderWidth: 1,
       padding: [12, 16],
       textStyle: {
-        color: '#1C1C1E',
+        color: "#1C1C1E",
         fontSize: 13,
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       },
-      extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.12); border-radius: 12px;'
+      extraCssText:
+        "box-shadow: 0 4px 12px rgba(0,0,0,0.12); border-radius: 12px;",
     },
     legend: {
       top: 12,
       icon: "circle",
       itemGap: 24,
       textStyle: {
-        color: '#8E8E93',
-        fontSize: 13
+        color: "#8E8E93",
+        fontSize: 13,
       },
       data: [durationSeriesLabel.value, "学习效率"],
     },
@@ -222,7 +224,7 @@ const chartOption = computed(() => {
       top: 80,
       bottom: enableZoom ? 60 : 20,
       containLabel: true,
-      borderColor: '#E5E5EA'
+      borderColor: "#E5E5EA",
     },
     dataZoom: enableZoom
       ? [
@@ -237,16 +239,16 @@ const chartOption = computed(() => {
             brushSelect: false,
             handleSize: 16,
             handleStyle: {
-                color: '#fff',
-                borderColor: '#D1D1D6',
-                shadowBlur: 2,
-                shadowColor: 'rgba(0,0,0,0.1)'
+              color: "#fff",
+              borderColor: "#D1D1D6",
+              shadowBlur: 2,
+              shadowColor: "rgba(0,0,0,0.1)",
             },
-            fillerColor: 'rgba(0, 122, 255, 0.15)',
-            borderColor: 'transparent',
-            backgroundColor: '#F2F2F7',
+            fillerColor: "rgba(0, 122, 255, 0.15)",
+            borderColor: "transparent",
+            backgroundColor: "#F2F2F7",
             showDataShadow: false,
-            showDetail: false
+            showDetail: false,
           },
         ]
       : [],
@@ -295,19 +297,19 @@ const chartOption = computed(() => {
         itemStyle: {
           color: colors.duration.line,
           borderWidth: 2,
-          borderColor: '#fff'
+          borderColor: "#fff",
         },
         lineStyle: {
           width: 3,
-          shadowColor: 'rgba(88, 86, 214, 0.3)',
+          shadowColor: "rgba(88, 86, 214, 0.3)",
           shadowBlur: 10,
-          shadowOffsetY: 4
+          shadowOffsetY: 4,
         },
         areaStyle: {
           color: new graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: colors.duration.areaStart },
-            { offset: 1, color: colors.duration.areaEnd }
-          ])
+            { offset: 1, color: colors.duration.areaEnd },
+          ]),
         },
         markArea: stageMarkArea.value.length
           ? { silent: true, data: stageMarkArea.value }
@@ -325,20 +327,20 @@ const chartOption = computed(() => {
         itemStyle: {
           color: colors.efficiency.line,
           borderWidth: 2,
-          borderColor: '#fff'
+          borderColor: "#fff",
         },
         lineStyle: {
           width: 3,
           color: colors.efficiency.line,
-          shadowColor: 'rgba(255, 149, 0, 0.3)',
+          shadowColor: "rgba(255, 149, 0, 0.3)",
           shadowBlur: 10,
-          shadowOffsetY: 4
+          shadowOffsetY: 4,
         },
         areaStyle: {
           color: new graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: colors.efficiency.areaStart },
-            { offset: 1, color: colors.efficiency.areaEnd }
-          ])
+            { offset: 1, color: colors.efficiency.areaEnd },
+          ]),
         },
       },
     ],

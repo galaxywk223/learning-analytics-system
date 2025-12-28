@@ -9,11 +9,12 @@ const resolvePackageName = (id: string) => {
   if (!parts) return "";
 
   const segments = parts.split("/");
-  return segments[0].startsWith("@") ? `${segments[0]}/${segments[1]}` : segments[0];
+  return segments[0].startsWith("@")
+    ? `${segments[0]}/${segments[1]}`
+    : segments[0];
 };
 
-const DEV_PORT =
-  Number(process.env.VITE_PORT || process.env.PORT || "") || 0; // 0 = let OS pick a free port
+const DEV_PORT = Number(process.env.VITE_PORT || process.env.PORT || "") || 0; // 0 = let OS pick a free port
 
 export default defineConfig({
   plugins: [
@@ -60,12 +61,17 @@ export default defineConfig({
           const pkgName = resolvePackageName(id);
 
           // 大库单独拆包，避免和业务、其他依赖混在一起
-          if (pkgName === "echarts" || pkgName === "vue-echarts") return "echarts";
+          if (pkgName === "echarts" || pkgName === "vue-echarts")
+            return "echarts";
           if (pkgName === "element-plus") return "element-plus";
-          if (pkgName === "chart.js" || pkgName === "chartjs-plugin-datalabels") return "chartjs";
+          if (pkgName === "chart.js" || pkgName === "chartjs-plugin-datalabels")
+            return "chartjs";
 
           // 核心 Vue 生态合并成一个稳定的 vendor
-          if (["vue", "vue-router", "pinia", "@vue", "@vueuse"].includes(pkgName)) return "vendor-vue";
+          if (
+            ["vue", "vue-router", "pinia", "@vue", "@vueuse"].includes(pkgName)
+          )
+            return "vendor-vue";
 
           // 其余三方依赖统一打到 vendor，和业务代码分离
           return "vendor";

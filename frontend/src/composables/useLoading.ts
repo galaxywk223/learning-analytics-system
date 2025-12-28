@@ -23,7 +23,7 @@ export function useLoading() {
    */
   const execute = async <T>(
     asyncFn: () => Promise<T>,
-    options: LoadingOptions = {}
+    options: LoadingOptions = {},
   ) => {
     const {
       successMessage = "",

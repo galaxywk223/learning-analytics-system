@@ -14,12 +14,12 @@
       <div class="card-header">
         <h5 class="card-title mb-0">分类与标签</h5>
       </div>
-      <div class="accordion accordion-flush" id="categoryAccordion">
+      <div id="categoryAccordion" class="accordion accordion-flush">
         <div
           v-for="category in categories"
+          :id="`category-item-${category.id}`"
           :key="category.id"
           class="accordion-item"
-          :id="`category-item-${category.id}`"
         >
           <h2 class="accordion-header">
             <div class="category-header-item">
@@ -116,7 +116,9 @@
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <button class="pill-btn secondary" @click="showCategoryModal = false">取消</button>
+          <button class="pill-btn secondary" @click="showCategoryModal = false">
+            取消
+          </button>
           <button class="pill-btn primary" @click="saveCategory">保存</button>
         </div>
       </template>
@@ -134,8 +136,15 @@
       </div>
       <template #footer>
         <div class="dialog-footer">
-          <button class="pill-btn secondary" @click="showSubcategoryModal = false">取消</button>
-          <button class="pill-btn primary" @click="saveSubcategory">保存</button>
+          <button
+            class="pill-btn secondary"
+            @click="showSubcategoryModal = false"
+          >
+            取消
+          </button>
+          <button class="pill-btn primary" @click="saveSubcategory">
+            保存
+          </button>
         </div>
       </template>
     </el-dialog>
@@ -157,10 +166,10 @@ const categoryForm = ref({ id: null, name: "" });
 const subcategoryForm = ref({ id: null, name: "", categoryId: null });
 
 const modalTitle = computed(() =>
-  categoryForm.value.id ? "编辑分类" : "添加新分类"
+  categoryForm.value.id ? "编辑分类" : "添加新分类",
 );
 const modalSubTitle = computed(() =>
-  subcategoryForm.value.id ? "编辑子类" : "添加子类"
+  subcategoryForm.value.id ? "编辑子类" : "添加子类",
 );
 
 async function fetchCategories() {
@@ -205,7 +214,7 @@ async function deleteCategory(category) {
     await ElMessageBox.confirm(
       "删除该分类将连同子类一起删除，确认继续？",
       "删除确认",
-      { type: "warning" }
+      { type: "warning" },
     );
     await categoryStore.deleteCategory(category);
     ElMessage.success("删除成功");
@@ -222,7 +231,11 @@ function showAddSubcategoryModal(category) {
 }
 
 function showEditSubcategoryModal(sub, category) {
-  subcategoryForm.value = { id: sub.id, name: sub.name, categoryId: category.id };
+  subcategoryForm.value = {
+    id: sub.id,
+    name: sub.name,
+    categoryId: category.id,
+  };
   showSubcategoryModal.value = true;
 }
 
@@ -247,7 +260,9 @@ async function saveSubcategory() {
 
 async function deleteSubcategory(sub, category) {
   try {
-    await ElMessageBox.confirm("确定删除此子类？", "删除确认", { type: "warning" });
+    await ElMessageBox.confirm("确定删除此子类？", "删除确认", {
+      type: "warning",
+    });
     await categoryStore.deleteSubcategory(sub, category);
     ElMessage.success("删除成功");
   } catch (error) {

@@ -1,8 +1,8 @@
 <template>
   <div class="data-table-wrapper">
     <div class="divider"></div>
-    <div class="table-container" ref="tableContainer"></div>
-    <div class="nav-controls" v-if="showNavigation">
+    <div ref="tableContainer" class="table-container"></div>
+    <div v-if="showNavigation" class="nav-controls">
       <button class="nav-button back-btn" @click="handleBack">
         <svg
           xmlns="http://www.w3.org/2000/svg"

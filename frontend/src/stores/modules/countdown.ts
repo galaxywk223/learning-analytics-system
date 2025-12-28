@@ -16,7 +16,8 @@ import {
 function toUtcIso(dateStr: string, timeStr?: string): string {
   const time = timeStr || "00:00";
   // 以北京时区解释输入，然后转为 UTC ISO
-  return dayjs.tz(`${dateStr} ${time}`, "YYYY-MM-DD HH:mm", "Asia/Shanghai")
+  return dayjs
+    .tz(`${dateStr} ${time}`, "YYYY-MM-DD HH:mm", "Asia/Shanghai")
     .utc()
     .toISOString();
 }
@@ -52,7 +53,7 @@ export const useCountdownStore = defineStore("countdown", {
       // payload: { title, target_date, target_time }
       const target_datetime_utc = toUtcIso(
         payload.target_date,
-        payload.target_time
+        payload.target_time,
       );
       const resp = await createCountdown({
         title: payload.title,
@@ -67,7 +68,7 @@ export const useCountdownStore = defineStore("countdown", {
     async save(id, payload) {
       const target_datetime_utc = toUtcIso(
         payload.target_date,
-        payload.target_time
+        payload.target_time,
       );
       const resp = await updateCountdown(id, {
         title: payload.title,

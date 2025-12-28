@@ -1,5 +1,5 @@
 <template>
-  <div class="category-wrapper" v-if="hasData">
+  <div v-if="hasData" class="category-wrapper">
     <div class="main-grid">
       <DoughnutChart
         ref="doughnutRef"
@@ -17,8 +17,17 @@
           !showPanelHeader ? 'no-header' : '',
         ]"
       >
-        <div v-if="showPanelHeader && view === 'drilldown'" class="panel-header">
-          <el-button class="panel-back" type="primary" text :icon="ArrowLeft" @click="goBack">
+        <div
+          v-if="showPanelHeader && view === 'drilldown'"
+          class="panel-header"
+        >
+          <el-button
+            class="panel-back"
+            type="primary"
+            text
+            :icon="ArrowLeft"
+            @click="goBack"
+          >
             {{ TEXT.back }}
           </el-button>
           <span class="panel-title">{{ drilldownPanelTitle }}</span>
@@ -80,7 +89,8 @@ const TEXT = {
   barDrillSuffix: "\u7684\u5b50\u5206\u7c7b",
   panelSuffix: "\u7684\u5b50\u5206\u7c7b\u65f6\u957f",
   back: "\u8fd4\u56de\u4e0a\u7ea7",
-  empty: "\u5f53\u524d\u7b5b\u9009\u8303\u56f4\u6682\u65e0\u5206\u7c7b\u7edf\u8ba1\u6570\u636e",
+  empty:
+    "\u5f53\u524d\u7b5b\u9009\u8303\u56f4\u6682\u65e0\u5206\u7c7b\u7edf\u8ba1\u6570\u636e",
   noChild: "\u8be5\u5206\u7c7b\u6682\u65e0\u5b50\u5206\u7c7b",
 };
 
@@ -115,8 +125,8 @@ const barTitle = computed(() => {
   return `${currentCategory.value} \u00b7 ${TEXT.barDrillSuffix}`;
 });
 
-const drilldownPanelTitle = computed(() =>
-  `${currentCategory.value} \u00b7 ${TEXT.panelSuffix}`
+const drilldownPanelTitle = computed(
+  () => `${currentCategory.value} \u00b7 ${TEXT.panelSuffix}`,
 );
 
 const chartColors = computed(() => {
@@ -163,7 +173,6 @@ function handleBarLeave() {
   doughnutRef.value?.clearHighlight?.();
 }
 
-
 watch(
   () => [props.drilldown, currentCategory.value],
   () => {
@@ -176,7 +185,7 @@ watch(
       emit("back");
     }
   },
-  { deep: true }
+  { deep: true },
 );
 </script>
 
@@ -249,7 +258,7 @@ watch(
 }
 
 .panel-header :deep(.panel-back.el-button--text) {
-  color: #007AFF;
+  color: #007aff;
   font-weight: 600;
 }
 

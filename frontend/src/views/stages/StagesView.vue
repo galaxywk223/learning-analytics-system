@@ -16,13 +16,13 @@
       </div>
 
       <!-- Stage List (Flat Table Style) -->
-      <div class="stage-list-flat" v-if="stages.length">
+      <div v-if="stages.length" class="stage-list-flat">
         <div class="list-header">
           <span class="col-name">名称</span>
           <span class="col-date">时间范围</span>
           <span class="col-actions">操作</span>
         </div>
-        
+
         <div
           v-for="stage in stages"
           :key="stage.id"
@@ -32,7 +32,9 @@
           <!-- Name Column -->
           <div class="col-name">
             <span class="stage-name">{{ stage.name }}</span>
-            <span v-if="stage.id === activeStageId" class="badge-current">当前</span>
+            <span v-if="stage.id === activeStageId" class="badge-current"
+              >当前</span
+            >
           </div>
 
           <!-- Date Column -->
@@ -47,24 +49,24 @@
                 v-if="stage.id !== activeStageId"
                 class="action-btn"
                 title="设为当前"
-                @click="applyStage(stage)"
                 :disabled="loading"
+                @click="applyStage(stage)"
               >
                 🚩
               </button>
               <button
                 class="action-btn"
                 title="编辑"
-                @click="openEdit(stage)"
                 :disabled="loading"
+                @click="openEdit(stage)"
               >
                 ✏️
               </button>
               <button
                 class="action-btn danger"
                 title="删除"
-                @click="confirmDelete(stage)"
                 :disabled="loading"
+                @click="confirmDelete(stage)"
               >
                 🗑️
               </button>
@@ -73,7 +75,7 @@
         </div>
       </div>
 
-      <div class="empty-state" v-else>
+      <div v-else class="empty-state">
         <div class="empty-icon">📭</div>
         <p>还没有创建任何阶段</p>
         <button class="btn-create-flat" @click="openCreate">立即创建</button>
@@ -89,7 +91,7 @@
       destroy-on-close
       align-center
     >
-      <form @submit.prevent="handleSubmit" class="dialog-form">
+      <form class="dialog-form" @submit.prevent="handleSubmit">
         <div class="ios-input-group">
           <div class="input-row">
             <label>名称</label>
@@ -111,9 +113,15 @@
             />
           </div>
         </div>
-        
+
         <div class="dialog-footer">
-          <button type="button" class="pill-btn secondary" @click="dialogVisible = false">取消</button>
+          <button
+            type="button"
+            class="pill-btn secondary"
+            @click="dialogVisible = false"
+          >
+            取消
+          </button>
           <button type="submit" class="pill-btn primary" :disabled="loading">
             {{ loading ? "保存" : "保存" }}
           </button>
@@ -136,7 +144,7 @@ const settingsStore = useSettingsStore();
 const loading = computed(() => stageStore.loading);
 const stages = computed(() => stageStore.stages);
 const activeStageId = computed(
-  () => settingsStore.activeStageId || stageStore.activeStage?.id
+  () => settingsStore.activeStageId || stageStore.activeStage?.id,
 );
 
 const dialogVisible = ref(false);
@@ -152,7 +160,7 @@ onMounted(async () => {
   await stageStore.fetchStages();
   if (settingsStore.activeStageId) {
     const target = stages.value.find(
-      (s) => s.id === settingsStore.activeStageId
+      (s) => s.id === settingsStore.activeStageId,
     );
     if (target) stageStore.setActiveStage(target);
   }
@@ -161,11 +169,10 @@ onMounted(async () => {
 function formatDate(d) {
   if (!d) return "";
   const date = new Date(d);
-  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
 }
 
 function openCreate() {
-
   isEditing.value = false;
   form.value = {
     id: null,
@@ -177,7 +184,7 @@ function openCreate() {
 
 function openEdit(stage) {
   isEditing.value = true;
-  form.value = { 
+  form.value = {
     id: stage.id,
     name: stage.name,
     start_date: String(stage.start_date).slice(0, 10),
@@ -206,7 +213,7 @@ async function handleSubmit() {
       });
       if (ok) ElMessage.success("创建成功");
     }
-    
+
     if (ok) {
       dialogVisible.value = false;
     }
@@ -227,11 +234,11 @@ function confirmDelete(stage) {
   ElMessageBox.confirm(
     `确定要删除“${stage.name}”吗？这将删除其下所有记录。`,
     "删除确认",
-    { 
-      type: "warning", 
-      confirmButtonText: "删除", 
+    {
+      type: "warning",
+      confirmButtonText: "删除",
       cancelButtonText: "取消",
-    }
+    },
   )
     .then(async () => {
       const ok = await stageStore.deleteStage(stage.id);
@@ -403,22 +410,24 @@ function confirmDelete(stage) {
   .action-group {
     opacity: 1;
   }
-  
+
   .list-header {
     display: none; /* Hide header on mobile */
   }
-  
+
   .stage-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
-  .col-name, .col-date, .col-actions {
+
+  .col-name,
+  .col-date,
+  .col-actions {
     width: 100%;
     flex: none;
   }
-  
+
   .col-actions {
     justify-content: flex-start;
     margin-top: 4px;

@@ -12,8 +12,8 @@
           <button
             class="motto-refresh"
             :disabled="mottoLoading"
-            @click="refreshMotto(true)"
             aria-label="刷新格言"
+            @click="refreshMotto(true)"
           >
             <Icon
               icon="lucide:refresh-ccw"
@@ -44,7 +44,10 @@
                   class="bar"
                   :title="`${barLabels[idx]} · ${barValues[idx]} 分钟`"
                 >
-                  <div :class="['bar-fill', `fill-${idx}`]" :style="{ height: `${bar}%` }"></div>
+                  <div
+                    :class="['bar-fill', `fill-${idx}`]"
+                    :style="{ height: `${bar}%` }"
+                  ></div>
                   <span class="bar-label">{{ barLabels[idx] }}</span>
                 </div>
               </div>
@@ -198,7 +201,7 @@ const mottoPool = computed(() => {
 });
 
 const mottoDisplay = computed(
-  () => mottoText.value || "暂无格言，去设置里添加一句吧"
+  () => mottoText.value || "暂无格言，去设置里添加一句吧",
 );
 
 async function refreshMotto(force = false) {
@@ -282,7 +285,7 @@ const recentRecords = computed(() => {
   const groupedByDay: Record<string, any[]> = {};
   sortedRecords.value.forEach((item: any) => {
     const key = dayjs(item.log_date || item.date || item.created_at).format(
-      "YYYY-MM-DD"
+      "YYYY-MM-DD",
     );
     groupedByDay[key] = groupedByDay[key] || [];
     groupedByDay[key].push(item);
@@ -329,15 +332,15 @@ const countdownDays = computed(() => {
   return Math.max(next?.remaining_days ?? 0, 0);
 });
 const countdownTitle = computed(
-  () => dashboardStore.summary?.next_countdown?.title || "暂无目标"
+  () => dashboardStore.summary?.next_countdown?.title || "暂无目标",
 );
 
 const milestoneCount = computed(
-  () => dashboardStore.summary?.milestones_count ?? 0
+  () => dashboardStore.summary?.milestones_count ?? 0,
 );
 
 const rankingLabel = computed(
-  () => (dashboardStore.summary as any)?.ranking_label || "Top 5%"
+  () => (dashboardStore.summary as any)?.ranking_label || "Top 5%",
 );
 
 const aiPlanStatus = computed(() => {
@@ -357,7 +360,7 @@ const barValues = computed(() => {
 
   sortedRecords.value.forEach((item: any) => {
     const dayKey = dayjs(item.log_date || item.date || item.created_at).format(
-      "YYYY-MM-DD"
+      "YYYY-MM-DD",
     );
     if (map.has(dayKey)) {
       const current = map.get(dayKey) || 0;

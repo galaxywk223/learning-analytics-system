@@ -60,7 +60,7 @@ request.interceptors.request.use(
   (error) => {
     console.error("请求拦截异常:", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // 响应拦截器
@@ -103,8 +103,9 @@ request.interceptors.response.use(
           pendingQueue.push({
             resolve: (token) => {
               originalRequest.headers = originalRequest.headers || {};
-              (originalRequest.headers as Record<string, string>).Authorization =
-                token;
+              (
+                originalRequest.headers as Record<string, string>
+              ).Authorization = token;
               resolve(request(originalRequest));
             },
             reject,
@@ -124,7 +125,7 @@ request.interceptors.response.use(
               headers: {
                 Authorization: `Bearer ${refreshToken}`,
               },
-            }
+            },
           )
           .then((res) => {
             const newAccessToken = res.data?.access_token;
@@ -180,7 +181,7 @@ request.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default request;

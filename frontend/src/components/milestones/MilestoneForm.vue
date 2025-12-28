@@ -8,22 +8,30 @@
     :show-close="true"
     top="8vh"
   >
-    <form @submit.prevent="handleSubmit" autocomplete="off" class="milestone-form">
+    <form
+      autocomplete="off"
+      class="milestone-form"
+      @submit.prevent="handleSubmit"
+    >
       <div class="form-body">
         <!-- Top Row: Title & Date -->
         <div class="form-row split-row">
           <div class="form-group flex-grow">
-            <label class="form-label">标题 <span class="required">*</span></label>
-            <el-input 
-              v-model="form.title" 
-              maxlength="200" 
-              show-word-limit 
+            <label class="form-label"
+              >标题 <span class="required">*</span></label
+            >
+            <el-input
+              v-model="form.title"
+              maxlength="200"
+              show-word-limit
               placeholder="给这个成就起个名字"
               class="record-input tall-input"
             />
           </div>
           <div class="form-group w-date">
-            <label class="form-label">日期 <span class="required">*</span></label>
+            <label class="form-label"
+              >日期 <span class="required">*</span></label
+            >
             <el-date-picker
               v-model="form.event_date"
               type="date"
@@ -35,7 +43,7 @@
             />
           </div>
         </div>
-        
+
         <!-- Category -->
         <div class="form-row">
           <div class="form-group">
@@ -63,9 +71,9 @@
           <div class="form-group">
             <label class="form-label">详细描述</label>
             <el-input
+              v-model="form.description"
               type="textarea"
               :rows="6"
-              v-model="form.description"
               placeholder="记录这次成就的细节与感受..."
               resize="none"
               class="record-textarea"
@@ -76,20 +84,20 @@
         <!-- Attachments -->
         <div class="form-row">
           <label class="form-label">附件</label>
-          <div 
-            class="upload-area" 
-            @click="fileInput?.click()"
+          <div
+            class="upload-area"
             :class="{ 'has-files': selectedFiles.length > 0 }"
+            @click="fileInput?.click()"
           >
             <input
               ref="fileInput"
               type="file"
               multiple
-              @change="handleFiles"
               class="hidden-input"
+              @change="handleFiles"
             />
-            
-            <div class="upload-placeholder" v-if="selectedFiles.length === 0">
+
+            <div v-if="selectedFiles.length === 0" class="upload-placeholder">
               <div class="icon-circle">
                 <span class="icon">📎</span>
               </div>
@@ -99,17 +107,34 @@
               </div>
             </div>
 
-            <div class="file-list" v-else>
+            <div v-else class="file-list">
               <div class="add-more-btn">
                 <span class="icon">＋</span>
                 <span>添加更多</span>
               </div>
-              <div v-for="(f, i) in selectedFiles" :key="i" class="file-item" @click.stop>
+              <div
+                v-for="(f, i) in selectedFiles"
+                :key="i"
+                class="file-item"
+                @click.stop
+              >
                 <span class="file-icon">📄</span>
                 <span class="file-name">{{ f.name }}</span>
                 <button type="button" class="remove-btn" @click="removeFile(i)">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 3L3 9M3 3L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M9 3L3 9M3 3L9 9"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 </button>
               </div>
@@ -142,10 +167,10 @@ const emits = defineEmits(["update:modelValue", "saved"]);
 const visible = ref(false);
 watch(
   () => props.modelValue,
-  (v) => (visible.value = v)
+  (v) => (visible.value = v),
 );
 const dialogTitle = computed(() =>
-  props.editData ? "编辑成就" : "记录新成就"
+  props.editData ? "编辑成就" : "记录新成就",
 );
 
 const form = reactive({
@@ -169,7 +194,7 @@ watch(
     } else {
       reset();
     }
-  }
+  },
 );
 
 function reset() {
@@ -188,7 +213,7 @@ function close() {
 function handleFiles(e) {
   const newFiles = Array.from(e.target.files || []);
   selectedFiles.value = [...selectedFiles.value, ...newFiles];
-  if (fileInput.value) fileInput.value.value = ""; 
+  if (fileInput.value) fileInput.value.value = "";
 }
 
 function removeFile(idx) {
@@ -383,7 +408,7 @@ async function handleSubmit() {
 .record-input :deep(.el-input__wrapper.is-focus),
 .record-select :deep(.el-input__wrapper.is-focus) {
   background: #ffffff;
-  box-shadow: 0 0 0 2px #007AFF !important;
+  box-shadow: 0 0 0 2px #007aff !important;
 }
 
 .record-input :deep(.el-input__inner) {
@@ -411,7 +436,7 @@ async function handleSubmit() {
 
 .record-textarea :deep(.el-textarea__inner:focus) {
   background: #ffffff;
-  box-shadow: 0 0 0 2px #007AFF;
+  box-shadow: 0 0 0 2px #007aff;
 }
 
 /* Upload Area */
@@ -430,7 +455,7 @@ async function handleSubmit() {
 
 .upload-area:hover {
   background: #f2f2f7;
-  border-color: #007AFF;
+  border-color: #007aff;
 }
 
 .upload-area.has-files {
@@ -455,7 +480,7 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #007AFF;
+  color: #007aff;
 }
 
 .icon-circle .icon {
@@ -498,7 +523,7 @@ async function handleSubmit() {
   padding: 10px 16px;
   background: #f2f2f7;
   border-radius: 12px;
-  color: #007AFF;
+  color: #007aff;
   font-size: 14px;
   font-weight: 600;
   transition: all 0.2s;
@@ -520,9 +545,9 @@ async function handleSubmit() {
 }
 
 .file-item:hover {
-  border-color: #007AFF;
+  border-color: #007aff;
   background: #ffffff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .file-name {
@@ -586,7 +611,7 @@ async function handleSubmit() {
   height: 48px;
   border-radius: 999px;
   border: none;
-  background: #007AFF;
+  background: #007aff;
   color: #ffffff;
   font-weight: 600;
   font-size: 16px;

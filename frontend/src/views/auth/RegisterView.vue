@@ -48,12 +48,18 @@
             @input="checkPasswordStrength"
           />
           <div v-if="passwordStrength" :class="styles.passwordStrength">
-            <div :class="[styles.strengthIndicator, styles[passwordStrength]]"></div>
+            <div
+              :class="[styles.strengthIndicator, styles[passwordStrength]]"
+            ></div>
             <span>{{ passwordStrengthText }}</span>
           </div>
         </el-form-item>
 
-        <el-form-item label="确认密码" prop="confirmPassword" :class="styles.formItem">
+        <el-form-item
+          label="确认密码"
+          prop="confirmPassword"
+          :class="styles.formItem"
+        >
           <el-input
             v-model="registerForm.confirmPassword"
             type="password"
@@ -134,7 +140,11 @@ const rules = {
 };
 
 const passwordStrengthText = computed(() => {
-  const map = { weak: "密码强度：较弱", medium: "密码强度：中等", strong: "密码强度：很强" };
+  const map = {
+    weak: "密码强度：较弱",
+    medium: "密码强度：中等",
+    strong: "密码强度：很强",
+  };
   return map[passwordStrength.value] || "";
 });
 

@@ -8,9 +8,9 @@
         <h5>{{ title }}</h5>
       </div>
     </header>
-    <div class="bar-card__list" ref="scrollWrapper">
+    <div ref="scrollWrapper" class="bar-card__list">
       <div
-        v-for="(item, idx) in displayItems"
+        v-for="item in displayItems"
         :key="item.name"
         class="bar-item"
         @click="emitClick(item.name)"
@@ -100,7 +100,7 @@ const barColors = computed(() => {
 });
 
 const maxValue = computed(() =>
-  Math.max(0, ...sortedData.value.map((item) => item.value))
+  Math.max(0, ...sortedData.value.map((item) => item.value)),
 );
 
 const displayItems = computed(() => {
@@ -108,7 +108,7 @@ const displayItems = computed(() => {
   return sortedData.value.map((item, idx) => {
     const percent = Math.max(
       0,
-      Math.min(100, (Number(item.value || 0) / max) * 100)
+      Math.min(100, (Number(item.value || 0) / max) * 100),
     );
     return {
       ...item,
@@ -140,7 +140,9 @@ const emitLeave = () => emit("bar-leave");
   flex-direction: column;
   gap: 16px;
   min-height: 280px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 
   &:hover {
     transform: translateY(-2px);
@@ -163,7 +165,7 @@ const emitLeave = () => emit("bar-leave");
   svg {
     width: 20px;
     height: 20px;
-    color: #5856D6;
+    color: #5856d6;
   }
 
   h5 {

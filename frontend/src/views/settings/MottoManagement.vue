@@ -37,19 +37,23 @@
           <span class="col-actions">操作</span>
         </div>
 
-        <div
-          v-for="m in itemsSorted"
-          :key="m.id"
-          class="motto-row"
-        >
+        <div v-for="m in itemsSorted" :key="m.id" class="motto-row">
           <div class="col-content">
             <span class="quote-mark">❝</span>
             <span class="motto-text">{{ m.content }}</span>
           </div>
           <div class="col-actions">
             <div class="action-group">
-              <button class="action-btn" title="编辑" @click="openEdit(m)">✏️</button>
-              <button class="action-btn danger" title="删除" @click="confirmDelete(m.id)">🗑️</button>
+              <button class="action-btn" title="编辑" @click="openEdit(m)">
+                ✏️
+              </button>
+              <button
+                class="action-btn danger"
+                title="删除"
+                @click="confirmDelete(m.id)"
+              >
+                🗑️
+              </button>
             </div>
           </div>
         </div>
@@ -71,7 +75,7 @@
       align-center
       @opened="refreshIcons"
     >
-      <form @submit.prevent="submitEdit" class="dialog-form">
+      <form class="dialog-form" @submit.prevent="submitEdit">
         <div class="ios-input-group">
           <div class="input-row">
             <label>内容</label>
@@ -83,9 +87,15 @@
             ></textarea>
           </div>
         </div>
-        
+
         <div class="dialog-footer">
-          <button type="button" class="pill-btn secondary" @click="editVisible = false">取消</button>
+          <button
+            type="button"
+            class="pill-btn secondary"
+            @click="editVisible = false"
+          >
+            取消
+          </button>
           <button type="submit" class="pill-btn primary" :disabled="updating">
             {{ updating ? "保存中..." : "保存" }}
           </button>
@@ -109,7 +119,7 @@ const updating = ref(false);
 const editVisible = ref(false);
 
 const itemsSorted = computed(() =>
-  (mottoStore.items || []).slice().sort((a, b) => (b.id || 0) - (a.id || 0))
+  (mottoStore.items || []).slice().sort((a, b) => (b.id || 0) - (a.id || 0)),
 );
 
 async function submitAdd() {
@@ -152,11 +162,15 @@ async function submitEdit() {
 
 async function confirmDelete(id) {
   try {
-    await ElMessageBox.confirm("删除后不可恢复，确定删除这条格言吗？", "确认删除", {
-      type: "warning",
-      confirmButtonText: "删除",
-      cancelButtonText: "取消",
-    });
+    await ElMessageBox.confirm(
+      "删除后不可恢复，确定删除这条格言吗？",
+      "确认删除",
+      {
+        type: "warning",
+        confirmButtonText: "删除",
+        cancelButtonText: "取消",
+      },
+    );
   } catch {
     return;
   }
@@ -355,17 +369,17 @@ onMounted(() => {
   .action-group {
     opacity: 1;
   }
-  
+
   .list-header {
     display: none;
   }
-  
+
   .motto-header {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
-  
+
   .add-wrapper {
     max-width: none;
   }

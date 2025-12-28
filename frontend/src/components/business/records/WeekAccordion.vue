@@ -3,8 +3,8 @@
   <el-collapse
     :collapse-transition="false"
     :model-value="activeWeeks"
-    @update:model-value="$emit('update:activeWeeks', $event)"
     class="weeks-accordion"
+    @update:model-value="$emit('update:activeWeeks', $event)"
   >
     <el-collapse-item
       v-for="week in weeks"
@@ -80,7 +80,7 @@ defineEmits([
     margin-bottom: 1.5rem;
     border: none;
     background: transparent;
-    
+
     /* Remove default shadow/border */
     box-shadow: none;
   }
@@ -92,7 +92,7 @@ defineEmits([
     background: transparent;
     border-bottom: none;
     margin-bottom: 0.5rem;
-    
+
     /* Disable default arrow rotation if we hide it, but we hide it below */
     .el-collapse-item__arrow {
       display: none;
@@ -114,7 +114,7 @@ defineEmits([
     justify-content: space-between;
     align-items: baseline;
     width: 100%;
-    
+
     .week-title {
       font-size: 22px;
       font-weight: 700;
@@ -123,7 +123,7 @@ defineEmits([
       display: flex;
       align-items: center;
       gap: 8px;
-      
+
       .emoji-icon {
         font-size: 20px;
       }

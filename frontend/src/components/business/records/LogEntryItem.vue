@@ -1,6 +1,6 @@
 <template>
   <!-- 主记录行 -->
-  <tr class="log-entry-row" :id="`log-entry-row-${log.id}`">
+  <tr :id="`log-entry-row-${log.id}`" class="log-entry-row">
     <td>
       <div class="task-cell">
         <!-- 分类标签 -->
@@ -26,9 +26,9 @@
         v-if="log.notes"
         link
         size="small"
-        @click="toggleNotes"
         title="查看笔记"
         class="action-btn"
+        @click="toggleNotes"
       >
         <Icon icon="lucide:message-square" />
       </el-button>
@@ -36,9 +36,9 @@
       <el-button
         link
         size="small"
-        @click="$emit('edit', log)"
         title="编辑"
         class="action-btn"
+        @click="$emit('edit', log)"
       >
         <Icon icon="lucide:pencil" />
       </el-button>
@@ -47,9 +47,9 @@
         link
         size="small"
         type="danger"
-        @click="$emit('delete', log)"
         title="删除"
         class="action-btn delete"
+        @click="$emit('delete', log)"
       >
         <Icon icon="lucide:trash-2" />
       </el-button>
@@ -60,8 +60,8 @@
   <tr
     v-if="log.notes"
     v-show="showNotes"
-    class="log-notes-row"
     :id="`notes-${log.id}`"
+    class="log-notes-row"
   >
     <td colspan="5" class="log-notes-cell">{{ log.notes }}</td>
   </tr>

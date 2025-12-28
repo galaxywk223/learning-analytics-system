@@ -45,8 +45,11 @@
       </div>
     </div>
 
-    <div class="chart-container" v-loading="trendLoading">
-      <div v-if="!trendSeries.labels.length && !trendLoading" class="empty-state">
+    <div v-loading="trendLoading" class="chart-container">
+      <div
+        v-if="!trendSeries.labels.length && !trendLoading"
+        class="empty-state"
+      >
         <div class="empty-icon">📊</div>
         <p>当前筛选范围内没有记录</p>
       </div>
@@ -56,7 +59,9 @@
         class="chart"
         :option="option"
         autoresize
-        :update-options="{ replaceMerge: ['series', 'xAxis', 'yAxis', 'grid', 'dataZoom'] }"
+        :update-options="{
+          replaceMerge: ['series', 'xAxis', 'yAxis', 'grid', 'dataZoom'],
+        }"
         @datazoom="handleDataZoom"
         @finished="handleChartFinished"
       />
@@ -71,14 +76,24 @@
 import { computed, onMounted, watch, nextTick, ref, onUnmounted } from "vue";
 import { use, graphic } from "echarts/core";
 import { BarChart } from "echarts/charts";
-import { GridComponent, TooltipComponent, DataZoomComponent } from "echarts/components";
+import {
+  GridComponent,
+  TooltipComponent,
+  DataZoomComponent,
+} from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
 import VChart from "vue-echarts";
 import { storeToRefs } from "pinia";
 import { useCategoryStore } from "@/stores/category";
 import { useChartsStore } from "@/stores/modules/charts";
 
-use([CanvasRenderer, BarChart, GridComponent, TooltipComponent, DataZoomComponent]);
+use([
+  CanvasRenderer,
+  BarChart,
+  GridComponent,
+  TooltipComponent,
+  DataZoomComponent,
+]);
 
 const categoryStore = useCategoryStore();
 const chartsStore = useChartsStore();
@@ -147,8 +162,8 @@ function calcBarWidth(visiblePct?: number) {
     typeof visiblePct === "number"
       ? visiblePct
       : zoomRange.value.end != null && zoomRange.value.start != null
-      ? zoomRange.value.end - zoomRange.value.start
-      : 100;
+        ? zoomRange.value.end - zoomRange.value.start
+        : 100;
   const pct = Math.max(1, Math.min(100, pctRaw));
   const visible = Math.max(1, Math.round((total * pct) / 100));
   const container = (chartRef.value as any)?.$el as HTMLElement | undefined;
@@ -194,7 +209,7 @@ function handleChartFinished() {
 const option = computed(() => {
   const labels = trendSeries.value.labels || [];
   const values = (trendSeries.value.data || []).map((v) =>
-    Number.isFinite(Number(v)) ? Number(v) : 0
+    Number.isFinite(Number(v)) ? Number(v) : 0,
   );
   const enableZoom = labels.length > 14;
   const initialStart = 0; // 默认全区间
@@ -223,7 +238,8 @@ const option = computed(() => {
                 <div style="color:#5856D6">${Number(item.value || 0).toFixed(2)} 小时</div>`;
       },
       confine: true,
-      extraCssText: "box-shadow: 0 8px 24px rgba(0,0,0,0.12); border-radius: 12px; padding: 12px;",
+      extraCssText:
+        "box-shadow: 0 8px 24px rgba(0,0,0,0.12); border-radius: 12px; padding: 12px;",
     },
     grid: {
       left: 16,
@@ -271,7 +287,11 @@ const option = computed(() => {
     yAxis: {
       type: "value",
       name: "时长 (h)",
-      nameTextStyle: { color: "#8e8e93", align: "right", padding: [0, 6, 0, 0] },
+      nameTextStyle: {
+        color: "#8e8e93",
+        align: "right",
+        padding: [0, 6, 0, 0],
+      },
       min: 0,
       axisLabel: { color: "#8e8e93", fontSize: 11 },
       splitLine: {
@@ -292,11 +312,11 @@ const option = computed(() => {
             { offset: 1, color: "#AF52DE" }, // Purple
           ]),
         },
-        emphasis: { 
+        emphasis: {
           itemStyle: {
             shadowBlur: 12,
-            shadowColor: "rgba(88, 86, 214, 0.3)"
-          }
+            shadowColor: "rgba(88, 86, 214, 0.3)",
+          },
         },
       },
     ],
@@ -311,7 +331,7 @@ onMounted(async () => {
   }
   calcBarWidth();
   // 为了通过TS校验，包装一个无参的监听函数
-  window.addEventListener('resize', onResize);
+  window.addEventListener("resize", onResize);
 });
 
 watch(
@@ -320,7 +340,7 @@ watch(
     if (len && !trendCategoryId.value) {
       selectedCategory.value = categoryOptions.value[0].value as any;
     }
-  }
+  },
 );
 
 watch(
@@ -332,7 +352,7 @@ watch(
     ) {
       selectedSubcategory.value = null;
     }
-  }
+  },
 );
 
 // 数据加载完成后再按真实数据重算一次柱宽
@@ -353,7 +373,7 @@ watch(
         calcBarWidth();
       }
     });
-  }
+  },
 );
 
 watch(
@@ -367,11 +387,11 @@ watch(
       });
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 onUnmounted(() => {
-  window.removeEventListener('resize', onResize);
+  window.removeEventListener("resize", onResize);
 });
 
 function onResize() {
@@ -389,7 +409,9 @@ function onResize() {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 
   &:hover {
     transform: translateY(-2px);
@@ -507,16 +529,16 @@ function onResize() {
   .category-trend-card {
     padding: 20px;
   }
-  
+
   .card-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .selector-group {
     width: 100%;
   }
-  
+
   .selector-wrapper {
     flex: 1;
     min-width: 0;

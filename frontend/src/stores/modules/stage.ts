@@ -40,7 +40,11 @@ export const useStageStore = defineStore("stage", () => {
     if (loading.value) {
       return pendingFetch ?? Promise.resolve();
     }
-    if (!force && Date.now() - lastFetched.value < 60_000 && stages.value.length) {
+    if (
+      !force &&
+      Date.now() - lastFetched.value < 60_000 &&
+      stages.value.length
+    ) {
       return Promise.resolve();
     }
 

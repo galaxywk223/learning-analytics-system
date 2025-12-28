@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="list-group-item motto-item"
-    :id="`motto-${motto.id}`"
-  >
+  <div :id="`motto-${motto.id}`" class="list-group-item motto-item">
     <p class="motto-content">
       <span class="quote-mark left">“</span>
       <span class="text">{{ motto.content }}</span>
@@ -24,8 +21,8 @@
         plain
         class="btn-icon delete-motto-btn"
         :title="'删除'"
-        @click="onDelete"
         :loading="deleting"
+        @click="onDelete"
       >
         <Icon icon="lucide:trash-2" class="icon-sm" />
       </el-button>
@@ -88,7 +85,9 @@ async function onDelete() {
   grid-template-columns: 1fr auto;
   gap: 0.75rem;
   align-items: center;
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  transition:
+    background-color 0.2s ease-in-out,
+    border-color 0.2s ease-in-out;
 }
 .motto-item:hover {
   background-color: var(--surface-card-muted);
@@ -118,6 +117,11 @@ async function onDelete() {
   align-items: baseline;
   gap: 6px;
 }
-.motto-content .quote-mark { color: #94a3b8; font-size: 1.25rem; }
-.motto-content .text { color: var(--color-text-secondary); }
+.motto-content .quote-mark {
+  color: #94a3b8;
+  font-size: 1.25rem;
+}
+.motto-content .text {
+  color: var(--color-text-secondary);
+}
 </style>

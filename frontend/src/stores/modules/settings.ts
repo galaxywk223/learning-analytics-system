@@ -26,7 +26,7 @@ export const useSettingsStore = defineStore("settings", {
             this.activeStageId = settings.active_stage_id;
             localStorage.setItem(
               "ll_active_stage_id",
-              String(settings.active_stage_id)
+              String(settings.active_stage_id),
             );
           }
         }
@@ -64,4 +64,3 @@ export const useSettingsStore = defineStore("settings", {
     },
   },
 });
-

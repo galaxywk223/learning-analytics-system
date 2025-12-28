@@ -38,14 +38,14 @@
             v-if="charts.activeTab === 'categories' && isDrilldown"
             class="floating-back"
             type="button"
-            @click="handleBackClick"
             aria-label="返回上一级分类"
+            @click="handleBackClick"
           >
             <Icon icon="lucide:arrow-left" />
           </button>
           <div
-            class="toolbar-container"
             v-if="['categories', 'cattrend'].includes(charts.activeTab)"
+            class="toolbar-container"
           >
             <div class="toolbar-left"></div>
             <div class="category-filters">
@@ -62,8 +62,8 @@
               <div class="filter-inputs">
                 <select
                   v-if="rangeMode === 'stage'"
-                  class="stage-select minimal-select"
                   v-model="stageSelected"
+                  class="stage-select minimal-select"
                   @change="onStageChange"
                 >
                   <option value="all">全部历史</option>
@@ -78,8 +78,8 @@
                   value-format="YYYY-MM-DD"
                   placeholder="选择日期"
                   clearable
-                  @clear="onFilterCleared"
                   :disabled="charts.loading"
+                  @clear="onFilterCleared"
                 />
                 <el-date-picker
                   v-else-if="rangeMode === 'weekly'"
@@ -89,8 +89,8 @@
                   placeholder="选择一周中的任意一天"
                   :first-day-of-week="1"
                   clearable
-                  @clear="onFilterCleared"
                   :disabled="charts.loading"
+                  @clear="onFilterCleared"
                 />
                 <el-date-picker
                   v-else-if="rangeMode === 'monthly'"
@@ -99,8 +99,8 @@
                   value-format="YYYY-MM"
                   placeholder="选择月份"
                   clearable
-                  @clear="onFilterCleared"
                   :disabled="charts.loading"
+                  @clear="onFilterCleared"
                 />
                 <el-date-picker
                   v-else-if="rangeMode === 'custom'"
@@ -112,179 +112,210 @@
                   end-placeholder="结束日期"
                   unlink-panels
                   clearable
-                  @clear="onFilterCleared"
                   :disabled="charts.loading"
+                  @clear="onFilterCleared"
                 />
               </div>
             </div>
           </div>
-      <div class="tab-panels">
-        <div v-show="charts.activeTab === 'trends'" class="panel">
-        <!-- KPI 仅在趋势分析面板内部显示，符合旧项目布局 -->
-        <div class="kpi-grid" v-loading="charts.loading">
-          <KpiCard label="今天时长" color="amber">
-            <template #icon>
-              <span class="emoji-icon" aria-hidden="true">⏳</span>
-            </template>
-            <template #value>
-              <div class="split-kpi">
-                <div class="split-col today">
-                  <div class="split-title today-title">今天</div>
-                  <div class="split-value large">{{ todayHoursOnly }}</div>
-                  <div class="split-meta">
-                    <span class="meta-text">{{ todayHoursRankText }}</span>
-                    <span class="pill muted">{{ todayExceedText }}</span>
-                  </div>
+          <div class="tab-panels">
+            <div v-show="charts.activeTab === 'trends'" class="panel">
+              <!-- KPI 仅在趋势分析面板内部显示，符合旧项目布局 -->
+              <div v-loading="charts.loading" class="kpi-grid">
+                <KpiCard label="今天时长" color="amber">
+                  <template #icon>
+                    <span class="emoji-icon" aria-hidden="true">⏳</span>
+                  </template>
+                  <template #value>
+                    <div class="split-kpi">
+                      <div class="split-col today">
+                        <div class="split-title today-title">今天</div>
+                        <div class="split-value large">
+                          {{ todayHoursOnly }}
+                        </div>
+                        <div class="split-meta">
+                          <span class="meta-text">{{
+                            todayHoursRankText
+                          }}</span>
+                          <span class="pill muted">{{ todayExceedText }}</span>
+                        </div>
+                      </div>
+                      <div class="divider"></div>
+                      <div class="split-col yesterday">
+                        <div class="split-title">昨日</div>
+                        <div class="split-value medium">
+                          {{ yesterdayHoursOnly }}
+                          <span class="trend">{{ yesterdayHoursTrend }}</span>
+                        </div>
+                        <div class="split-meta">
+                          <span class="meta-text">{{
+                            yesterdayHoursRankText
+                          }}</span>
+                          <span class="pill accent">{{
+                            yesterdayExceedText
+                          }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </KpiCard>
+                <KpiCard label="今天效率" color="green">
+                  <template #icon>
+                    <span class="emoji-icon" aria-hidden="true">⚡️</span>
+                  </template>
+                  <template #value>
+                    <div class="split-kpi">
+                      <div class="split-col today">
+                        <div class="split-title today-title">今天</div>
+                        <div class="split-value large">
+                          {{ todayEfficiencyOnly }}
+                        </div>
+                        <div class="split-meta">
+                          <span class="meta-text">{{
+                            todayEfficiencyRankText
+                          }}</span>
+                          <span class="pill muted">{{
+                            todayEfficiencyExceedText
+                          }}</span>
+                        </div>
+                      </div>
+                      <div class="divider"></div>
+                      <div class="split-col yesterday">
+                        <div class="split-title">昨日</div>
+                        <div class="split-value medium">
+                          {{ yesterdayEfficiencyOnly }}
+                          <span class="trend">{{
+                            yesterdayEfficiencyTrend
+                          }}</span>
+                        </div>
+                        <div class="split-meta">
+                          <span class="meta-text">
+                            {{ yesterdayEfficiencyRankText }}
+                          </span>
+                          <span class="pill accent">
+                            {{ yesterdayEfficiencyExceedText }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </KpiCard>
+                <KpiCard label="近30天波动" color="purple">
+                  <template #icon>
+                    <span class="emoji-icon" aria-hidden="true">🛡️</span>
+                  </template>
+                  <template #value>
+                    <div class="volatility-card">
+                      <div class="vol-main">
+                        <span class="vol-state">{{ stabilityTitle }}</span>
+                        <span class="vol-score">{{ stabilityScore }}</span>
+                      </div>
+                      <!-- Removed redundant subtitle -->
+                      <div class="vol-grid">
+                        <div class="vol-cell">
+                          <span class="vol-label">Avg</span>
+                          <span class="vol-value">{{
+                            stabilityAverageText
+                          }}</span>
+                        </div>
+                        <div class="vol-cell">
+                          <span class="vol-label">Max</span>
+                          <span class="vol-value">
+                            {{ durationExtremeDisplay.max.valueText }}
+                          </span>
+                        </div>
+                        <div class="vol-cell">
+                          <span class="vol-label">Min</span>
+                          <span class="vol-value">
+                            {{ durationExtremeDisplay.min.valueText }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </KpiCard>
+              </div>
+              <div
+                v-if="topSubCards.length"
+                v-loading="charts.loading"
+                class="kpi-grid top-sub-grid"
+              >
+                <KpiCard
+                  v-for="card in topSubCards"
+                  :key="card.key"
+                  :label="card.label"
+                  color="indigo"
+                  dense
+                >
+                  <template #icon>
+                    <span class="emoji-icon" aria-hidden="true">{{
+                      card.medal
+                    }}</span>
+                  </template>
+                  <template #value>
+                    <div class="rank-card">
+                      <div class="rank-title">{{ card.name }}</div>
+                      <div class="rank-percent">{{ card.percentText }}</div>
+                      <div class="rank-bar">
+                        <span
+                          :style="{
+                            width: card.barWidth,
+                            opacity: card.opacity,
+                          }"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                </KpiCard>
+              </div>
+              <!-- 无数据/初始化提示 -->
+              <div
+                v-if="!charts.loading && !charts.hasTrendsData"
+                class="alert-box"
+              >
+                <div v-if="rawChartData?.setup_needed" class="alert alert-info">
+                  尚未创建阶段或学习记录，暂时无法生成趋势图表。请先添加学习日志。
                 </div>
-                <div class="divider"></div>
-                <div class="split-col yesterday">
-                  <div class="split-title">昨日</div>
-                  <div class="split-value medium">
-                    {{ yesterdayHoursOnly }}
-                    <span class="trend">{{ yesterdayHoursTrend }}</span>
-                  </div>
-                  <div class="split-meta">
-                    <span class="meta-text">{{ yesterdayHoursRankText }}</span>
-                    <span class="pill accent">{{ yesterdayExceedText }}</span>
-                  </div>
+                <div v-else class="alert alert-info">
+                  暂无学习数据，无法生成趋势图表。
                 </div>
               </div>
-            </template>
-          </KpiCard>
-          <KpiCard label="今天效率" color="green">
-            <template #icon>
-              <span class="emoji-icon" aria-hidden="true">⚡️</span>
-            </template>
-            <template #value>
-              <div class="split-kpi">
-                <div class="split-col today">
-                  <div class="split-title today-title">今天</div>
-                  <div class="split-value large">{{ todayEfficiencyOnly }}</div>
-                  <div class="split-meta">
-                    <span class="meta-text">{{ todayEfficiencyRankText }}</span>
-                    <span class="pill muted">{{ todayEfficiencyExceedText }}</span>
-                  </div>
-                </div>
-                <div class="divider"></div>
-                <div class="split-col yesterday">
-                  <div class="split-title">昨日</div>
-                  <div class="split-value medium">
-                    {{ yesterdayEfficiencyOnly }}
-                    <span class="trend">{{ yesterdayEfficiencyTrend }}</span>
-                  </div>
-                  <div class="split-meta">
-                    <span class="meta-text">
-                      {{ yesterdayEfficiencyRankText }}
-                    </span>
-                    <span class="pill accent">
-                      {{ yesterdayEfficiencyExceedText }}
-                    </span>
-                  </div>
-                </div>
+              <TrendsChart
+                :weekly-duration-data="charts.trends.weekly_duration_data"
+                :weekly-efficiency-data="charts.trends.weekly_efficiency_data"
+                :daily-duration-data="charts.trends.daily_duration_data"
+                :daily-efficiency-data="charts.trends.daily_efficiency_data"
+                :stage-annotations="charts.stageAnnotations"
+                :has-data="charts.hasTrendsData"
+                :loading="charts.loading"
+                :initial-view="charts.viewType"
+                @view-change="charts.setViewType"
+              />
+            </div>
+            <div
+              v-show="charts.activeTab === 'categories'"
+              class="panel categories-panel"
+            >
+              <div
+                v-if="!charts.loading && !charts.hasCategoryData"
+                class="category-empty-alert alert alert-info text-center"
+              >
+                当前筛选范围内没有找到任何带分类的学习记录。
               </div>
-            </template>
-          </KpiCard>
-          <KpiCard label="近30天波动" color="purple">
-            <template #icon>
-              <span class="emoji-icon" aria-hidden="true">🛡️</span>
-            </template>
-            <template #value>
-              <div class="volatility-card">
-                <div class="vol-main">
-                  <span class="vol-state">{{ stabilityTitle }}</span>
-                  <span class="vol-score">{{ stabilityScore }}</span>
-                </div>
-                <!-- Removed redundant subtitle -->
-                <div class="vol-grid">
-                  <div class="vol-cell">
-                    <span class="vol-label">Avg</span>
-                    <span class="vol-value">{{ stabilityAverageText }}</span>
-                  </div>
-                  <div class="vol-cell">
-                    <span class="vol-label">Max</span>
-                    <span class="vol-value">
-                      {{ durationExtremeDisplay.max.valueText }}
-                    </span>
-                  </div>
-                  <div class="vol-cell">
-                    <span class="vol-label">Min</span>
-                    <span class="vol-value">
-                      {{ durationExtremeDisplay.min.valueText }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </template>
-          </KpiCard>
-        </div>
-        <div
-          class="kpi-grid top-sub-grid"
-          v-if="topSubCards.length"
-          v-loading="charts.loading"
-        >
-          <KpiCard
-            v-for="card in topSubCards"
-            :key="card.key"
-            :label="card.label"
-            color="indigo"
-            dense
-          >
-            <template #icon>
-              <span class="emoji-icon" aria-hidden="true">{{ card.medal }}</span>
-            </template>
-            <template #value>
-              <div class="rank-card">
-                <div class="rank-title">{{ card.name }}</div>
-                <div class="rank-percent">{{ card.percentText }}</div>
-                <div class="rank-bar">
-                  <span :style="{ width: card.barWidth, opacity: card.opacity }" />
-                </div>
-              </div>
-            </template>
-          </KpiCard>
-        </div>
-        <!-- 无数据/初始化提示 -->
-        <div v-if="!charts.loading && !charts.hasTrendsData" class="alert-box">
-          <div v-if="rawChartData?.setup_needed" class="alert alert-info">
-            尚未创建阶段或学习记录，暂时无法生成趋势图表。请先添加学习日志。
+              <CategoryComposite
+                ref="categoryCompositeRef"
+                :main="charts.categoryData.main"
+                :drilldown="charts.categoryData.drilldown"
+                :loading="charts.loading"
+                :show-panel-header="false"
+                @slice-click="onCategorySlice"
+                @back="handleCategoryBack"
+              />
+            </div>
+            <div v-if="charts.activeTab === 'cattrend'" class="panel">
+              <CategoryTrend />
+            </div>
           </div>
-          <div v-else class="alert alert-info">
-            暂无学习数据，无法生成趋势图表。
-          </div>
-        </div>
-        <TrendsChart
-          :weekly-duration-data="charts.trends.weekly_duration_data"
-          :weekly-efficiency-data="charts.trends.weekly_efficiency_data"
-          :daily-duration-data="charts.trends.daily_duration_data"
-          :daily-efficiency-data="charts.trends.daily_efficiency_data"
-          :stage-annotations="charts.stageAnnotations"
-          :has-data="charts.hasTrendsData"
-          :loading="charts.loading"
-          :initial-view="charts.viewType"
-          @view-change="charts.setViewType"
-        />
-      </div>
-      <div v-show="charts.activeTab === 'categories'" class="panel categories-panel">
-        <div
-          v-if="!charts.loading && !charts.hasCategoryData"
-          class="category-empty-alert alert alert-info text-center"
-        >
-          当前筛选范围内没有找到任何带分类的学习记录。
-        </div>
-        <CategoryComposite
-          ref="categoryCompositeRef"
-          :main="charts.categoryData.main"
-          :drilldown="charts.categoryData.drilldown"
-          :loading="charts.loading"
-          :show-panel-header="false"
-          @sliceClick="onCategorySlice"
-          @back="handleCategoryBack"
-        />
-      </div>
-      <div v-if="charts.activeTab === 'cattrend'" class="panel">
-        <CategoryTrend />
-      </div>
-    </div>
         </div>
       </div>
     </PageContainer>
@@ -324,7 +355,7 @@ const rangeMode = computed<CategoryRangeMode>({
 });
 
 const rawChartData = computed<Record<string, any>>(
-  () => charts.rawChartData as Record<string, any>
+  () => charts.rawChartData as Record<string, any>,
 );
 
 const datePoint = computed({
@@ -359,11 +390,12 @@ const topSubCards = computed(() => {
   const medals = ["🥇", "🥈", "🥉"];
   return normalized.slice(0, 3).map((item, idx) => {
     const hasParent = !!item.parent;
-    const name = item.label === "--"
-      ? "暂无数据"
-      : hasParent
-        ? `${item.parent}：${item.label}`
-        : item.label;
+    const name =
+      item.label === "--"
+        ? "暂无数据"
+        : hasParent
+          ? `${item.parent}：${item.label}`
+          : item.label;
     const pctNum = Number(item.percent || 0);
     return {
       key: `${item.parent || "legacy"}-${item.label}-${idx}`,
@@ -452,10 +484,10 @@ const yesterdayHoursWithRank = computed(() => {
 });
 
 const todayHoursOnly = computed(() =>
-  todayHoursText.value.replace("今日 ", "")
+  todayHoursText.value.replace("今日 ", ""),
 );
 const yesterdayHoursOnly = computed(() =>
-  yesterdayHoursText.value.replace("昨日 ", "")
+  yesterdayHoursText.value.replace("昨日 ", ""),
 );
 const todayHoursRankText = computed(() => {
   const match = todayHoursWithRank.value.match(/（(.+?)）/);
@@ -516,10 +548,10 @@ const todayRankLabel = computed(() => {
 
 // ----- 效率 KPI（今日/昨日，与首卡格式一致） -----
 const dailyEfficiencyLabels = computed(
-  () => (charts.trends.daily_efficiency_data?.labels as string[]) || []
+  () => (charts.trends.daily_efficiency_data?.labels as string[]) || [],
 );
 const dailyEfficiencyValues = computed(
-  () => (charts.trends.daily_efficiency_data?.actuals as number[]) || []
+  () => (charts.trends.daily_efficiency_data?.actuals as number[]) || [],
 );
 
 function buildEfficiencyStat(targetDate: string) {
@@ -536,7 +568,8 @@ function buildEfficiencyStat(targetDate: string) {
   const val = Number(data[idx] || 0);
   const sorted = [...data].sort((a, b) => b - a);
   const rank = sorted.findIndex((v) => v === val);
-  const rankStr = rank >= 0 ? `${rank + 1}/${sorted.length}` : `--/${sorted.length}`;
+  const rankStr =
+    rank >= 0 ? `${rank + 1}/${sorted.length}` : `--/${sorted.length}`;
   const valueWithRank = `${val.toFixed(2)}（${rankStr}）`;
   const less = data.filter((v) => v < val).length;
   const exceed = total ? Math.round((less * 100) / total) : 0;
@@ -545,23 +578,23 @@ function buildEfficiencyStat(targetDate: string) {
 }
 
 const todayEfficiencyStat = computed(() =>
-  buildEfficiencyStat(dayjs().format("YYYY-MM-DD"))
+  buildEfficiencyStat(dayjs().format("YYYY-MM-DD")),
 );
 const yesterdayEfficiencyStat = computed(() =>
-  buildEfficiencyStat(dayjs().subtract(1, "day").format("YYYY-MM-DD"))
+  buildEfficiencyStat(dayjs().subtract(1, "day").format("YYYY-MM-DD")),
 );
 
 const todayEfficiencyWithRank = computed(
-  () => todayEfficiencyStat.value.valueWithRank
+  () => todayEfficiencyStat.value.valueWithRank,
 );
 const yesterdayEfficiencyWithRank = computed(
-  () => yesterdayEfficiencyStat.value.valueWithRank
+  () => yesterdayEfficiencyStat.value.valueWithRank,
 );
 const todayEfficiencyExceedText = computed(
-  () => todayEfficiencyStat.value.exceedText
+  () => todayEfficiencyStat.value.exceedText,
 );
 const yesterdayEfficiencyExceedText = computed(
-  () => yesterdayEfficiencyStat.value.exceedText
+  () => yesterdayEfficiencyStat.value.exceedText,
 );
 const todayEfficiencyOnly = computed(() => {
   const match = todayEfficiencyWithRank.value.match(/^(.+?)（/);
@@ -634,23 +667,26 @@ const durationExtremes30d = computed(() => {
   const minValue = Math.min(...values);
   const pickDateByEfficiency = (
     target: number,
-    chooseMaxEfficiency: boolean
+    chooseMaxEfficiency: boolean,
   ) => {
     const candidates = series.filter((item) => item.hours === target);
     if (!candidates.length) return null;
-    const best = candidates.reduce((acc, cur) => {
-      if (acc === null) return cur;
-      const accEff = acc.efficiency;
-      const curEff = cur.efficiency;
-      // 缺失效率视为最低优先级
-      if (curEff === null && accEff !== null) return acc;
-      if (curEff !== null && accEff === null) return cur;
-      if (curEff === null && accEff === null) return acc;
-      if (chooseMaxEfficiency) {
-        return (curEff as number) > (accEff as number) ? cur : acc;
-      }
-      return (curEff as number) < (accEff as number) ? cur : acc;
-    }, null as (typeof series)[number] | null);
+    const best = candidates.reduce(
+      (acc, cur) => {
+        if (acc === null) return cur;
+        const accEff = acc.efficiency;
+        const curEff = cur.efficiency;
+        // 缺失效率视为最低优先级
+        if (curEff === null && accEff !== null) return acc;
+        if (curEff !== null && accEff === null) return cur;
+        if (curEff === null && accEff === null) return acc;
+        if (chooseMaxEfficiency) {
+          return (curEff as number) > (accEff as number) ? cur : acc;
+        }
+        return (curEff as number) < (accEff as number) ? cur : acc;
+      },
+      null as (typeof series)[number] | null,
+    );
     return best ? dayjs(best.date).format("MM-DD") : null;
   };
   return {
@@ -673,7 +709,7 @@ const stabilityStats = computed(() => {
   const sorted = [...values].sort((a, b) => a - b);
   const trimCount = Math.min(
     Math.floor(sorted.length * 0.1),
-    Math.max(sorted.length - 3, 0)
+    Math.max(sorted.length - 3, 0),
   );
   const trimmed =
     trimCount > 0 && sorted.length - trimCount * 2 >= 3
@@ -735,8 +771,7 @@ const durationExtremeDisplay = computed(() => {
       return { valueText: "--", dateText: "" };
     }
     const valueText = `${target.value.toFixed(1)}h`;
-    const dateText =
-      target.value > 0 && target.date ? target.date : "";
+    const dateText = target.value > 0 && target.date ? target.date : "";
     return { valueText, dateText };
   };
   return {
@@ -787,7 +822,7 @@ watch(
     if (rangeMode.value === "stage") {
       stageSelected.value = value as string | number;
     }
-  }
+  },
 );
 
 watch(
@@ -867,7 +902,7 @@ watch(
     }
 
     charts.fetchCategories();
-  }
+  },
 );
 
 watch(
@@ -880,7 +915,7 @@ watch(
     if (charts.stageId !== activeId) {
       charts.setStage(activeId);
     }
-  }
+  },
 );
 
 watch(
@@ -892,7 +927,7 @@ watch(
       target.goBack();
       compositeDrilldown.value = false;
     }
-  }
+  },
 );
 
 onMounted(async () => {
@@ -912,7 +947,6 @@ onMounted(async () => {
 onActivated(async () => {
   await charts.refreshAll();
 });
-
 </script>
 
 <style scoped lang="scss">

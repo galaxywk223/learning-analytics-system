@@ -4,7 +4,6 @@
     subtitle="在这里回顾每一次努力，见证成长的每一步。"
     :custom-class="'records-view'"
   >
-
     <el-skeleton v-if="loading" :rows="4" :animated="false" />
 
     <EmptyState
@@ -27,17 +26,19 @@
       v-model="dialogVisible"
       :show-close="false"
       width="600px"
-      @close="handleDialogClose"
       class="ios-dialog-modal"
       align-center
       destroy-on-close
       :close-on-click-modal="false"
+      @close="handleDialogClose"
     >
       <div class="ios-dialog-content">
         <div class="ios-dialog-header">
-          <h3 class="ios-dialog-title">{{ isEditing ? '编辑记录' : '添加新记录' }}</h3>
+          <h3 class="ios-dialog-title">
+            {{ isEditing ? "编辑记录" : "添加新记录" }}
+          </h3>
         </div>
-        
+
         <RecordForm
           ref="recordFormRef"
           :initial-data="currentRecord"
@@ -54,8 +55,8 @@
       <button
         class="fab fab-sort"
         type="button"
-        @click="toggleSort"
         title="切换排序"
+        @click="toggleSort"
       >
         <Icon icon="lucide:arrow-up-down" />
       </button>
@@ -63,8 +64,8 @@
         class="fab fab-add"
         type="button"
         :disabled="!canAddRecord"
-        @click="openAddDialog()"
         title="添加记录"
+        @click="openAddDialog()"
       >
         <Icon icon="lucide:plus" />
       </button>
@@ -289,7 +290,7 @@ watch(
       stageWarningShown.value = false;
       loadRecords(true);
     }
-  }
+  },
 );
 </script>
 
@@ -305,14 +306,16 @@ watch(
   .el-dialog {
     background: rgba(255, 255, 255, 0.98);
     border-radius: 14px;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 20px 40px rgba(0,0,0,0.2);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.05),
+      0 20px 40px rgba(0, 0, 0, 0.2);
     padding: 0;
     overflow: hidden;
-    
+
     .el-dialog__header {
       display: none;
     }
-    
+
     .el-dialog__body {
       padding: 0;
     }
@@ -327,7 +330,7 @@ watch(
 .ios-dialog-header {
   padding: 20px 20px 10px;
   text-align: center;
-  
+
   .ios-dialog-title {
     font-size: 17px;
     font-weight: 600;
@@ -353,7 +356,10 @@ watch(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.18s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .fab-add {

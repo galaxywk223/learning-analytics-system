@@ -3,7 +3,7 @@
     <!-- 笔记 -->
     <div class="ios-input-row column">
       <el-input
-        v-model="form.notes"
+        v-model="localForm.notes"
         type="textarea"
         :rows="4"
         placeholder="备注..."
@@ -17,7 +17,7 @@
     <!-- 心情 -->
     <div class="ios-input-row center">
       <el-rate
-        v-model="form.mood"
+        v-model="localForm.mood"
         :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
         size="large"
         class="ios-rate"
@@ -27,12 +27,33 @@
 </template>
 
 <script setup>
-defineProps({
+import { ref, watch } from "vue";
+
+const props = defineProps({
   form: {
     type: Object,
     required: true,
   },
 });
+
+const emit = defineEmits(["update:form"]);
+const localForm = ref({});
+
+watch(
+  () => props.form,
+  (value) => {
+    localForm.value = { ...(value || {}) };
+  },
+  { deep: true, immediate: true },
+);
+
+watch(
+  localForm,
+  (value) => {
+    emit("update:form", { ...(value || {}) });
+  },
+  { deep: true },
+);
 </script>
 
 <style scoped lang="scss">
@@ -40,7 +61,7 @@ defineProps({
   display: flex;
   flex-direction: column;
   gap: 16px;
-  
+
   &.transparent {
     background: transparent;
   }
@@ -48,11 +69,11 @@ defineProps({
 
 .ios-input-row {
   display: flex;
-  
+
   &.column {
     flex-direction: column;
   }
-  
+
   &.center {
     justify-content: center;
     padding: 10px 0;
@@ -61,7 +82,7 @@ defineProps({
 
 .ios-textarea {
   width: 100%;
-  
+
   :deep(.el-textarea__inner) {
     background: rgba(118, 118, 128, 0.12);
     border: none;
@@ -70,12 +91,12 @@ defineProps({
     font-size: 15px;
     color: #000;
     font-family: inherit;
-    
+
     &::placeholder {
       color: #8e8e93;
     }
   }
-  
+
   :deep(.el-input__count) {
     background: transparent;
     color: #8e8e93;
@@ -86,7 +107,7 @@ defineProps({
 
 .ios-rate {
   height: 32px;
-  
+
   :deep(.el-rate__icon) {
     font-size: 28px;
   }

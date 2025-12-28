@@ -1,6 +1,5 @@
 <template>
   <div class="focus-view">
-
     <PageContainer
       :title="{ icon: '🎯', text: isTimerRunning ? '专注中' : '专注计时' }"
       subtitle="保持专注，记录每一步的累积"
@@ -31,11 +30,11 @@
           <!-- 表单区域 -->
           <FocusForm
             v-if="!isTimerRunning && !isPaused"
+            ref="formRef"
             v-model:form-data="focusForm"
             :categories="categories"
             :subcategories="allSubcategories"
             @category-change="onCategoryChange"
-            ref="formRef"
           />
 
           <!-- 已开始时显示的信息 -->
@@ -66,12 +65,16 @@
             <div class="summary-row">
               <div class="summary-item">
                 <span class="label">时长</span>
-                <span class="value highlight">{{ formatDuration(elapsedSeconds) }}</span>
+                <span class="value highlight">{{
+                  formatDuration(elapsedSeconds)
+                }}</span>
               </div>
               <div class="divider-vertical"></div>
               <div class="summary-item">
                 <span class="label">时间段</span>
-                <span class="value">{{ startTimeDisplay }} - {{ endTimeDisplay }}</span>
+                <span class="value"
+                  >{{ startTimeDisplay }} - {{ endTimeDisplay }}</span
+                >
               </div>
             </div>
           </div>
@@ -99,10 +102,17 @@
 
           <div class="form-footer">
             <div class="pill-btn-group-horizontal">
-              <button class="pill-btn secondary" @click="stopDialogVisible = false">
+              <button
+                class="pill-btn secondary"
+                @click="stopDialogVisible = false"
+              >
                 取消
               </button>
-              <button class="pill-btn primary" @click="saveRecord" :disabled="loading">
+              <button
+                class="pill-btn primary"
+                :disabled="loading"
+                @click="saveRecord"
+              >
                 保存
               </button>
             </div>
@@ -222,7 +232,7 @@ const rules = {
 const availableSubcategories = computed(() => {
   if (!focusForm.value.categoryId) return [];
   return allSubcategories.value.filter(
-    (sub) => sub.category_id === focusForm.value.categoryId
+    (sub) => sub.category_id === focusForm.value.categoryId,
   );
 });
 
@@ -427,7 +437,7 @@ const cancelSession = async () => {
         confirmButtonText: "确认放弃",
         cancelButtonText: "取消",
         type: "warning",
-      }
+      },
     );
 
     timerCancel();
@@ -455,8 +465,6 @@ const goBack = () => {
 // 生命周期
 onMounted(async () => {
   await loadData();
-
-
 
   const savedFormData = restoreState();
   if (savedFormData) {
@@ -516,14 +524,16 @@ onActivated(() => {
   .el-dialog {
     background: rgba(255, 255, 255, 0.98);
     border-radius: 14px;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 20px 40px rgba(0,0,0,0.2);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.05),
+      0 20px 40px rgba(0, 0, 0, 0.2);
     padding: 0;
     overflow: hidden;
-    
+
     .el-dialog__header {
       display: none; /* Hide default header */
     }
-    
+
     .el-dialog__body {
       padding: 0;
     }
@@ -539,7 +549,7 @@ onActivated(() => {
 
 .ios-dialog-header {
   padding: 24px 16px 16px;
-  
+
   .ios-dialog-title {
     font-size: 17px;
     font-weight: 600;
@@ -547,7 +557,7 @@ onActivated(() => {
     margin: 0 0 4px;
     line-height: 1.3;
   }
-  
+
   .ios-dialog-subtitle {
     font-size: 13px;
     color: #8e8e93;
@@ -559,7 +569,7 @@ onActivated(() => {
   width: 100%;
   padding: 0 16px;
   margin-bottom: 20px;
-  
+
   .summary-row {
     background: rgba(118, 118, 128, 0.12);
     border-radius: 10px;
@@ -568,31 +578,31 @@ onActivated(() => {
     justify-content: space-around;
     align-items: center;
   }
-  
+
   .summary-item {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    
+
     .label {
       font-size: 11px;
       color: #8e8e93;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    
+
     .value {
       font-size: 15px;
       font-weight: 500;
       color: #000;
-      
+
       &.highlight {
         color: #007aff;
         font-weight: 600;
       }
     }
   }
-  
+
   .divider-vertical {
     width: 1px;
     height: 24px;
@@ -607,17 +617,17 @@ onActivated(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  
+
   .form-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    
+
     &.column {
       flex-direction: column;
       align-items: stretch;
     }
-    
+
     .row-label {
       font-size: 15px;
       color: #000;
@@ -636,11 +646,11 @@ onActivated(() => {
   resize: none;
   outline: none;
   font-family: inherit;
-  
+
   &::placeholder {
     color: #8e8e93;
   }
-  
+
   &:focus {
     background: rgba(118, 118, 128, 0.18);
   }

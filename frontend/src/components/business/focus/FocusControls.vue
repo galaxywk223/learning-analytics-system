@@ -7,8 +7,8 @@
           class="control-btn primary-btn"
           size="large"
           :icon="VideoPlay"
-          @click="$emit('start')"
           :loading="loading"
+          @click="$emit('start')"
         >
           专注计时
         </el-button>
@@ -117,7 +117,9 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
   border: none;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   padding: 0 1.2rem;
-  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.2s ease;
+  transition:
+    transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+    box-shadow 0.2s ease;
   margin-left: 0 !important;
   letter-spacing: 0.5px;
 
@@ -151,33 +153,33 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
 :deep(.primary-btn),
 :deep(.resume-btn) {
   /* Purple Gradient */
-  background: linear-gradient(135deg, #7C73FF 0%, #5856D6 100%);
+  background: linear-gradient(135deg, #7c73ff 0%, #5856d6 100%);
   color: #ffffff;
   box-shadow: 0 8px 20px rgba(88, 86, 214, 0.3);
 
   &:hover {
-    background: linear-gradient(135deg, #8E86FF 0%, #6A67E6 100%);
+    background: linear-gradient(135deg, #8e86ff 0%, #6a67e6 100%);
     box-shadow: 0 12px 24px rgba(88, 86, 214, 0.4);
   }
 }
 
 :deep(.pause-btn) {
-  background: linear-gradient(135deg, #FFD60A 0%, #FF9F0A 100%);
+  background: linear-gradient(135deg, #ffd60a 0%, #ff9f0a 100%);
   color: #ffffff;
   box-shadow: 0 8px 20px rgba(255, 159, 10, 0.3);
 
   &:hover {
-    background: linear-gradient(135deg, #FFE033 0%, #FFB333 100%);
+    background: linear-gradient(135deg, #ffe033 0%, #ffb333 100%);
   }
 }
 
 :deep(.stop-btn) {
-  background: linear-gradient(135deg, #FF453A 0%, #FF3B30 100%);
+  background: linear-gradient(135deg, #ff453a 0%, #ff3b30 100%);
   color: #ffffff;
   box-shadow: 0 8px 20px rgba(255, 59, 48, 0.3);
 
   &:hover {
-    background: linear-gradient(135deg, #FF6961 0%, #FF5E55 100%);
+    background: linear-gradient(135deg, #ff6961 0%, #ff5e55 100%);
   }
 }
 
@@ -195,7 +197,7 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
 .return-link {
   background: transparent;
   border: none;
-  color: #8E8E93;
+  color: #8e8e93;
   font-weight: 500;
   font-size: 17px;
   cursor: pointer;

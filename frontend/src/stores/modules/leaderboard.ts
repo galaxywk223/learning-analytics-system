@@ -1,7 +1,10 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { ElMessage } from "element-plus";
-import { leaderboardAPI, type LeaderboardParams } from "@/api/modules/leaderboard";
+import {
+  leaderboardAPI,
+  type LeaderboardParams,
+} from "@/api/modules/leaderboard";
 
 type Period = "day" | "week" | "month";
 type Metric = "duration" | "efficiency";
@@ -48,7 +51,9 @@ export const useLeaderboardStore = defineStore("leaderboard", () => {
     if (loading.value && !force) return;
     loading.value = true;
     try {
-      const response: any = await leaderboardAPI.getRankings(requestParams.value);
+      const response: any = await leaderboardAPI.getRankings(
+        requestParams.value,
+      );
       if (response?.success && response.data) {
         items.value = response.data.items || [];
         me.value = response.data.me || null;

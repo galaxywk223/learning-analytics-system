@@ -259,7 +259,9 @@ defineExpose({ highlightSlice, clearHighlight });
   gap: 16px;
   position: relative;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 
   &:hover {
     transform: translateY(-2px);
@@ -283,7 +285,7 @@ defineExpose({ highlightSlice, clearHighlight });
     svg {
       width: 32px;
       height: 32px;
-      color: #5856D6; /* Indigo */
+      color: #5856d6; /* Indigo */
       padding: 6px;
       border-radius: 10px;
       background: rgba(88, 86, 214, 0.1);

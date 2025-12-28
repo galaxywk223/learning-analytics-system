@@ -10,7 +10,7 @@
           <h5 class="timeline-title">{{ item.title }}</h5>
           <p class="timeline-date mb-0">{{ formatDate(item.event_date) }}</p>
         </div>
-        <div class="dropdown" v-if="enableActions">
+        <div v-if="enableActions" class="dropdown">
           <el-dropdown trigger="click">
             <span class="el-dropdown-link btn-more" @click.stop>
               <Icon icon="lucide:more-horizontal" />
@@ -29,7 +29,12 @@
           </el-dropdown>
         </div>
       </div>
-      <div class="timeline-description" v-html="safeDescription"></div>
+      <p
+        class="timeline-description"
+        :class="{ 'text-muted': !hasDescription }"
+      >
+        {{ descriptionText }}
+      </p>
       <div
         v-if="attachments.length"
         class="timeline-attachments border-top pt-3 mt-3"
@@ -38,9 +43,9 @@
         <div class="attachments-flex">
           <div
             v-for="att in attachments"
+            :id="`attachment-${att.id}`"
             :key="att.id"
             class="attachment-item"
-            :id="`attachment-${att.id}`"
           >
             <a :href="downloadUrl(att)" target="_blank" class="attachment-link">
               <Icon
@@ -87,10 +92,12 @@ function formatDate(d) {
   const dt = new Date(d);
   return `${dt.getFullYear()}年${String(dt.getMonth() + 1).padStart(2, "0")}月${String(dt.getDate()).padStart(2, "0")}日`;
 }
-const safeDescription = computed(() =>
-  props.item.description
-    ? props.item.description
-    : '<p class="text-muted">没有详细描述。</p>'
+const hasDescription = computed(() => {
+  const value = props.item.description;
+  return typeof value === "string" && value.trim().length > 0;
+});
+const descriptionText = computed(() =>
+  hasDescription.value ? props.item.description.trim() : "没有详细描述。",
 );
 
 function editItem() {

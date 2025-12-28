@@ -33,7 +33,15 @@ const option = computed(() => {
   const totalHours = source.reduce((sum, item) => sum + item.value, 0);
 
   return {
-    color: ["#6366f1", "#f97316", "#10b981", "#14b8a6", "#facc15", "#ef4444", "#8b5cf6"],
+    color: [
+      "#6366f1",
+      "#f97316",
+      "#10b981",
+      "#14b8a6",
+      "#facc15",
+      "#ef4444",
+      "#8b5cf6",
+    ],
     animation: false,
     tooltip: {
       trigger: "item",

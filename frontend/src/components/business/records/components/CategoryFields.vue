@@ -6,7 +6,7 @@
       <el-form-item prop="category_id" class="ios-input-row half">
         <span class="ios-label">分类</span>
         <el-select
-          v-model="form.category_id"
+          v-model="localForm.category_id"
           placeholder=""
           class="ios-select"
           @change="handleCategoryChange"
@@ -24,7 +24,7 @@
       <el-form-item prop="subcategory_id" class="ios-input-row half">
         <span class="ios-label">子分类</span>
         <el-select
-          v-model="form.subcategory_id"
+          v-model="localForm.subcategory_id"
           placeholder=""
           class="ios-select"
           :disabled="!subCategoryOptions.length"
@@ -42,6 +42,8 @@
 </template>
 
 <script setup>
+import { ref, watch } from "vue";
+
 const props = defineProps({
   form: {
     type: Object,
@@ -57,11 +59,29 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["category-change"]);
+const emit = defineEmits(["update:form", "category-change"]);
+
+const localForm = ref({});
+
+watch(
+  () => props.form,
+  (value) => {
+    localForm.value = { ...(value || {}) };
+  },
+  { deep: true, immediate: true },
+);
+
+watch(
+  localForm,
+  (value) => {
+    emit("update:form", { ...(value || {}) });
+  },
+  { deep: true },
+);
 
 function handleCategoryChange(value) {
   // 清空子分类选择
-  props.form.subcategory_id = null;
+  localForm.value.subcategory_id = null;
   emit("category-change", value);
 }
 </script>
@@ -91,13 +111,13 @@ function handleCategoryChange(value) {
   min-height: 56px;
   position: relative;
   flex: 1;
-  
+
   &.half {
     flex: 1;
     min-width: 0;
     padding: 14px 16px;
   }
-  
+
   :deep(.el-form-item__content) {
     flex: 1;
     display: flex;
@@ -124,13 +144,13 @@ function handleCategoryChange(value) {
 
 .ios-select {
   flex: 1;
-  
+
   :deep(.el-input__wrapper) {
     background-color: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
   }
-  
+
   :deep(.el-input__inner) {
     font-size: 17px;
     color: #007aff;

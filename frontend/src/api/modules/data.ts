@@ -46,7 +46,7 @@ async function ensureCsrfToken() {
 function extractFilename(disposition) {
   if (!disposition) return "backup.zip";
   const match = /filename\*=UTF-8''([^;]+)|filename="?([^;"]+)"?/i.exec(
-    disposition
+    disposition,
   );
   return decodeURIComponent(match?.[1] || match?.[2] || "backup.zip");
 }

@@ -20,19 +20,19 @@
     <div class="actions">
       <el-button
         type="primary"
-        @click="$emit('add')"
         :icon="Plus"
         size="large"
         class="primary-btn"
+        @click="$emit('add')"
       >
         {{ addButtonText }}
       </el-button>
       <el-button
         :loading="loading"
-        @click="$emit('refresh')"
         :icon="Refresh"
         size="large"
         class="refresh-btn"
+        @click="$emit('refresh')"
       >
         刷新
       </el-button>

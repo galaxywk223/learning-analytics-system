@@ -17,7 +17,14 @@ import {
 import { CanvasRenderer } from "echarts/renderers";
 import VChart from "vue-echarts";
 
-use([CanvasRenderer, LineChart, GridComponent, TooltipComponent, LegendComponent, DataZoomComponent]);
+use([
+  CanvasRenderer,
+  LineChart,
+  GridComponent,
+  TooltipComponent,
+  LegendComponent,
+  DataZoomComponent,
+]);
 
 const props = defineProps({
   data: {

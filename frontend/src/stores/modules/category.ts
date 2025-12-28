@@ -20,7 +20,7 @@ export const useCategoryStore = defineStore("category", () => {
     tree.value.map((cat) => ({
       value: cat.id,
       label: cat.name,
-    }))
+    })),
   );
 
   function getSubCategoryOptions(categoryId: number | string) {
@@ -66,7 +66,7 @@ export const useCategoryStore = defineStore("category", () => {
     loading.value = true;
     pendingFetch = (async () => {
       try {
-    const res = await categoryAPI.getAll({ include_subcategories: true });
+        const res = await categoryAPI.getAll({ include_subcategories: true });
         const response = res as unknown as CategoriesResponse;
         let data: CategoryNode[] = [];
         if (response.success && Array.isArray(response.categories)) {
@@ -79,7 +79,7 @@ export const useCategoryStore = defineStore("category", () => {
 
         const isTree = data.some(
           (d: CategoryNode) =>
-            Array.isArray(d.children) || Array.isArray(d.subcategories)
+            Array.isArray(d.children) || Array.isArray(d.subcategories),
         );
 
         if (!isTree) {
@@ -102,7 +102,10 @@ export const useCategoryStore = defineStore("category", () => {
           });
 
           const collected: CategoryNode[] = [];
-          const traverse = (node: CategoryNode, parent: CategoryNode | null) => {
+          const traverse = (
+            node: CategoryNode,
+            parent: CategoryNode | null,
+          ) => {
             const flatNode: CategoryNode = {
               id: node.id,
               name: node.name,
@@ -111,7 +114,7 @@ export const useCategoryStore = defineStore("category", () => {
             } as CategoryNode;
             collected.push(flatNode);
             (node.children || node.subcategories || []).forEach((child) =>
-              traverse(child, node)
+              traverse(child, node),
             );
           };
           tree.value.forEach((root) => traverse(root, null));
@@ -176,7 +179,7 @@ export const useCategoryStore = defineStore("category", () => {
         typeof dataOrName === "string" ? { name: dataOrName } : dataOrName;
     } else {
       console.warn(
-        "Calling rename with id is deprecated. Use full node object instead."
+        "Calling rename with id is deprecated. Use full node object instead.",
       );
       nodeId = idOrNode;
       payload =
@@ -204,7 +207,7 @@ export const useCategoryStore = defineStore("category", () => {
       categoryId = idOrNode.category_id;
     } else {
       console.warn(
-        "Calling remove with id is deprecated. Use full node object instead."
+        "Calling remove with id is deprecated. Use full node object instead.",
       );
       nodeId = idOrNode;
       const node = flat.value.find((n) => n.id === nodeId);

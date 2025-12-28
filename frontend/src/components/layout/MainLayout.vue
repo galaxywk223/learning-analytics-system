@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="page-wrapper"
-    :class="{ 'sidebar-collapsed': true }"
-  >
+  <div class="page-wrapper" :class="{ 'sidebar-collapsed': true }">
     <!-- 侧边栏 -->
     <aside
       class="sidebar"

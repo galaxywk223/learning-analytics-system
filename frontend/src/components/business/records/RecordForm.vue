@@ -4,23 +4,23 @@
     :model="form"
     :rules="rules"
     label-position="top"
-    @submit.prevent="submitForm"
     class="record-form"
+    @submit.prevent="submitForm"
   >
     <div class="ios-form-content">
       <!-- 基本信息 -->
-      <BasicInfoFields :form="form" />
+      <BasicInfoFields v-model:form="form" />
 
       <!-- 分类标签 -->
       <CategoryFields
-        :form="form"
+        v-model:form="form"
         :category-options="categoryStore.categoryOptions"
         :sub-category-options="subCategoryOptions"
         @category-change="onCategoryChange"
       />
 
       <!-- 附加信息 -->
-      <AdditionalFields :form="form" />
+      <AdditionalFields v-model:form="form" />
     </div>
 
     <!-- 提交按钮 -->
@@ -30,10 +30,10 @@
         <button class="pill-btn secondary" @click.prevent="emit('cancel')">
           取消
         </button>
-        <button 
-          class="pill-btn primary" 
-          @click.prevent="submitForm"
+        <button
+          class="pill-btn primary"
           :disabled="loading"
+          @click.prevent="submitForm"
         >
           {{ isEdit ? "更新" : "保存" }}
         </button>
@@ -96,7 +96,7 @@ watch(
   ([hours, minutes]) => {
     form.value.actual_duration = (hours || 0) * 60 + (minutes || 0);
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // 方法

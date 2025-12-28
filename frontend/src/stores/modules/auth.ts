@@ -27,7 +27,7 @@ export const useAuthStore = defineStore("auth", () => {
   async function login(credentials: any) {
     try {
       const response = (await authAPI.login(
-        credentials
+        credentials,
       )) as unknown as LoginResponse;
 
       if (response.success) {
@@ -53,7 +53,7 @@ export const useAuthStore = defineStore("auth", () => {
   async function register(userInfo: any) {
     try {
       const response = (await authAPI.register(
-        userInfo
+        userInfo,
       )) as unknown as RegisterResponse;
 
       if (response.success) {

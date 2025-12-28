@@ -1,9 +1,9 @@
 <template>
   <div class="ios-list-container">
     <div class="ios-list">
-      <div 
-        v-for="log in logs" 
-        :key="log.id" 
+      <div
+        v-for="log in logs"
+        :key="log.id"
         class="ios-list-item"
         :class="`category-bg-${(log.subcategory?.category_id || 0) % 6}`"
       >
@@ -19,43 +19,41 @@
               :class="`category-color-${(log.subcategory.category_id || 0) % 6}`"
             ></span>
             <span class="task-name" :title="log.task">{{ log.task }}</span>
-            <span class="category-tag" v-if="log.subcategory">
+            <span v-if="log.subcategory" class="category-tag">
               {{ log.subcategory.name }}
             </span>
             <!-- Notes Icon (Click to toggle) -->
-            <span 
-              v-if="log.notes" 
+            <span
+              v-if="log.notes"
               class="notes-icon-wrapper"
-              @click.stop="$emit('toggle-notes', log.id)"
               title="查看备注"
+              @click.stop="$emit('toggle-notes', log.id)"
             >
               <Icon icon="lucide:message-square" class="notes-icon" />
             </span>
           </div>
 
           <!-- 3. Duration -->
-          <div class="col-duration">
-            {{ log.actual_duration }} min
-          </div>
-          
+          <div class="col-duration">{{ log.actual_duration }} min</div>
+
           <!-- 4. Actions (Hover/Right) -->
           <div class="col-actions">
-             <el-button
+            <el-button
               link
               size="small"
-              @click="$emit('edit-record', log)"
               class="action-btn"
               title="编辑"
+              @click="$emit('edit-record', log)"
             >
               <Icon icon="lucide:pencil" />
             </el-button>
-             <el-button
+            <el-button
               link
               size="small"
               type="danger"
-              @click="$emit('delete-record', log)"
               class="action-btn delete"
               title="删除"
+              @click="$emit('delete-record', log)"
             >
               <Icon icon="lucide:trash-2" />
             </el-button>
@@ -107,12 +105,14 @@ defineEmits(["toggle-notes", "edit-record", "delete-record"]);
   border-radius: 10px; /* Slightly smaller radius */
   padding: 8px 12px; /* Compact padding */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    
+
     .col-actions {
       opacity: 1;
     }
@@ -143,14 +143,14 @@ defineEmits(["toggle-notes", "edit-record", "delete-record"]);
   align-items: center;
   gap: 8px;
   min-width: 0; /* Enable truncation */
-  
+
   .category-dot {
     width: 8px; /* Increased from 6px */
     height: 8px; /* Increased from 6px */
     border-radius: 50%;
     flex-shrink: 0;
   }
-  
+
   .task-name {
     font-size: 17px; /* Increased from 15px */
     font-weight: 600;
@@ -159,7 +159,7 @@ defineEmits(["toggle-notes", "edit-record", "delete-record"]);
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  
+
   .category-tag {
     font-size: 13px; /* Increased from 11px */
     color: #8e8e93;
@@ -169,18 +169,18 @@ defineEmits(["toggle-notes", "edit-record", "delete-record"]);
     white-space: nowrap;
     flex-shrink: 0;
   }
-  
+
   .notes-icon-wrapper {
     display: flex;
     align-items: center;
     cursor: pointer;
     color: #007aff;
     margin-left: 4px;
-    
+
     &:hover {
       opacity: 0.8;
     }
-    
+
     .notes-icon {
       width: 16px; /* Increased from 14px */
       height: 16px; /* Increased from 14px */
@@ -207,23 +207,23 @@ defineEmits(["toggle-notes", "edit-record", "delete-record"]);
   gap: 2px;
   opacity: 0; /* Hidden by default */
   transition: opacity 0.2s ease;
-  
+
   .action-btn {
     padding: 4px;
     height: 28px; /* Increased from 24px */
     width: 28px; /* Increased from 24px */
     color: #8e8e93;
-    
+
     &:hover {
       color: #007aff;
       background-color: rgba(0, 122, 255, 0.1);
     }
-    
+
     &.delete:hover {
       color: #ff3b30;
       background-color: rgba(255, 59, 48, 0.1);
     }
-    
+
     :deep(.iconify) {
       width: 18px; /* Increased from 16px */
       height: 18px; /* Increased from 16px */
@@ -242,23 +242,49 @@ defineEmits(["toggle-notes", "edit-record", "delete-record"]);
 }
 
 /* Category Colors */
-.category-color-0 { background-color: #007aff; }
-.category-color-1 { background-color: #ff2d55; }
-.category-color-2 { background-color: #34c759; }
-.category-color-3 { background-color: #ff9500; }
-.category-color-4 { background-color: #5856d6; }
-.category-color-5 { background-color: #ff3b30; }
+.category-color-0 {
+  background-color: #007aff;
+}
+.category-color-1 {
+  background-color: #ff2d55;
+}
+.category-color-2 {
+  background-color: #34c759;
+}
+.category-color-3 {
+  background-color: #ff9500;
+}
+.category-color-4 {
+  background-color: #5856d6;
+}
+.category-color-5 {
+  background-color: #ff3b30;
+}
 
 /* Category Backgrounds (Subtle/Pastel) */
-.category-bg-0 { background-color: rgba(0, 122, 255, 0.04); }
-.category-bg-1 { background-color: rgba(255, 45, 85, 0.04); }
-.category-bg-2 { background-color: rgba(52, 199, 89, 0.04); }
-.category-bg-3 { background-color: rgba(255, 149, 0, 0.04); }
-.category-bg-4 { background-color: rgba(88, 86, 214, 0.04); }
-.category-bg-5 { background-color: rgba(255, 59, 48, 0.04); }
+.category-bg-0 {
+  background-color: rgba(0, 122, 255, 0.04);
+}
+.category-bg-1 {
+  background-color: rgba(255, 45, 85, 0.04);
+}
+.category-bg-2 {
+  background-color: rgba(52, 199, 89, 0.04);
+}
+.category-bg-3 {
+  background-color: rgba(255, 149, 0, 0.04);
+}
+.category-bg-4 {
+  background-color: rgba(88, 86, 214, 0.04);
+}
+.category-bg-5 {
+  background-color: rgba(255, 59, 48, 0.04);
+}
 
 /* Hover state remains consistent or slightly darkens */
 .ios-list-item:hover {
-  filter: brightness(0.98); /* Slightly darken on hover instead of generic shadow change only */
+  filter: brightness(
+    0.98
+  ); /* Slightly darken on hover instead of generic shadow change only */
 }
 </style>

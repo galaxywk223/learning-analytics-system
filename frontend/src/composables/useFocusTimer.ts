@@ -114,7 +114,7 @@ export function useFocusTimer(): UseFocusTimerReturn {
           // 立即计算一次
           const now = new Date();
           const actualElapsed = Math.floor(
-            (now.getTime() - startTime.value.getTime()) / 1000
+            (now.getTime() - startTime.value.getTime()) / 1000,
           );
           elapsedSeconds.value = actualElapsed;
 

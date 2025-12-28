@@ -1,4 +1,5 @@
 <template>
+  <!-- eslint-disable vue/no-v-html -->
   <div class="ios-view">
     <PageContainer
       :title="{ icon: '🤖', text: '智能规划' }"
@@ -11,11 +12,15 @@
             <h3 class="panel-title">配置分析范围</h3>
             <div class="current-status">
               <span class="status-badge">{{ scopeLabel }}</span>
-              <span class="status-badge secondary" v-if="!isStageScope">{{ currentPeriodLabel }}</span>
-              <span class="status-badge secondary" v-else>{{ currentStageLabel }}</span>
+              <span v-if="!isStageScope" class="status-badge secondary">{{
+                currentPeriodLabel
+              }}</span>
+              <span v-else class="status-badge secondary">{{
+                currentStageLabel
+              }}</span>
             </div>
           </div>
-          
+
           <div class="panel-body">
             <div class="control-group">
               <label class="group-label">时间维度</label>
@@ -23,7 +28,10 @@
                 <button
                   v-for="item in scopeOptions"
                   :key="item.value"
-                  :class="['segment-btn', scopeValue === item.value && 'active']"
+                  :class="[
+                    'segment-btn',
+                    scopeValue === item.value && 'active',
+                  ]"
                   @click="scopeValue = item.value"
                 >
                   {{ item.label }}
@@ -37,7 +45,9 @@
                 <template v-if="!isStageScope">
                   <button class="ios-picker-btn" @click="openDatePicker">
                     <span class="icon">📅</span>
-                    <span class="value">{{ dateValue || datePlaceholder }}</span>
+                    <span class="value">{{
+                      dateValue || datePlaceholder
+                    }}</span>
                     <el-icon class="arrow"><ArrowRight /></el-icon>
                   </button>
                   <el-date-picker
@@ -84,7 +94,11 @@
               >
                 <span class="icon">🎯</span> 生成规划
               </button>
-              <button class="ios-btn ghost" :disabled="!hasResult" @click="handleClear">
+              <button
+                class="ios-btn ghost"
+                :disabled="!hasResult"
+                @click="handleClear"
+              >
                 <span class="icon">🗑️</span>
               </button>
             </div>
@@ -94,19 +108,25 @@
         <!-- Results Grid -->
         <div class="results-grid">
           <!-- Analysis Card -->
-          <section class="ios-card result-card" :class="{ 'is-loading': analysisLoading }">
+          <section
+            class="ios-card result-card"
+            :class="{ 'is-loading': analysisLoading }"
+          >
             <div class="card-header">
               <div class="header-left">
                 <div class="icon-box analysis-icon">📊</div>
                 <div class="header-text">
                   <h3 class="title">分析总结</h3>
-                  <span class="subtitle" v-if="analysisMeta.period">{{ analysisMeta.period }}</span>
+                  <span v-if="analysisMeta.period" class="subtitle">{{
+                    analysisMeta.period
+                  }}</span>
                 </div>
               </div>
               <span class="ios-tag latest">最新</span>
             </div>
-            <div class="card-body" v-loading="analysisLoading">
+            <div v-loading="analysisLoading" class="card-body">
               <div v-if="analysisHtml" class="markdown-content">
+                <!-- eslint-disable-next-line vue/no-v-html -->
                 <div class="markdown-body" v-html="analysisHtml"></div>
                 <div v-if="analysisMeta.generatedAt" class="timestamp">
                   生成于 {{ formatDateTime(analysisMeta.generatedAt) }}
@@ -120,23 +140,29 @@
           </section>
 
           <!-- Plan Card -->
-          <section class="ios-card result-card" :class="{ 'is-loading': planLoading }">
+          <section
+            class="ios-card result-card"
+            :class="{ 'is-loading': planLoading }"
+          >
             <div class="card-header">
               <div class="header-left">
                 <div class="icon-box plan-icon">🧭</div>
                 <div class="header-text">
                   <h3 class="title">规划建议</h3>
-                  <div class="subtitle-row" v-if="planMeta.period">
+                  <div v-if="planMeta.period" class="subtitle-row">
                     <span>{{ planMeta.period }}</span>
                     <el-icon v-if="planMeta.nextPeriod"><ArrowRight /></el-icon>
-                    <span v-if="planMeta.nextPeriod">{{ planMeta.nextPeriod }}</span>
+                    <span v-if="planMeta.nextPeriod">{{
+                      planMeta.nextPeriod
+                    }}</span>
                   </div>
                 </div>
               </div>
               <span class="ios-tag plan">规划</span>
             </div>
-            <div class="card-body" v-loading="planLoading">
+            <div v-loading="planLoading" class="card-body">
               <div v-if="planHtml" class="markdown-content plan-content">
+                <!-- eslint-disable-next-line vue/no-v-html -->
                 <div class="markdown-body" v-html="planHtml"></div>
                 <div v-if="planMeta.generatedAt" class="timestamp">
                   生成于 {{ formatDateTime(planMeta.generatedAt) }}
@@ -151,7 +177,7 @@
         </div>
 
         <!-- History Section -->
-        <div class="ios-card history-section" v-loading="historyLoading">
+        <div v-loading="historyLoading" class="ios-card history-section">
           <div class="section-header">
             <div class="header-title">
               <span class="icon">🕒</span>
@@ -162,27 +188,28 @@
                 <button
                   v-for="item in historyTypeOptions"
                   :key="item.value"
-                  :class="['segment-btn', historyTypeValue === item.value && 'active']"
+                  :class="[
+                    'segment-btn',
+                    historyTypeValue === item.value && 'active',
+                  ]"
                   @click="historyTypeValue = item.value"
                 >
                   {{ item.label }}
                 </button>
               </div>
-              <button class="icon-btn" @click="handleRefreshHistory">
-                🔄
-              </button>
+              <button class="icon-btn" @click="handleRefreshHistory">🔄</button>
             </div>
           </div>
-          
-          <div class="history-list" v-if="historyRows.length">
+
+          <div v-if="historyRows.length" class="history-list">
             <div
-              class="history-item"
               v-for="item in historyRows"
               :key="item.id"
+              class="history-item"
               @click="handlePreview(item)"
             >
               <div class="item-icon" :class="item.type">
-                {{ item.type === 'plan' ? '🧭' : '📊' }}
+                {{ item.type === "plan" ? "🧭" : "📊" }}
               </div>
               <div class="item-content">
                 <div class="item-top">
@@ -213,13 +240,14 @@
         align-center
       >
         <div class="dialog-meta">
-          <span class="meta-item" v-if="previewDialog.period">
+          <span v-if="previewDialog.period" class="meta-item">
             <el-icon><Calendar /></el-icon> {{ previewDialog.period }}
           </span>
-          <span class="meta-item" v-if="previewDialog.generatedAt">
+          <span v-if="previewDialog.generatedAt" class="meta-item">
             <el-icon><Clock /></el-icon> {{ previewDialog.generatedAt }}
           </span>
         </div>
+        <!-- eslint-disable-next-line vue/no-v-html -->
         <div
           v-if="previewDialog.html"
           class="markdown-body ios-markdown"
@@ -328,7 +356,7 @@ const historyTypeValue = computed<HistoryType>({
 
 const isStageScope = computed(() => scopeValue.value === "stage");
 const datePickerType = computed(() =>
-  scopeValue.value === "month" ? "month" : "date"
+  scopeValue.value === "month" ? "month" : "date",
 );
 const datePlaceholder = computed(() => {
   switch (scopeValue.value) {
@@ -366,7 +394,7 @@ const currentPeriodLabel = computed(() => {
     return buildPeriodLabel(
       "week",
       monday.format("YYYY-MM-DD"),
-      sunday.format("YYYY-MM-DD")
+      sunday.format("YYYY-MM-DD"),
     );
   }
   // month
@@ -375,7 +403,7 @@ const currentPeriodLabel = computed(() => {
   return buildPeriodLabel(
     "month",
     first.format("YYYY-MM-DD"),
-    last.format("YYYY-MM-DD")
+    last.format("YYYY-MM-DD"),
   );
 });
 
@@ -388,14 +416,14 @@ const stageOptions = computed(() =>
   stageStore.stages.map((item: any) => ({
     label: item.name,
     value: Number(item.id),
-  }))
+  })),
 );
 
 const analysisInsight = computed(() => aiStore.analysisResult as any | null);
 const planInsight = computed(() => aiStore.planResult as any | null);
 
 const analysisHtml = computed(() =>
-  renderMarkdown(analysisInsight.value?.text)
+  renderMarkdown(analysisInsight.value?.text),
 );
 const planHtml = computed(() => renderMarkdown(planInsight.value?.text));
 
@@ -442,7 +470,7 @@ const historyRows = computed<HistoryRow[]>(() =>
       nextPeriod,
       createdAt: formatDateTime(item.created_at),
     };
-  })
+  }),
 );
 
 function formatDateTime(value?: string) {
@@ -460,7 +488,7 @@ function openDatePicker() {
 function buildPeriodLabel(
   scope: Scope,
   start?: string | null,
-  end?: string | null
+  end?: string | null,
 ) {
   if (!start && !end) return "";
   if (start && end) {
@@ -547,7 +575,9 @@ onMounted(async () => {
   border-radius: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
@@ -557,13 +587,13 @@ onMounted(async () => {
 /* --- Control Panel --- */
 .control-panel {
   padding: 24px;
-  
+
   .panel-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
-    
+
     .panel-title {
       font-size: 20px;
       font-weight: 700;
@@ -583,7 +613,7 @@ onMounted(async () => {
       border-radius: 999px;
       font-size: 13px;
       font-weight: 600;
-      
+
       &.secondary {
         background: #f2f2f7;
         color: #8e8e93;
@@ -619,11 +649,11 @@ onMounted(async () => {
   border-radius: 9px;
   display: inline-flex;
   position: relative;
-  
+
   &.small {
     padding: 2px;
     border-radius: 8px;
-    
+
     .segment-btn {
       padding: 4px 12px;
       font-size: 12px;
@@ -692,14 +722,14 @@ onMounted(async () => {
 
 .ios-select {
   width: 220px;
-  
+
   :deep(.el-input__wrapper) {
     background-color: #f2f2f7;
     border-radius: 12px;
     box-shadow: none !important;
     padding: 4px 12px;
   }
-  
+
   :deep(.el-input__inner) {
     font-weight: 600;
     color: #007aff;
@@ -732,7 +762,9 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: transform 0.1s, opacity 0.2s;
+  transition:
+    transform 0.1s,
+    opacity 0.2s;
 
   &:active {
     transform: scale(0.98);
@@ -767,7 +799,7 @@ onMounted(async () => {
     background: #f2f2f7;
     color: #ff3b30; /* iOS Red */
     padding: 12px;
-    
+
     &:hover:not(:disabled) {
       background: #e5e5ea;
     }
@@ -785,7 +817,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   min-height: 400px;
-  
+
   &.is-loading {
     opacity: 0.8;
     pointer-events: none;
@@ -811,7 +843,7 @@ onMounted(async () => {
       display: grid;
       place-items: center;
       font-size: 24px;
-      
+
       &.analysis-icon {
         background: #eaf2ff; /* Light Blue */
       }
@@ -827,8 +859,9 @@ onMounted(async () => {
         color: #1c1c1e;
         margin: 0 0 4px 0;
       }
-      
-      .subtitle, .subtitle-row {
+
+      .subtitle,
+      .subtitle-row {
         font-size: 13px;
         color: #8e8e93;
         display: flex;
@@ -886,7 +919,7 @@ onMounted(async () => {
     font-size: 48px;
     opacity: 0.5;
   }
-  
+
   p {
     font-size: 15px;
     font-weight: 500;
@@ -907,8 +940,10 @@ onMounted(async () => {
       display: flex;
       align-items: center;
       gap: 10px;
-      
-      .icon { font-size: 20px; }
+
+      .icon {
+        font-size: 20px;
+      }
       h3 {
         margin: 0;
         font-size: 18px;
@@ -973,8 +1008,12 @@ onMounted(async () => {
     font-size: 20px;
     flex-shrink: 0;
 
-    &.analysis { background: #eaf2ff; }
-    &.plan { background: #e8f8f0; }
+    &.analysis {
+      background: #eaf2ff;
+    }
+    &.plan {
+      background: #e8f8f0;
+    }
   }
 
   .item-content {
@@ -989,13 +1028,13 @@ onMounted(async () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
+
     .item-title {
       font-size: 15px;
       font-weight: 600;
       color: #1c1c1e;
     }
-    
+
     .item-date {
       font-size: 12px;
       color: #8e8e93;
@@ -1006,7 +1045,7 @@ onMounted(async () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    
+
     .item-period {
       font-size: 13px;
       color: #3a3a3c;
@@ -1014,7 +1053,7 @@ onMounted(async () => {
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    
+
     .item-scope {
       font-size: 11px;
       color: #8e8e93;
@@ -1043,18 +1082,18 @@ onMounted(async () => {
     border-radius: 20px;
     overflow: hidden;
   }
-  
+
   :deep(.el-dialog__header) {
     margin: 0;
     padding: 20px 24px;
     border-bottom: 1px solid #f2f2f7;
-    
+
     .el-dialog__title {
       font-weight: 700;
       font-size: 18px;
     }
   }
-  
+
   :deep(.el-dialog__body) {
     padding: 24px;
     max-height: 70vh;
@@ -1068,7 +1107,7 @@ onMounted(async () => {
   margin-bottom: 20px;
   padding-bottom: 16px;
   border-bottom: 1px dashed #e5e5ea;
-  
+
   .meta-item {
     display: flex;
     align-items: center;
@@ -1080,30 +1119,45 @@ onMounted(async () => {
 
 /* Markdown Styles for iOS Theme */
 :deep(.markdown-body) {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
   color: #1c1c1e;
   line-height: 1.6;
-  
-  h1, h2, h3 {
+
+  h1,
+  h2,
+  h3 {
     border-bottom: none;
     margin-top: 24px;
     margin-bottom: 12px;
     font-weight: 700;
   }
-  
-  h1 { font-size: 24px; }
-  h2 { font-size: 20px; }
-  h3 { font-size: 17px; }
-  
-  p { margin-bottom: 16px; }
-  
-  ul, ol {
+
+  h1 {
+    font-size: 24px;
+  }
+  h2 {
+    font-size: 20px;
+  }
+  h3 {
+    font-size: 17px;
+  }
+
+  p {
+    margin-bottom: 16px;
+  }
+
+  ul,
+  ol {
     padding-left: 24px;
     margin-bottom: 16px;
   }
-  
-  li { margin-bottom: 8px; }
-  
+
+  li {
+    margin-bottom: 8px;
+  }
+
   blockquote {
     border-left: 4px solid #007aff;
     background: #f2f2f7;
@@ -1112,7 +1166,7 @@ onMounted(async () => {
     color: #3a3a3c;
     margin: 16px 0;
   }
-  
+
   code {
     background: #f2f2f7;
     color: #ff2d55;
@@ -1120,12 +1174,12 @@ onMounted(async () => {
     border-radius: 6px;
     font-size: 0.9em;
   }
-  
+
   pre {
     background: #1c1c1e;
     border-radius: 12px;
     padding: 16px;
-    
+
     code {
       background: transparent;
       color: #ffffff;
@@ -1139,17 +1193,17 @@ onMounted(async () => {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .action-group {
     width: 100%;
     justify-content: space-between;
-    
+
     .ios-btn {
       flex: 1;
       justify-content: center;
     }
   }
-  
+
   .results-grid {
     grid-template-columns: 1fr;
   }

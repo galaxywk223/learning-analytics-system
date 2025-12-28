@@ -18,7 +18,7 @@
               <span class="badge">{{ store.active.length }}</span>
             </div>
           </template>
-          <div class="row-cards" id="active-events-container">
+          <div id="active-events-container" class="row-cards">
             <template v-if="store.active.length">
               <CountdownItem
                 v-for="ev in store.active"
@@ -43,7 +43,7 @@
               <span class="badge muted">{{ store.expired.length }}</span>
             </div>
           </template>
-          <div class="row-cards" id="expired-events-container">
+          <div id="expired-events-container" class="row-cards">
             <template v-if="store.expired.length">
               <CountdownItem
                 v-for="ev in store.expired"
@@ -68,9 +68,9 @@
       destroy-on-close
     >
       <el-form
+        ref="formRef"
         :model="form"
         :rules="rules"
-        ref="formRef"
         label-position="top"
         class="countdown-form"
         @submit.prevent

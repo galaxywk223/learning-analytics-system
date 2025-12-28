@@ -3,7 +3,7 @@
     <!-- 任务名称 -->
     <el-form-item prop="task" class="ios-input-row">
       <el-input
-        v-model="form.task"
+        v-model="localForm.task"
         placeholder="任务名称"
         class="ios-input"
       />
@@ -14,7 +14,7 @@
       <!-- 日期 -->
       <el-form-item prop="log_date" class="ios-input-row half">
         <el-date-picker
-          v-model="form.log_date"
+          v-model="localForm.log_date"
           type="date"
           placeholder="日期"
           value-format="YYYY-MM-DD"
@@ -26,7 +26,7 @@
       <!-- 时间段 -->
       <el-form-item class="ios-input-row half">
         <el-input
-          v-model="form.time_slot"
+          v-model="localForm.time_slot"
           placeholder="时间段"
           class="ios-input right-align"
         />
@@ -39,7 +39,7 @@
       <div class="duration-group">
         <div class="duration-item">
           <el-input-number
-            v-model="form.duration_hours"
+            v-model="localForm.duration_hours"
             :min="0"
             :max="24"
             class="ios-number-input"
@@ -49,7 +49,7 @@
         </div>
         <div class="duration-item">
           <el-input-number
-            v-model="form.duration_minutes"
+            v-model="localForm.duration_minutes"
             :min="0"
             :max="59"
             class="ios-number-input"
@@ -63,12 +63,34 @@
 </template>
 
 <script setup>
-defineProps({
+import { ref, watch } from "vue";
+
+const props = defineProps({
   form: {
     type: Object,
     required: true,
   },
 });
+
+const emit = defineEmits(["update:form"]);
+
+const localForm = ref({});
+
+watch(
+  () => props.form,
+  (value) => {
+    localForm.value = { ...(value || {}) };
+  },
+  { deep: true, immediate: true },
+);
+
+watch(
+  localForm,
+  (value) => {
+    emit("update:form", { ...(value || {}) });
+  },
+  { deep: true },
+);
 </script>
 
 <style scoped lang="scss">
@@ -96,13 +118,13 @@ defineProps({
   min-height: 56px;
   position: relative;
   flex: 1;
-  
+
   &.half {
     flex: 1;
     min-width: 0;
     padding: 14px 16px;
   }
-  
+
   :deep(.el-form-item__content) {
     flex: 1;
     display: flex;
@@ -129,14 +151,14 @@ defineProps({
 
 .ios-input {
   width: 100%;
-  
+
   :deep(.el-input__wrapper) {
     background-color: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
     border: none !important;
   }
-  
+
   :deep(.el-input__inner) {
     font-size: 17px;
     color: #000;
@@ -146,7 +168,7 @@ defineProps({
     padding: 0 !important;
     border: none !important;
   }
-  
+
   &.right-align :deep(.el-input__inner) {
     text-align: right;
     color: #8e8e93;
@@ -156,14 +178,14 @@ defineProps({
 .ios-date-picker {
   width: auto;
   flex: 1;
-  
+
   :deep(.el-input__wrapper) {
     background-color: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
     justify-content: flex-end;
   }
-  
+
   :deep(.el-input__inner) {
     font-size: 17px;
     color: #007aff;
@@ -172,7 +194,7 @@ defineProps({
     height: auto;
     padding: 0 !important;
   }
-  
+
   :deep(.el-input__prefix) {
     display: none;
   }
@@ -190,7 +212,7 @@ defineProps({
   display: flex;
   align-items: center;
   gap: 4px;
-  
+
   .unit {
     font-size: 15px;
     color: #8e8e93;
@@ -199,14 +221,14 @@ defineProps({
 
 .ios-number-input {
   width: 100px; /* 增加宽度以容纳按钮 */
-  
+
   :deep(.el-input__wrapper) {
     background-color: rgba(118, 118, 128, 0.12) !important;
     box-shadow: none !important;
     padding: 0 !important;
     border-radius: 8px;
   }
-  
+
   :deep(.el-input__inner) {
     text-align: center;
     height: 32px;
@@ -222,10 +244,10 @@ defineProps({
     border: none;
     color: #007aff;
     width: 28px;
-    
+
     &:hover {
       color: #0056b3;
-      background: rgba(0,0,0,0.05);
+      background: rgba(0, 0, 0, 0.05);
     }
   }
 }

@@ -1,12 +1,12 @@
 <template>
   <div class="quick-add-record">
     <el-button
-      @click="dialogVisible = true"
       type="primary"
       circle
       :icon="Plus"
       size="large"
       class="add-button"
+      @click="dialogVisible = true"
     ></el-button>
 
     <el-dialog
@@ -15,7 +15,7 @@
       width="500px"
       :before-close="handleClose"
     >
-      <el-form :model="form" ref="formRef" :rules="rules" label-width="80px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="任务名称" prop="task">
           <el-input v-model="form.task" placeholder="请输入任务名称"></el-input>
         </el-form-item>

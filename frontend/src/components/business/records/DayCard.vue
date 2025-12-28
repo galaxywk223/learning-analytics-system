@@ -5,7 +5,9 @@
     <template #header>
       <div class="day-card-header">
         <span class="date-badge">
-          <span class="weekday-icon emoji-icon">{{ getWeekdayIcon(day.date) }}</span>
+          <span class="weekday-icon emoji-icon">{{
+            getWeekdayIcon(day.date)
+          }}</span>
           {{ formatDate(day.date) }} (周{{ getWeekday(day.date) }})
         </span>
 
@@ -35,8 +37,8 @@
         <el-button
           circle
           size="small"
-          @click.stop="$emit('add-record', day.date)"
           title="为今天添加记录"
+          @click.stop="$emit('add-record', day.date)"
         >
           <Icon icon="lucide:plus" />
         </el-button>
@@ -128,7 +130,7 @@ const getProgressColor = (duration) => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    
+
     .date-badge {
       font-size: 17px;
       font-weight: 600;
@@ -146,7 +148,7 @@ const getProgressColor = (duration) => {
       flex: 1;
       margin: 0 16px;
       max-width: 120px; /* Smaller progress bar */
-      
+
       :deep(.el-progress-bar__outer) {
         background-color: rgba(118, 118, 128, 0.12);
       }
@@ -160,7 +162,7 @@ const getProgressColor = (duration) => {
       align-items: center;
       gap: 4px;
       margin-right: 12px;
-      
+
       .clock-icon {
         width: 16px;
         height: 16px;
@@ -185,7 +187,7 @@ const getProgressColor = (duration) => {
       align-items: center;
       justify-content: center;
       padding: 0;
-      
+
       &:hover {
         background: #0062cc;
       }

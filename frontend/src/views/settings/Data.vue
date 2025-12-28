@@ -45,12 +45,24 @@
         </div>
         <div v-if="selectedFile" class="file-info">
           <div class="file-name">{{ selectedFile.name }}</div>
-          <div class="file-size">{{ (selectedFile.size / 1024).toFixed(1) }} KB</div>
+          <div class="file-size">
+            {{ (selectedFile.size / 1024).toFixed(1) }} KB
+          </div>
           <div class="file-actions">
-            <button class="pill-btn danger" type="button" :disabled="importing" @click="confirmImport">
+            <button
+              class="pill-btn danger"
+              type="button"
+              :disabled="importing"
+              @click="confirmImport"
+            >
               {{ importing ? "正在导入..." : "导入并覆盖" }}
             </button>
-            <button class="pill-btn ghost" type="button" :disabled="importing" @click="clearSelection">
+            <button
+              class="pill-btn ghost"
+              type="button"
+              :disabled="importing"
+              @click="clearSelection"
+            >
               取消
             </button>
           </div>
@@ -84,6 +96,8 @@ import { ref } from "vue";
 import axios from "axios";
 import { ElMessage, ElMessageBox } from "element-plus";
 import PageContainer from "@/components/layout/PageContainer.vue";
+
+defineOptions({ name: "DataSettingsView" });
 
 const exporting = ref(false);
 const importing = ref(false);
@@ -133,7 +147,7 @@ async function handleExport() {
     const disp = res.headers["content-disposition"] || "";
     const m = /filename\*=UTF-8''([^;]+)|filename="?([^;"]+)"?/i.exec(disp);
     const filename = decodeURIComponent(
-      m?.[1] || m?.[2] || "records_backup.zip"
+      m?.[1] || m?.[2] || "records_backup.zip",
     );
     const blob = res.data;
     const url = URL.createObjectURL(blob);
@@ -159,7 +173,7 @@ async function confirmImport() {
     await ElMessageBox.confirm(
       "此操作将覆盖您当前的所有数据，且无法撤销。确定继续吗？",
       "确认导入",
-      { type: "warning", confirmButtonText: "继续", cancelButtonText: "取消" }
+      { type: "warning", confirmButtonText: "继续", cancelButtonText: "取消" },
     );
   } catch {
     return;
@@ -176,7 +190,7 @@ async function confirmImport() {
       formData,
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
+      },
     );
     if (res.data?.success) {
       ElMessage.success(res.data.message || "导入成功");
@@ -205,7 +219,7 @@ async function confirmClear() {
         confirmButtonText: "是的，清空",
         cancelButtonText: "取消",
         confirmButtonClass: "el-button--danger",
-      }
+      },
     );
   } catch {
     return;
@@ -220,7 +234,7 @@ async function confirmClear() {
       {},
       {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
+      },
     );
     if (res.data?.success) {
       ElMessage.success(res.data?.message || "数据已清空");
@@ -303,7 +317,10 @@ async function confirmClear() {
   font-weight: 800;
   font-size: 14px;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    opacity 0.15s ease;
   align-self: stretch;
 }
 

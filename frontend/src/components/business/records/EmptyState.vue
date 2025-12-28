@@ -9,8 +9,8 @@
     <el-button
       type="primary"
       size="large"
-      @click="$emit('add-record')"
       class="mt-3"
+      @click="$emit('add-record')"
     >
       <Icon
         icon="lucide:plus"

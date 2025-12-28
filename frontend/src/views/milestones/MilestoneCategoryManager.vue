@@ -37,11 +37,23 @@
           class="category-card"
           :class="{ editing: editingId === cat.id }"
         >
-          <div class="card-actions" v-if="editingId !== cat.id">
-            <button type="button" class="ghost-btn" title="编辑" @click="startEdit(cat)">✏️</button>
-            <el-popconfirm title="确定删除此分类?" @confirm="deleteCategory(cat)">
+          <div v-if="editingId !== cat.id" class="card-actions">
+            <button
+              type="button"
+              class="ghost-btn"
+              title="编辑"
+              @click="startEdit(cat)"
+            >
+              ✏️
+            </button>
+            <el-popconfirm
+              title="确定删除此分类?"
+              @confirm="deleteCategory(cat)"
+            >
               <template #reference>
-                <button type="button" class="ghost-btn danger" title="删除">🗑️</button>
+                <button type="button" class="ghost-btn danger" title="删除">
+                  🗑️
+                </button>
               </template>
             </el-popconfirm>
           </div>
@@ -57,7 +69,9 @@
           <div v-else class="edit-inline">
             <el-input v-model="editName" maxlength="100" />
             <div class="edit-actions">
-              <el-button size="small" type="primary" @click="confirmEdit(cat)">保存</el-button>
+              <el-button size="small" type="primary" @click="confirmEdit(cat)"
+                >保存</el-button
+              >
               <el-button size="small" @click="cancelEdit">取消</el-button>
             </div>
           </div>
@@ -72,7 +86,7 @@
     </div>
   </PageContainer>
   <div class="milestone-fab">
-    <button class="fab fab-primary" @click="goBack" title="返回时间线">
+    <button class="fab fab-primary" title="返回时间线" @click="goBack">
       <Icon icon="lucide:arrow-left" />
     </button>
   </div>

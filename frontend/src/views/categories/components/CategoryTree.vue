@@ -38,12 +38,12 @@
         :expand-on-click-node="false"
         :highlight-current="true"
         node-key="uniqueKey"
+        class="category-tree"
         @node-click="handleNodeClick"
         @node-expand="handleNodeExpand"
         @node-collapse="handleNodeCollapse"
-        class="category-tree"
       >
-        <template #default="{ node, data }">
+        <template #default="{ data }">
           <div class="tree-node">
             <div class="node-content">
               <span class="node-icon">

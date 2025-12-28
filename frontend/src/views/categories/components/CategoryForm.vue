@@ -2,13 +2,13 @@
   <el-dialog
     :model-value="visible"
     :title="isEdit ? '编辑分类' : '新增分类'"
-    @close="handleClose"
     width="420px"
     :close-on-click-modal="false"
     class="ios-dialog"
     align-center
+    @close="handleClose"
   >
-    <form @submit.prevent="handleSubmit" class="dialog-form">
+    <form class="dialog-form" @submit.prevent="handleSubmit">
       <div class="ios-input-group">
         <div class="input-row">
           <label>名称</label>
@@ -20,46 +20,56 @@
             maxlength="50"
           />
         </div>
-        
+
         <!-- Parent Category Selection -->
         <div class="input-row">
           <label>父分类</label>
-          
+
           <!-- Case 1: Creating subcategory (parent pre-determined but changeable) or Editing subcategory -->
           <div v-if="isSubCategory || parentCategory" class="select-wrapper">
-             <select v-model="form.parent_id" class="custom-select">
-               <option :value="null">无 (设为根分类)</option>
-               <option 
-                 v-for="p in availableParents" 
-                 :key="p.id" 
-                 :value="p.id"
-                 :disabled="p.id === form.id" 
-               >
-                 {{ p.name }}
-               </option>
-             </select>
+            <select v-model="form.parent_id" class="custom-select">
+              <option :value="null">无 (设为根分类)</option>
+              <option
+                v-for="p in availableParents"
+                :key="p.id"
+                :value="p.id"
+                :disabled="p.id === form.id"
+              >
+                {{ p.name }}
+              </option>
+            </select>
           </div>
-           <!-- Case 2: Creating root category or Editing root -->
+          <!-- Case 2: Creating root category or Editing root -->
           <div v-else class="select-wrapper">
-             <select v-model="form.parent_id" class="custom-select">
-               <option :value="null">无 (根分类)</option>
-               <option 
-                 v-for="p in availableParents" 
-                 :key="p.id" 
-                 :value="p.id"
-                 :disabled="p.id === form.id"
-               >
-                 {{ p.name }}
-               </option>
-             </select>
+            <select v-model="form.parent_id" class="custom-select">
+              <option :value="null">无 (根分类)</option>
+              <option
+                v-for="p in availableParents"
+                :key="p.id"
+                :value="p.id"
+                :disabled="p.id === form.id"
+              >
+                {{ p.name }}
+              </option>
+            </select>
           </div>
         </div>
       </div>
 
       <div class="dialog-footer">
-        <button type="button" class="pill-btn secondary" @click="handleClose">取消</button>
+        <button type="button" class="pill-btn secondary" @click="handleClose">
+          取消
+        </button>
         <button type="submit" class="pill-btn primary" :disabled="loading">
-          {{ loading ? (isEdit ? "更新中..." : "创建中...") : (isEdit ? "更新" : "创建") }}
+          {{
+            loading
+              ? isEdit
+                ? "更新中..."
+                : "创建中..."
+              : isEdit
+                ? "更新"
+                : "创建"
+          }}
         </button>
       </div>
     </form>
@@ -124,7 +134,7 @@ function syncFormFromProps() {
   } else if (props.parentCategory) {
     pid = props.parentCategory.id;
   }
-  
+
   Object.assign(form.value, { id, name, parent_id: pid });
 }
 
@@ -144,11 +154,10 @@ async function handleSubmit() {
 
     // 如果没有选择父分类，且原本有(或props传递了)，说明可能意图是设为根
     // 但后端通常需要明确的 parent_id (or null/0)
-    
+
     // 注意：如果是创建模式，CategoriesView 依赖 parentCategory prop 来决定调用 createCategory 还是 createSubCategory
     // 如果在这个表单里改变了层级，view层的逻辑可能需要适配。
     // 为了简单，我们传递 parent_id 给 view，让 view 处理。
-
 
     // 如果是编辑模式，添加ID
     if (isEdit.value) {
@@ -183,10 +192,14 @@ watch(
     } else {
       resetForm();
     }
-  }
+  },
 );
 
-watch(() => props.categoryData, () => syncFormFromProps(), { deep: true });
+watch(
+  () => props.categoryData,
+  () => syncFormFromProps(),
+  { deep: true },
+);
 </script>
 
 <style scoped>

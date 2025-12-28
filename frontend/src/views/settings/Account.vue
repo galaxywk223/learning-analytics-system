@@ -29,8 +29,8 @@
                 <label for="username">用户名</label>
                 <input
                   id="username"
-                  type="text"
                   v-model="profileForm.username"
+                  type="text"
                   placeholder="您的昵称"
                   :disabled="profileLoading"
                 />
@@ -52,8 +52,8 @@
                 <button
                   type="button"
                   class="pill-btn secondary"
-                  @click="resetProfileForm"
                   :disabled="profileLoading || !isProfileChanged"
+                  @click="resetProfileForm"
                 >
                   取消
                 </button>
@@ -78,8 +78,8 @@
                 <label for="current-password">当前密码</label>
                 <input
                   id="current-password"
-                  type="password"
                   v-model="passwordForm.currentPassword"
+                  type="password"
                   placeholder="验证身份"
                   autocomplete="current-password"
                   :disabled="passwordLoading"
@@ -89,8 +89,8 @@
                 <label for="new-password">新密码</label>
                 <input
                   id="new-password"
-                  type="password"
                   v-model="passwordForm.newPassword"
+                  type="password"
                   placeholder="设置新密码"
                   autocomplete="new-password"
                   :disabled="passwordLoading"
@@ -101,8 +101,8 @@
                 <label for="confirm-password">确认密码</label>
                 <input
                   id="confirm-password"
-                  type="password"
                   v-model="passwordForm.confirmPassword"
+                  type="password"
                   placeholder="再次输入"
                   autocomplete="new-password"
                   :disabled="passwordLoading"
@@ -110,10 +110,15 @@
                 />
               </div>
             </div>
-            
-            <div class="validation-feedback" v-if="passwordError || confirmPasswordError">
-               <p class="error-text" v-if="passwordError">{{ passwordError }}</p>
-               <p class="error-text" v-if="confirmPasswordError">{{ confirmPasswordError }}</p>
+
+            <div
+              v-if="passwordError || confirmPasswordError"
+              class="validation-feedback"
+            >
+              <p v-if="passwordError" class="error-text">{{ passwordError }}</p>
+              <p v-if="confirmPasswordError" class="error-text">
+                {{ confirmPasswordError }}
+              </p>
             </div>
 
             <div class="form-actions">
@@ -121,8 +126,8 @@
                 <button
                   type="button"
                   class="pill-btn secondary"
-                  @click="resetPasswordForm"
                   :disabled="passwordLoading || !isPasswordFormFilled"
+                  @click="resetPasswordForm"
                 >
                   取消
                 </button>
@@ -157,6 +162,8 @@ import PageContainer from "@/components/layout/PageContainer.vue";
 import { useAuthStore } from "@/stores/modules/auth";
 import { ElMessage } from "element-plus";
 import axios from "axios";
+
+defineOptions({ name: "AccountView" });
 
 const authStore = useAuthStore();
 
@@ -279,7 +286,7 @@ const handleProfileSubmit = async () => {
         headers: {
           Authorization: `Bearer ${authStore.accessToken}`,
         },
-      }
+      },
     );
 
     if (response.data.success) {
@@ -316,7 +323,7 @@ const handlePasswordSubmit = async () => {
         headers: {
           Authorization: `Bearer ${authStore.accessToken}`,
         },
-      }
+      },
     );
 
     if (response.data.success) {

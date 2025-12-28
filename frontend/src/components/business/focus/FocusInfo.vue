@@ -12,13 +12,13 @@
         {{ currentCategory?.name }}
       </span>
     </div>
-    <div class="info-item" v-if="currentSubcategory">
+    <div v-if="currentSubcategory" class="info-item">
       <span class="info-label">子分类</span>
       <span class="info-value">
         <el-tag size="small">{{ currentSubcategory.name }}</el-tag>
       </span>
     </div>
-    <div class="info-item" v-if="formData.notes">
+    <div v-if="formData.notes" class="info-item">
       <span class="info-label">备注</span>
       <span class="info-value">{{ formData.notes }}</span>
     </div>
@@ -51,7 +51,7 @@ const currentCategory = computed(() => {
 
 const currentSubcategory = computed(() => {
   return props.subcategories.find(
-    (sub) => sub.id === props.formData.subcategoryId
+    (sub) => sub.id === props.formData.subcategoryId,
   );
 });
 </script>
@@ -62,7 +62,11 @@ const currentSubcategory = computed(() => {
   margin-top: 1.5rem;
   padding: 1.75rem;
   border-radius: 18px;
-  background: linear-gradient(150deg, rgba(248, 250, 255, 0.95), rgba(236, 244, 255, 0.9));
+  background: linear-gradient(
+    150deg,
+    rgba(248, 250, 255, 0.95),
+    rgba(236, 244, 255, 0.9)
+  );
   border: 1px solid rgba(203, 213, 225, 0.6);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 

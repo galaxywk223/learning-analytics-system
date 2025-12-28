@@ -17,7 +17,7 @@
       </div>
 
       <!-- Stage List -->
-      <div class="stage-list" v-if="stages.length">
+      <div v-if="stages.length" class="stage-list">
         <div
           v-for="stage in stages"
           :key="stage.id"
@@ -27,36 +27,38 @@
           <div class="stage-info">
             <div class="stage-name-row">
               <span class="stage-name">{{ stage.name }}</span>
-              <span v-if="stage.is_current" class="badge-current">当前阶段</span>
+              <span v-if="stage.is_current" class="badge-current"
+                >当前阶段</span
+              >
             </div>
             <div class="stage-meta">
               <span>{{ formatDate(stage.start_date) }}</span>
             </div>
           </div>
-          
+
           <div class="stage-actions">
             <button
               v-if="!stage.is_current"
               class="action-btn"
               title="设为当前"
-              @click="handleSetCurrent(stage)"
               :disabled="loading"
+              @click="handleSetCurrent(stage)"
             >
               🚩
             </button>
             <button
               class="action-btn"
               title="编辑"
-              @click="openEdit(stage)"
               :disabled="loading"
+              @click="openEdit(stage)"
             >
               ✏️
             </button>
             <button
               class="action-btn danger"
               title="删除"
-              @click="handleDelete(stage)"
               :disabled="loading"
+              @click="handleDelete(stage)"
             >
               🗑️
             </button>
@@ -64,7 +66,7 @@
         </div>
       </div>
 
-      <div class="empty-state" v-else>
+      <div v-else class="empty-state">
         <div class="empty-icon">📭</div>
         <p>还没有创建任何阶段</p>
         <button class="btn-create-compact" @click="openCreate">立即创建</button>
@@ -80,7 +82,7 @@
       destroy-on-close
       align-center
     >
-      <form @submit.prevent="handleSubmit" class="dialog-form">
+      <form class="dialog-form" @submit.prevent="handleSubmit">
         <div class="ios-input-group">
           <div class="input-row">
             <label>名称</label>
@@ -101,18 +103,23 @@
               :disabled="loading"
             />
           </div>
-
         </div>
-        
-        <div class="form-options" v-if="!isEditing">
-           <label class="checkbox-label">
-              <input type="checkbox" v-model="form.is_current" />
-              <span>设为当前阶段</span>
-           </label>
+
+        <div v-if="!isEditing" class="form-options">
+          <label class="checkbox-label">
+            <input v-model="form.is_current" type="checkbox" />
+            <span>设为当前阶段</span>
+          </label>
         </div>
 
         <div class="dialog-footer">
-          <button type="button" class="pill-btn secondary" @click="dialogVisible = false">取消</button>
+          <button
+            type="button"
+            class="pill-btn secondary"
+            @click="dialogVisible = false"
+          >
+            取消
+          </button>
           <button type="submit" class="pill-btn primary" :disabled="loading">
             {{ loading ? "保存中..." : "保存" }}
           </button>
@@ -225,7 +232,7 @@ async function handleDelete(stage) {
       cancelButtonText: "取消",
       type: "warning",
     });
-    
+
     loading.value = true;
     await stageAPI.delete(stage.id);
     ElMessage.success("删除成功");
@@ -243,7 +250,7 @@ async function handleDelete(stage) {
 function formatDate(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
 }
 </script>
 
@@ -399,7 +406,7 @@ function formatDate(dateStr) {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   border: 1px solid #e2e8f0;
 }
 
@@ -467,17 +474,17 @@ function formatDate(dateStr) {
 }
 
 .form-options {
-    margin-bottom: 24px;
-    padding: 0 4px;
+  margin-bottom: 24px;
+  padding: 0 4px;
 }
 
 .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    color: #475569;
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #475569;
+  cursor: pointer;
 }
 
 .dialog-footer {

@@ -11,7 +11,10 @@
             <button
               v-for="option in periodOptions"
               :key="option.value"
-              :class="['seg-btn', leaderboard.period === option.value && 'active']"
+              :class="[
+                'seg-btn',
+                leaderboard.period === option.value && 'active',
+              ]"
               @click="leaderboard.setPeriod(option.value)"
             >
               {{ option.label }}
@@ -24,7 +27,10 @@
             <button
               v-for="option in metricOptions"
               :key="option.value"
-              :class="['seg-btn', leaderboard.metric === option.value && 'active']"
+              :class="[
+                'seg-btn',
+                leaderboard.metric === option.value && 'active',
+              ]"
               @click="leaderboard.setMetric(option.value)"
             >
               {{ option.label }}
@@ -35,8 +41,8 @@
           v-if="leaderboard.optedIn"
           class="exit-link"
           type="button"
-          @click="handleLeave"
           :disabled="leaveLoading"
+          @click="handleLeave"
         >
           <Icon icon="lucide:log-out" />
           退出
@@ -51,18 +57,31 @@
           <div class="join-copy">
             <div class="join-eyebrow">未加入社区排行</div>
             <div class="join-title">同步学习数据，解锁上榜资格</div>
-            <div class="join-sub">加入后即可展示时长与效率，与社区一起进步。</div>
+            <div class="join-sub">
+              加入后即可展示时长与效率，与社区一起进步。
+            </div>
           </div>
         </div>
         <div class="join-banner__actions">
-          <el-button type="primary" size="large" @click="handleJoin" :loading="joinLoading">
+          <el-button
+            type="primary"
+            size="large"
+            :loading="joinLoading"
+            @click="handleJoin"
+          >
             立即加入
           </el-button>
-          <el-button link type="primary" size="large" @click="leaderboard.initialize()">刷新数据</el-button>
+          <el-button
+            link
+            type="primary"
+            size="large"
+            @click="leaderboard.initialize()"
+            >刷新数据</el-button
+          >
         </div>
       </div>
 
-      <div class="podium-card" v-if="topThree.length">
+      <div v-if="topThree.length" class="podium-card">
         <div class="podium-header">
           <h3>荣耀榜 · {{ currentPeriodLabel }}</h3>
           <p>{{ currentMetricLabel }}</p>
@@ -70,22 +89,22 @@
         <div class="podium-grid">
           <div
             v-for="item in podiumSlots"
-          :key="item.rank"
+            :key="item.rank"
             class="podium-slot"
             :class="['pos-' + item.rank, !item.user && 'empty']"
             @click="item.user && openDetail(item.user)"
           >
             <div class="avatar-wrap" :style="{ borderColor: item.border }">
-              <div class="crown" v-if="item.rank === 1">👑</div>
+              <div v-if="item.rank === 1" class="crown">👑</div>
               <span v-if="item.user" class="avatar-text">
                 {{ item.user.username?.charAt(0)?.toUpperCase() || "U" }}
               </span>
             </div>
-            <div class="podium-name" v-if="item.user">
+            <div v-if="item.user" class="podium-name">
               {{ item.user.username }}
               <span v-if="item.user.isSelf" class="tag-me">我</span>
             </div>
-            <div class="podium-value" v-if="item.user">
+            <div v-if="item.user" class="podium-value">
               {{ item.user.valueText }}
             </div>
             <div class="podium-rank">{{ item.rank }}</div>
@@ -99,12 +118,12 @@
             <h3>{{ currentMetricLabel }} · {{ currentPeriodLabel }}</h3>
             <p>更新时间：{{ generatedAtText }} · 数据范围：{{ rangeText }}</p>
           </div>
-          <div class="list-actions" v-if="leaderboard.optedIn">
+          <div v-if="leaderboard.optedIn" class="list-actions">
             <span v-if="leaderboard.loading">加载中...</span>
           </div>
         </div>
 
-        <div class="rank-list" v-loading="leaderboard.loading">
+        <div v-loading="leaderboard.loading" class="rank-list">
           <div
             v-for="row in restList"
             :key="row.user_id"
@@ -136,12 +155,17 @@
                 </template>
               </div>
               <div class="metric-sub">
-                最近活动：{{ row.last_activity ? formatDate(row.last_activity) : "—" }}
+                最近活动：{{
+                  row.last_activity ? formatDate(row.last_activity) : "—"
+                }}
               </div>
             </div>
           </div>
 
-          <el-empty v-if="!leaderboard.loading && !restList.length" description="虚位以待" />
+          <el-empty
+            v-if="!leaderboard.loading && !restList.length"
+            description="虚位以待"
+          />
         </div>
 
         <div class="table-footer">
@@ -157,66 +181,72 @@
       </div>
 
       <el-drawer
-      v-model="detailVisible"
-      title="用户详细数据"
-      size="45%"
-      :destroy-on-close="true"
-      @close="closeDetail"
-    >
-      <div v-loading="leaderboard.detailLoading" class="detail-wrapper">
-        <template v-if="leaderboard.userDetail && !leaderboard.detailLoading">
-          <div class="detail-header">
-            <h3>{{ leaderboard.userDetail.user.username }}</h3>
-            <p>
-              数据范围：{{ formatDate(leaderboard.userDetail.range.start) }} -
-              {{ formatDate(leaderboard.userDetail.range.end) }}
-            </p>
-          </div>
+        v-model="detailVisible"
+        title="用户详细数据"
+        size="45%"
+        :destroy-on-close="true"
+        @close="closeDetail"
+      >
+        <div v-loading="leaderboard.detailLoading" class="detail-wrapper">
+          <template v-if="leaderboard.userDetail && !leaderboard.detailLoading">
+            <div class="detail-header">
+              <h3>{{ leaderboard.userDetail.user.username }}</h3>
+              <p>
+                数据范围：{{ formatDate(leaderboard.userDetail.range.start) }} -
+                {{ formatDate(leaderboard.userDetail.range.end) }}
+              </p>
+            </div>
 
-          <div class="detail-metrics">
-            <el-card shadow="hover">
-              <div class="metric">
-                <span class="label">总时长</span>
-                <span class="value">
-                  {{ detailSummary.totalHours }}
-                </span>
-              </div>
-            </el-card>
-            <el-card shadow="hover">
-              <div class="metric">
-                <span class="label">平均效率</span>
-                <span class="value">
-                  {{ detailSummary.averageEfficiency }}
-                </span>
-              </div>
-            </el-card>
-            <el-card shadow="hover">
-              <div class="metric">
-                <span class="label">记录次数</span>
-                <span class="value">{{ detailSummary.averagePerDay }}</span>
-              </div>
-            </el-card>
-            <el-card shadow="hover">
-              <div class="metric">
-                <span class="label">活跃天数</span>
-                <span class="value">{{ detailSummary.activeDays }}</span>
-              </div>
-            </el-card>
-          </div>
+            <div class="detail-metrics">
+              <el-card shadow="hover">
+                <div class="metric">
+                  <span class="label">总时长</span>
+                  <span class="value">
+                    {{ detailSummary.totalHours }}
+                  </span>
+                </div>
+              </el-card>
+              <el-card shadow="hover">
+                <div class="metric">
+                  <span class="label">平均效率</span>
+                  <span class="value">
+                    {{ detailSummary.averageEfficiency }}
+                  </span>
+                </div>
+              </el-card>
+              <el-card shadow="hover">
+                <div class="metric">
+                  <span class="label">记录次数</span>
+                  <span class="value">{{ detailSummary.averagePerDay }}</span>
+                </div>
+              </el-card>
+              <el-card shadow="hover">
+                <div class="metric">
+                  <span class="label">活跃天数</span>
+                  <span class="value">{{ detailSummary.activeDays }}</span>
+                </div>
+              </el-card>
+            </div>
 
-          <el-divider content-position="left">趋势洞察</el-divider>
-          <el-empty v-if="!trendChartData.length" description="暂无趋势数据" />
-          <UserTrendChart v-else :data="trendChartData" />
+            <el-divider content-position="left">趋势洞察</el-divider>
+            <el-empty
+              v-if="!trendChartData.length"
+              description="暂无趋势数据"
+            />
+            <UserTrendChart v-else :data="trendChartData" />
 
-          <el-divider content-position="left">分类占比</el-divider>
-          <el-empty v-if="!categoryChartData.length" description="暂无分类数据" />
-          <UserCategoryChart v-else :data="categoryChartData" />
-        </template>
-        <template v-else-if="!leaderboard.detailLoading">
-          <el-empty description="暂无数据" />
-        </template>
-      </div>
-    </el-drawer>
+            <el-divider content-position="left">分类占比</el-divider>
+            <el-empty
+              v-if="!categoryChartData.length"
+              description="暂无分类数据"
+            />
+            <UserCategoryChart v-else :data="categoryChartData" />
+          </template>
+          <template v-else-if="!leaderboard.detailLoading">
+            <el-empty description="暂无数据" />
+          </template>
+        </div>
+      </el-drawer>
     </PageContainer>
   </div>
 </template>
@@ -263,18 +293,22 @@ onUnmounted(() => {
 });
 
 const currentMetricLabel = computed(() => {
-  return metricOptions.find((item) => item.value === leaderboard.metric)?.label || "";
+  return (
+    metricOptions.find((item) => item.value === leaderboard.metric)?.label || ""
+  );
 });
 
 const currentPeriodLabel = computed(() => {
-  return periodOptions.find((item) => item.value === leaderboard.period)?.label || "";
+  return (
+    periodOptions.find((item) => item.value === leaderboard.period)?.label || ""
+  );
 });
 
 const tableData = computed(() =>
   (leaderboard.items || []).map((item: any) => ({
     ...item,
     isSelf: leaderboard.me?.user_id === item.user_id,
-  }))
+  })),
 );
 
 const topThree = computed(() => tableData.value.slice(0, 3));
@@ -311,11 +345,18 @@ const rangeText = computed(() => {
   return `${formatDate(leaderboard.range.start)} 至 ${formatDate(leaderboard.range.end)}`;
 });
 
-const trendChartData = computed(() => leaderboard.userDetail?.daily_trend ?? []);
+const trendChartData = computed(
+  () => leaderboard.userDetail?.daily_trend ?? [],
+);
 
 const categoryChartData = computed(() => {
   const categories = leaderboard.userDetail?.categories?.main;
-  if (!categories || !Array.isArray(categories.labels) || !Array.isArray(categories.data)) return [];
+  if (
+    !categories ||
+    !Array.isArray(categories.labels) ||
+    !Array.isArray(categories.data)
+  )
+    return [];
   return categories.labels.map((label: string, idx: number) => ({
     name: label,
     hours: Number(categories.data[idx]) || 0,
@@ -326,10 +367,10 @@ const detailSummary = computed<DetailSummary>(() => {
   const summary = leaderboard.userDetail?.summary;
   if (!summary) {
     return {
-      totalHours: '--',
-      averageEfficiency: '--',
-      averagePerDay: '--',
-      activeDays: '--',
+      totalHours: "--",
+      averageEfficiency: "--",
+      averagePerDay: "--",
+      activeDays: "--",
     };
   }
   const totalMinutes = Number(summary.total_duration_minutes ?? 0);
@@ -339,9 +380,10 @@ const detailSummary = computed<DetailSummary>(() => {
   return {
     totalHours: `${totalHours.toFixed(2)} 小时`,
     averageEfficiency:
-      summary.average_efficiency !== null && summary.average_efficiency !== undefined
+      summary.average_efficiency !== null &&
+      summary.average_efficiency !== undefined
         ? Number(summary.average_efficiency).toFixed(2)
-        : '--',
+        : "--",
     averagePerDay: `${averagePerDay.toFixed(2)} 小时/天`,
     activeDays: `${activeDays} 天`,
   };
@@ -461,7 +503,9 @@ async function handleLeave() {
     background: #ffffff;
     color: #000000;
     font-weight: 600;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0,0,0,0.04);
+    box-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.12),
+      0 0 1px rgba(0, 0, 0, 0.04);
   }
 
   .exit-link {
@@ -511,7 +555,7 @@ async function handleLeave() {
   border-radius: 16px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #007AFF, #5856D6);
+  background: linear-gradient(135deg, #007aff, #5856d6);
   color: #ffffff;
   font-size: 24px;
   box-shadow: 0 8px 16px rgba(0, 122, 255, 0.25);
@@ -527,7 +571,7 @@ async function handleLeave() {
 .join-eyebrow {
   font-size: 13px;
   font-weight: 600;
-  color: #007AFF;
+  color: #007aff;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -556,10 +600,10 @@ async function handleLeave() {
   height: auto;
   font-weight: 600;
   font-size: 15px;
-  background: #007AFF;
+  background: #007aff;
   border: none;
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-  
+
   &:hover {
     background: #0062cc;
   }
@@ -569,7 +613,7 @@ async function handleLeave() {
   font-weight: 600;
   color: #8e8e93;
   font-size: 15px;
-  
+
   &:hover {
     color: #1c1c1e;
   }
@@ -641,7 +685,11 @@ async function handleLeave() {
 
 .podium-slot.pos-1 {
   min-height: 200px;
-  background: linear-gradient(180deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 215, 0, 0.05) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
   border: 1px solid rgba(255, 215, 0, 0.15);
 }
 
@@ -661,17 +709,17 @@ async function handleLeave() {
 .podium-slot.pos-1 .avatar-wrap {
   width: 88px;
   height: 88px;
-  border-color: #FFD700;
+  border-color: #ffd700;
   box-shadow: 0 12px 32px rgba(255, 215, 0, 0.25);
 }
 
 .podium-slot.pos-2 .avatar-wrap {
-  border-color: #C0C0C0;
+  border-color: #c0c0c0;
   box-shadow: 0 8px 24px rgba(192, 192, 192, 0.25);
 }
 
 .podium-slot.pos-3 .avatar-wrap {
-  border-color: #CD7F32;
+  border-color: #cd7f32;
   box-shadow: 0 8px 24px rgba(205, 127, 50, 0.25);
 }
 
@@ -681,7 +729,7 @@ async function handleLeave() {
   left: 50%;
   transform: translateX(-50%);
   font-size: 32px;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
 
 .avatar-text {
@@ -701,7 +749,7 @@ async function handleLeave() {
 }
 
 .tag-me {
-  background: #007AFF;
+  background: #007aff;
   color: #ffffff;
   padding: 2px 8px;
   border-radius: 6px;
@@ -870,7 +918,7 @@ async function handleLeave() {
     font-weight: 700;
     color: #1c1c1e;
   }
-  
+
   p {
     margin: 4px 0 0;
     color: #8e8e93;
@@ -886,9 +934,9 @@ async function handleLeave() {
   :deep(.el-card) {
     border-radius: 16px;
     border: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     background: #f9f9f9;
-    
+
     .el-card__body {
       padding: 16px;
     }
@@ -933,7 +981,7 @@ async function handleLeave() {
   .join-banner__actions {
     justify-content: center;
     width: 100%;
-    
+
     :deep(.el-button) {
       flex: 1;
     }
@@ -952,7 +1000,7 @@ async function handleLeave() {
     width: 48px;
     height: 48px;
   }
-  
+
   .podium-slot.pos-1 .avatar-wrap {
     width: 64px;
     height: 64px;
@@ -961,11 +1009,11 @@ async function handleLeave() {
   .rank-item {
     padding: 12px;
   }
-  
+
   .rank-left {
     gap: 12px;
   }
-  
+
   .rank-no {
     width: 24px;
     font-size: 15px;

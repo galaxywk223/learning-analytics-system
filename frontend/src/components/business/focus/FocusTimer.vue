@@ -60,7 +60,9 @@ const formattedTime = computed(() => {
   const hours = Math.floor(props.elapsedSeconds / 3600);
   const minutes = Math.floor((props.elapsedSeconds % 3600) / 60);
   const seconds = props.elapsedSeconds % 60;
-  return [hours, minutes, seconds].map((unit) => unit.toString().padStart(2, "0")).join(":");
+  return [hours, minutes, seconds]
+    .map((unit) => unit.toString().padStart(2, "0"))
+    .join(":");
 });
 
 const timeLabel = computed(() => {
@@ -99,7 +101,9 @@ const timeLabel = computed(() => {
         stroke: #4f46e5;
         stroke-width: 12;
         stroke-linecap: round;
-        transition: stroke-dashoffset 0.25s ease, stroke 0.25s ease;
+        transition:
+          stroke-dashoffset 0.25s ease,
+          stroke 0.25s ease;
       }
     }
 

@@ -9,13 +9,17 @@
         <button class="pill-btn primary" @click="addRoot">
           <span class="icon">+</span> 新增分类
         </button>
-        <button class="pill-btn secondary" :disabled="store.loading" @click="refresh">
+        <button
+          class="pill-btn secondary"
+          :disabled="store.loading"
+          @click="refresh"
+        >
           刷新
         </button>
       </div>
     </template>
 
-    <div class="content-section" v-loading="store.loading">
+    <div v-loading="store.loading" class="content-section">
       <CategoryTree
         ref="treeRef"
         :tree-data="treeData"
@@ -143,7 +147,7 @@ async function deleteCategory(categoryData) {
         error.response?.status === 400
       ) {
         ElMessage.error(
-          "该分类下存在学习记录，无法删除。请先删除或转移相关记录。"
+          "该分类下存在学习记录，无法删除。请先删除或转移相关记录。",
         );
       } else {
         ElMessage.error("删除失败: " + errorMsg);
@@ -169,7 +173,7 @@ async function handleSubmit(formData) {
     } else {
       // 创建分类
       // 优先使用 formData.parent_id (用户在表单中选择的)
-      console.log('Creating category with formData:', formData);
+      console.log("Creating category with formData:", formData);
       if (formData.parent_id) {
         // 创建子分类
         await store.createSubCategory(formData.parent_id, formData);

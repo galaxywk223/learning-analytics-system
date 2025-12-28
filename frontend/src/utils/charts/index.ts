@@ -43,7 +43,7 @@ interface CombinedItem {
 
 export function transformDataForChart(
   sourceData?: ChartData,
-  topN: number = 10
+  topN: number = 10,
 ): ChartData {
   if (!sourceData?.labels || !sourceData?.data) {
     return { labels: [], data: [] };

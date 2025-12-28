@@ -1,11 +1,19 @@
 <template>
   <div class="page-container" :class="customClass">
     <header
+      v-if="
+        normalizedTitle.text ||
+        normalizedTitle.icon ||
+        $slots.actions ||
+        $slots.header
+      "
       class="page-header"
-      v-if="normalizedTitle.text || normalizedTitle.icon || $slots.actions || $slots.header"
     >
-      <div class="page-header__titles" v-if="!$slots.header">
-        <h1 class="page-title" v-if="normalizedTitle.text || normalizedTitle.icon">
+      <div v-if="!$slots.header" class="page-header__titles">
+        <h1
+          v-if="normalizedTitle.text || normalizedTitle.icon"
+          class="page-title"
+        >
           <span
             v-if="normalizedTitle.icon"
             class="emoji-icon"
@@ -20,7 +28,7 @@
       <div v-else class="page-header__custom">
         <slot name="header" />
       </div>
-      <div class="page-header__actions" v-if="$slots.actions">
+      <div v-if="$slots.actions" class="page-header__actions">
         <slot name="actions" />
       </div>
     </header>

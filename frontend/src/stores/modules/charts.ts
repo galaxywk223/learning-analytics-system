@@ -32,7 +32,12 @@ export const useChartsStore = defineStore("charts", () => {
   });
 
   // KPI: 近30天 Top3 子分类
-  type TopSub = { label: string; parent?: string; hours: number; percent: number };
+  type TopSub = {
+    label: string;
+    parent?: string;
+    hours: number;
+    percent: number;
+  };
   const kpiTopSubs30d = ref<TopSub[]>([]);
 
   // 趋势图表数据（从rawChartData中提取）
@@ -75,7 +80,7 @@ export const useChartsStore = defineStore("charts", () => {
 
   // ========== 计算属性 ==========
   const hasTrendsData = computed(
-    () => (rawChartData.value as any).has_data === true
+    () => (rawChartData.value as any).has_data === true,
   );
   const hasCategoryData = computed(() => {
     return (
@@ -221,7 +226,9 @@ export const useChartsStore = defineStore("charts", () => {
       stage_id: stageId.value,
       range_mode: mode,
     };
-    const requiresRange = ["daily", "weekly", "monthly", "custom"].includes(mode);
+    const requiresRange = ["daily", "weekly", "monthly", "custom"].includes(
+      mode,
+    );
     if (start && end) {
       params.start_date = start;
       params.end_date = end;
@@ -249,9 +256,15 @@ export const useChartsStore = defineStore("charts", () => {
       const resp = await chartsAPI.getCategories(params);
       const payload = (resp as any).data || resp;
       const drill = (payload && (payload as any).drilldown) || {};
-      const main = (payload && (payload as any).main) || { labels: [], data: [] };
+      const main = (payload && (payload as any).main) || {
+        labels: [],
+        data: [],
+      };
       // 汇总所有子分类（名称 + 父类）
-      const map = new Map<string, { label: string; parent?: string; hours: number }>();
+      const map = new Map<
+        string,
+        { label: string; parent?: string; hours: number }
+      >();
       let total = 0;
       Object.keys(drill).forEach((catName) => {
         const ds = drill[catName] || { labels: [], data: [] };
@@ -329,7 +342,9 @@ export const useChartsStore = defineStore("charts", () => {
         currentCategoryView.value = "main";
         currentCategory.value = "";
       } else {
-        console.log("[Charts Store] No valid data received, setting empty structure");
+        console.log(
+          "[Charts Store] No valid data received, setting empty structure",
+        );
         categoryData.value = {
           main: { labels: [], data: [] },
           drilldown: {},
@@ -359,7 +374,7 @@ export const useChartsStore = defineStore("charts", () => {
         ...params,
         category_id: trendCategoryId.value,
         subcategory_id: trendSubcategoryId.value,
-        granularity: 'daily',
+        granularity: "daily",
       };
       console.log("[Charts Store] Fetching category trend with:", query);
       const response = await chartsAPI.getCategoryTrend(query);
@@ -369,9 +384,10 @@ export const useChartsStore = defineStore("charts", () => {
       // 注意：后端返回 { success, data: { labels, data, granularity, ... } }
       // 上一版错误地把 payload.data 直接当作 dataset，导致 dataset 变成纯数组
       // 这里应当把 dataset 设为 payload 本身
-      const dataset = (payload && (payload as any).labels && (payload as any).data)
-        ? (payload as any)
-        : ((payload as any).data || {});
+      const dataset =
+        payload && (payload as any).labels && (payload as any).data
+          ? (payload as any)
+          : (payload as any).data || {};
       console.log("[Charts Store] Category trend dataset:", dataset);
       categoryTrend.value = {
         labels: dataset.labels || [],
@@ -386,7 +402,6 @@ export const useChartsStore = defineStore("charts", () => {
       categoryTrendLoading.value = false;
     }
   }
-
 
   /**
    * 分类下钻
@@ -416,19 +431,19 @@ export const useChartsStore = defineStore("charts", () => {
   async function refreshAll() {
     console.log(
       "[Charts Store] refreshAll called, activeTab:",
-      activeTab.value
+      activeTab.value,
     );
     await fetchTrends();
     if (activeTab.value === "categories") {
       console.log(
-        "[Charts Store] Active tab is categories, fetching category data..."
+        "[Charts Store] Active tab is categories, fetching category data...",
       );
       await fetchCategories();
     } else if (activeTab.value === "cattrend") {
       await fetchCategoryTrend();
     } else {
       console.log(
-        "[Charts Store] Active tab is not categories, skipping category fetch"
+        "[Charts Store] Active tab is not categories, skipping category fetch",
       );
     }
     // 计算 Top3 子分类（近30天）
@@ -465,12 +480,7 @@ export const useChartsStore = defineStore("charts", () => {
 
   function setCategoryCustomRange(range: [string, string] | null) {
     categoryCustomRange.value = range;
-    if (
-      categoryRangeMode.value === "custom" &&
-      range &&
-      range[0] &&
-      range[1]
-    ) {
+    if (categoryRangeMode.value === "custom" && range && range[0] && range[1]) {
       fetchCategories();
       fetchCategoryTrend();
     }
@@ -505,13 +515,13 @@ export const useChartsStore = defineStore("charts", () => {
     activeTab.value = tab;
     if (tab === "categories" && categoryData.value.main.labels.length === 0) {
       console.log(
-        "[Charts Store] Switching to categories tab with no data, fetching..."
+        "[Charts Store] Switching to categories tab with no data, fetching...",
       );
       fetchCategories();
     } else if (tab === "categories") {
       console.log(
         "[Charts Store] Switching to categories tab, current labels:",
-        categoryData.value.main.labels
+        categoryData.value.main.labels,
       );
     } else if (tab === "cattrend") {
       fetchCategoryTrend();

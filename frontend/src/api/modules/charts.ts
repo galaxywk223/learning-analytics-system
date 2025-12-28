@@ -15,7 +15,11 @@ export const chartsAPI = {
     return request({ url: "/api/charts/stages", method: "get" });
   },
   getCategoryTrend(params: any) {
-    return request({ url: "/api/charts/category_trend", method: "get", params });
+    return request({
+      url: "/api/charts/category_trend",
+      method: "get",
+      params,
+    });
   },
   exportCharts() {
     return request({

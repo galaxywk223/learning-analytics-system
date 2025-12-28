@@ -1,13 +1,12 @@
 <template>
   <div
-    class="countdown-card"
-    :id="`countdown-${event.id}`"
-    :class="statusClass"
     v-if="!expired"
+    :id="`countdown-${event.id}`"
+    class="countdown-card"
+    :class="statusClass"
   >
     <div class="card-header">
       <span class="event-title">{{ event.title }}</span>
-
     </div>
     <div class="card-body">
       <div class="progress-ring-container">
@@ -26,7 +25,10 @@
               y2="100%"
             >
               <stop offset="0%" style="stop-color: #2563eb; stop-opacity: 1" />
-              <stop offset="100%" style="stop-color: #3b82f6; stop-opacity: 1" />
+              <stop
+                offset="100%"
+                style="stop-color: #3b82f6; stop-opacity: 1"
+              />
             </linearGradient>
             <linearGradient
               id="gradient-warning"
@@ -36,7 +38,10 @@
               y2="100%"
             >
               <stop offset="0%" style="stop-color: #fcd34d; stop-opacity: 1" />
-              <stop offset="100%" style="stop-color: #f59e0b; stop-opacity: 1" />
+              <stop
+                offset="100%"
+                style="stop-color: #f59e0b; stop-opacity: 1"
+              />
             </linearGradient>
             <linearGradient
               id="gradient-urgent"
@@ -46,7 +51,10 @@
               y2="100%"
             >
               <stop offset="0%" style="stop-color: #fb7185; stop-opacity: 1" />
-              <stop offset="100%" style="stop-color: #dc2626; stop-opacity: 1" />
+              <stop
+                offset="100%"
+                style="stop-color: #dc2626; stop-opacity: 1"
+              />
             </linearGradient>
           </defs>
           <circle
@@ -77,15 +85,20 @@
     <div class="card-footer">
       <span class="target-date">目标: {{ beijingString }}</span>
       <div class="actions">
-        <el-button link size="small" @click.stop="$emit('edit')" :title="'编辑'">
+        <el-button
+          link
+          size="small"
+          :title="'编辑'"
+          @click.stop="$emit('edit')"
+        >
           <Icon icon="lucide:edit-3" />
         </el-button>
         <el-button
           link
           size="small"
           type="danger"
-          @click.stop="$emit('delete')"
           :title="'删除'"
+          @click.stop="$emit('delete')"
         >
           <Icon icon="lucide:trash-2" />
         </el-button>
@@ -97,15 +110,15 @@
     <h5 class="expired-title">{{ event.title }}</h5>
     <p class="text-muted">完成于 {{ beijingDateOnly }}</p>
     <div class="actions">
-      <el-button link size="small" @click="$emit('edit')" :title="'编辑'">
+      <el-button link size="small" :title="'编辑'" @click="$emit('edit')">
         <Icon icon="lucide:edit-3" />
       </el-button>
       <el-button
         link
         size="small"
         type="danger"
-        @click="$emit('delete')"
         :title="'删除'"
+        @click="$emit('delete')"
       >
         <Icon icon="lucide:trash-2" />
       </el-button>
@@ -125,6 +138,7 @@ const props = defineProps({
   event: { type: Object, required: true },
   expired: { type: Boolean, default: false },
 });
+defineEmits(["edit", "delete"]);
 const progressCircle = ref(null);
 let timer = null;
 
@@ -175,10 +189,10 @@ const beijingDate = computed(() => {
   return dayjs.utc(props.event.target_datetime_utc).tz("Asia/Shanghai");
 });
 const beijingString = computed(() =>
-  beijingDate.value ? beijingDate.value.format("YYYY-MM-DD HH:mm") : ""
+  beijingDate.value ? beijingDate.value.format("YYYY-MM-DD HH:mm") : "",
 );
 const beijingDateOnly = computed(() =>
-  beijingDate.value ? beijingDate.value.format("YYYY-MM-DD") : ""
+  beijingDate.value ? beijingDate.value.format("YYYY-MM-DD") : "",
 );
 
 // 已改用 dayjs 格式化，上面 computed 中完成
@@ -254,7 +268,7 @@ watch(
     props.event.created_at_utc,
   ],
   () => setProgress(),
-  { deep: false }
+  { deep: false },
 );
 onBeforeUnmount(() => {
   if (timer) clearInterval(timer);

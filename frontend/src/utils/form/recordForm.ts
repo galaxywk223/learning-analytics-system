@@ -108,7 +108,7 @@ export function validateFormData(formData: FormData): string[] {
  * 格式化表单数据用于提交
  */
 export function formatFormDataForSubmit(
-  formData: FormData
+  formData: FormData,
 ): Record<string, any> {
   // 只发送后端需要的字段
   return {
@@ -128,10 +128,12 @@ export function formatFormDataForSubmit(
  */
 export function formatServerDataToForm(
   serverData: ServerData,
-  defaultDate?: string | null
+  defaultDate?: string | null,
 ): FormData {
   const base = getDefaultFormData(defaultDate ?? serverData?.log_date);
-  const actualDurationRaw = Number(serverData.actual_duration ?? base.actual_duration ?? 0);
+  const actualDurationRaw = Number(
+    serverData.actual_duration ?? base.actual_duration ?? 0,
+  );
   const durationHours = Math.floor(actualDurationRaw / 60);
   const durationMinutes = actualDurationRaw % 60;
 

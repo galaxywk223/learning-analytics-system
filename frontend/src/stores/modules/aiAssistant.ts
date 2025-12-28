@@ -50,7 +50,11 @@ export const useAIAssistantStore = defineStore("ai-assistant", () => {
 
   function setScope(next: Scope) {
     scope.value = next;
-    if (next === "stage" && !selectedStageId.value && stageStore.stages.length) {
+    if (
+      next === "stage" &&
+      !selectedStageId.value &&
+      stageStore.stages.length
+    ) {
       selectedStageId.value = Number(stageStore.stages[0].id);
     }
     if (next !== "stage") {
