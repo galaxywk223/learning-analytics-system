@@ -31,9 +31,12 @@ def _parse_request_payload():
     stage_value = payload.get("stage_id")
     stage_id = None
     if stage_value not in (None, ""):
-        try:
-            stage_id = int(stage_value)
-        except (TypeError, ValueError):
+        if isinstance(stage_value, (int, str)):
+            try:
+                stage_id = int(stage_value)
+            except ValueError:
+                raise AIPlannerError("stage_id 需要为整数")
+        else:
             raise AIPlannerError("stage_id 需要为整数")
 
     return scope, date_str, stage_id

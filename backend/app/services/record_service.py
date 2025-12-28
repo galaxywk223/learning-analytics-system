@@ -3,6 +3,7 @@ import math
 from datetime import date, timedelta
 from itertools import groupby
 from numbers import Number
+from typing import Any
 
 from flask import current_app
 from sqlalchemy import tuple_
@@ -19,7 +20,7 @@ def _normalize_duration_minutes(value):
         return 0
 
     if isinstance(value, Number):
-        numeric_value = float(value)
+        numeric_value = float(value)  # type: ignore[arg-type]
         if not math.isfinite(numeric_value):
             return 0
 
@@ -247,7 +248,7 @@ def get_structured_logs_for_stage(stage, sort_order="desc"):
     ).order_by(LogEntry.log_date.asc(), LogEntry.id.asc())
     all_logs = log_query.all()
 
-    structured_logs = []
+    structured_logs: list[dict[str, Any]] = []
     if not all_logs:
         return structured_logs
 
@@ -309,6 +310,27 @@ def get_structured_logs_for_stage(stage, sort_order="desc"):
     return sorted(
         structured_logs, key=lambda w: (w["year"], w["week_num"]), reverse=is_reverse
     )
+
+
+def calculate_record_statistics(records):
+    """计算记录统计信息（用于 /records/stats）。"""
+    total_records = len(records)
+    total_minutes = sum(
+        _normalize_duration_minutes(record.actual_duration) for record in records
+    )
+    avg_minutes = round(total_minutes / total_records, 2) if total_records else 0
+    mood_values = [record.mood for record in records if record.mood is not None]
+    avg_mood = (
+        round(sum(mood_values) / len(mood_values), 2) if mood_values else None
+    )
+
+    return {
+        "total_records": total_records,
+        "total_minutes": total_minutes,
+        "total_hours": round(total_minutes / 60, 2),
+        "avg_minutes": avg_minutes,
+        "avg_mood": avg_mood,
+    }
 
 
 def add_log_for_stage(stage_id, user, form_data):

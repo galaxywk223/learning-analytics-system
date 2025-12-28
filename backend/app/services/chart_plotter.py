@@ -4,6 +4,7 @@
 """
 
 import io
+from typing import cast, Sequence
 import matplotlib
 
 matplotlib.use("Agg")  # 使用非GUI后端
@@ -178,7 +179,7 @@ def export_trends_image(username, trend_data):
         _plot_daily_duration(axes[1, 0], trend_data["daily_duration_data"])
         _plot_daily_efficiency(axes[1, 1], trend_data["daily_efficiency_data"])
 
-        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        fig.tight_layout(rect=(0, 0.03, 1, 0.95))
 
         img_buffer = io.BytesIO()
         fig.savefig(img_buffer, format="png")
@@ -230,15 +231,16 @@ def export_category_image(username, category_data):
             main_cat_ax = fig.add_subplot(gs[0, 0])
             main_data = category_data["main"]
 
-            wedges, _, autotexts = main_cat_ax.pie(
+            pie_result = main_cat_ax.pie(
                 main_data["data"],
                 labels=main_data["labels"],
                 autopct="%1.1f%%",
                 startangle=90,
                 pctdistance=0.85,
-                colors=COLORS["category_palette"],
+                colors=cast(Sequence[str], COLORS["category_palette"]),
                 wedgeprops=dict(width=0.4, edgecolor="w"),
             )
+            autotexts = pie_result[2] if len(pie_result) > 2 else []  # type: ignore[index]
 
             plt.setp(autotexts, size=10, weight="bold", color="white")
             main_cat_ax.set_title("主分类时长占比", fontsize=16, weight="bold", pad=20)
@@ -276,7 +278,7 @@ def export_category_image(username, category_data):
                 sub_ax.spines["right"].set_visible(False)
                 sub_ax.spines["left"].set_visible(False)
 
-        fig.tight_layout(rect=[0, 0.03, 1, 0.96])
+        fig.tight_layout(rect=(0, 0.03, 1, 0.96))
 
         img_buffer = io.BytesIO()
         fig.savefig(img_buffer, format="png")

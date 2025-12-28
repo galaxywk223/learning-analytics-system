@@ -55,12 +55,12 @@ def get_categories():
     返回格式与旧项目 /category_charts/api/data 一致
     """
     current_user_id = get_jwt_identity()
-    stage_id = request.args.get("stage_id")
+    stage_id_raw = request.args.get("stage_id")
     range_mode = request.args.get("range_mode", "all")
     start_date_raw = request.args.get("start_date")
     end_date_raw = request.args.get("end_date")
 
-    def _parse_date(value):
+    def _parse_date(value: str | None):
         if not value:
             return None
         try:
@@ -77,8 +77,9 @@ def get_categories():
 
     try:
         # 处理stage_id参数
-        if stage_id and stage_id != "all" and stage_id.isdigit():
-            stage_id = int(stage_id)
+        stage_id: int | None
+        if stage_id_raw and stage_id_raw != "all" and stage_id_raw.isdigit():
+            stage_id = int(stage_id_raw)
             # 验证阶段所有权
             stage = Stage.query.filter_by(id=stage_id, user_id=current_user_id).first()
             if not stage:

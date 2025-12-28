@@ -23,7 +23,11 @@ def import_zip():
 
     # 1) 取文件
     file_storage = request.files.get("file")
-    if not file_storage or not file_storage.filename.lower().endswith(".zip"):
+    if (
+        not file_storage
+        or not file_storage.filename
+        or not file_storage.filename.lower().endswith(".zip")
+    ):
         return jsonify(
             {"success": False, "message": "请上传 .zip 文件（字段名 file）"}
         ), 400

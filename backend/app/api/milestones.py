@@ -335,13 +335,13 @@ def upload_attachment(milestone_id):
         return jsonify({"success": False, "message": "没有文件被上传"}), 400
 
     file = request.files["file"]
-    current_app.logger.info(f"[上传附件] 接收到文件: {file.filename}")
-
-    if file.filename == "":
+    if not file.filename:
         return jsonify({"success": False, "message": "文件名为空"}), 400
+    filename_value = file.filename
+    current_app.logger.info(f"[上传附件] 接收到文件: {filename_value}")
 
-    if not allowed_file(file.filename, ALLOWED_ATTACHMENT_EXTENSIONS):
-        current_app.logger.warning(f"[上传附件] 不支持的文件格式: {file.filename}")
+    if not allowed_file(filename_value, ALLOWED_ATTACHMENT_EXTENSIONS):
+        current_app.logger.warning(f"[上传附件] 不支持的文件格式: {filename_value}")
         return jsonify(
             {
                 "success": False,
@@ -352,8 +352,8 @@ def upload_attachment(milestone_id):
     try:
         # 生成安全的文件名
         timestamp = int(datetime.now().timestamp())
-        ext = file.filename.rsplit(".", 1)[1].lower()
-        original_name = os.path.splitext(file.filename)[0]
+        ext = filename_value.rsplit(".", 1)[1].lower()
+        original_name = os.path.splitext(filename_value)[0]
         filename = f"milestone_{milestone_id}_{timestamp}.{ext}"
         filename = secure_filename(filename)
 

@@ -4,6 +4,7 @@
 
 import collections
 from datetime import date, timedelta
+from typing import Sequence, TypedDict
 from sqlalchemy import func, desc
 import numpy as np
 
@@ -12,7 +13,9 @@ from app.models import Stage, LogEntry, WeeklyData, DailyData, Category, SubCate
 from .helpers import get_custom_week_info
 
 
-def _calculate_sma(data, window_size=7):
+def _calculate_sma(
+    data: Sequence[float | None], window_size: int = 7
+) -> list[float | None]:
     """计算简单移动平均线，能正确处理None/NaN值"""
     if not data or window_size <= 1:
         return [None] * len(data)
@@ -22,8 +25,8 @@ def _calculate_sma(data, window_size=7):
     if len(numeric_data) < window_size:
         return [None] * len(numeric_data)
 
-    sma_values = []
-    window = collections.deque(maxlen=window_size)
+    sma_values: list[float | None] = []
+    window: collections.deque[float] = collections.deque(maxlen=window_size)
     for i, value in enumerate(numeric_data):
         window.append(value)
         if i < window_size - 1:
@@ -111,6 +114,22 @@ def _calculate_kpis(user_id, stage_ids):
     return kpis
 
 
+class _WeekBucket(TypedDict):
+    duration: float
+    efficiency: float | None
+    days: int
+
+
+class _CategorySub(TypedDict):
+    name: str
+    duration: float
+
+
+class _CategoryAgg(TypedDict):
+    total: float
+    subs: list[_CategorySub]
+
+
 def _prepare_trend_data(user_id, all_stages, all_logs):
     """准备每日和每周趋势的数据结构"""
     first_log_date = min(log.log_date for log in all_logs)
@@ -139,12 +158,14 @@ def _prepare_trend_data(user_id, all_stages, all_logs):
     }
     daily_efficiencies = [daily_efficiency_map.get(d) for d in date_range]
 
-    weekly_data = collections.defaultdict(
-        lambda: {"duration": 0, "efficiency": None, "days": 0}
+    weekly_data: dict[tuple[int, int], _WeekBucket] = collections.defaultdict(
+        lambda: {"duration": 0.0, "efficiency": None, "days": 0}
     )
     for d in date_range:
         year, week_num = get_custom_week_info(d, global_start_date)
-        weekly_data[(year, week_num)]["duration"] += daily_duration_map.get(d, 0)
+        weekly_data[(year, week_num)]["duration"] += float(
+            daily_duration_map.get(d) or 0
+        )
         weekly_data[(year, week_num)]["days"] += 1
 
     weekly_efficiency_from_db = (
@@ -163,10 +184,11 @@ def _prepare_trend_data(user_id, all_stages, all_logs):
     sorted_week_keys = sorted(weekly_data.keys())
     weekly_labels = [f"{k[0]}-W{k[1]:02}" for k in sorted_week_keys]
     # 计算周平均时长：总时长除以该周包含的天数
-    weekly_durations = [
-        round(weekly_data[k]["duration"] / 60 / max(weekly_data[k]["days"], 1), 2)
-        for k in sorted_week_keys
-    ]
+    weekly_durations = []
+    for k in sorted_week_keys:
+        duration = weekly_data[k]["duration"]
+        days = weekly_data[k]["days"] or 0
+        weekly_durations.append(round(duration / 60 / max(days, 1), 2))
     weekly_efficiencies = [weekly_data[k]["efficiency"] for k in sorted_week_keys]
 
     return {
@@ -344,30 +366,36 @@ def get_category_chart_data(user_id, stage_id=None, start_date=None, end_date=No
             return None
 
         # 构建基于 legacy_category 的数据结构
-        category_data = {}
+        legacy_category_data: dict[str, float] = {}
         for legacy_cat, duration in legacy_results:
             duration_hours = (duration or 0) / 60.0
-            category_data[legacy_cat] = duration_hours
+            legacy_category_data[legacy_cat] = duration_hours
 
-        sorted_categories = sorted(
-            category_data.items(), key=lambda item: item[1], reverse=True
+        legacy_sorted_categories = sorted(
+            legacy_category_data.items(), key=lambda item: item[1], reverse=True
         )
 
-        main_labels = [item[0] for item in sorted_categories]
-        main_data = [round(item[1], 2) for item in sorted_categories]
+        main_labels = [item[0] for item in legacy_sorted_categories]
+        main_data = [round(item[1], 2) for item in legacy_sorted_categories]
 
         # legacy_category 没有子分类，drilldown 为空字典
         return {"main": {"labels": main_labels, "data": main_data}, "drilldown": {}}
 
-    category_data = collections.defaultdict(lambda: {"total": 0, "subs": []})
+    category_data: dict[str, _CategoryAgg] = {}
     for cat_name, sub_name, duration in results:
         duration_hours = (duration or 0) / 60.0
-        category_data[cat_name]["total"] += duration_hours
-        category_data[cat_name]["subs"].append(
-            {"name": sub_name, "duration": round(duration_hours, 2)}
+        if cat_name is None:
+            continue
+        entry = category_data.setdefault(cat_name, {"total": 0.0, "subs": []})
+        entry["total"] += duration_hours
+        entry["subs"].append(
+            {
+                "name": str(sub_name) if sub_name is not None else "",
+                "duration": round(duration_hours, 2),
+            }
         )
 
-    sorted_categories = sorted(
+    sorted_categories: list[tuple[str, _CategoryAgg]] = sorted(
         category_data.items(), key=lambda item: item[1]["total"], reverse=True
     )
 

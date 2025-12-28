@@ -234,7 +234,7 @@ def import_data_for_user(user, zip_stream):
                     with zf.open(json_path) as json_file:
                         pending_records[table_name] = json.load(json_file)
 
-            id_maps = {
+            id_maps: dict[str, dict[str, int]] = {
                 Stage.__tablename__: {},
                 Category.__tablename__: {},
                 SubCategory.__tablename__: {},
