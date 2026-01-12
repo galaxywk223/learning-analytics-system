@@ -5,6 +5,14 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>萤火集</title>
+    <script>
+      (function () {
+        var ua = navigator.userAgent || "";
+        if (/Windows/i.test(ua)) {
+          document.documentElement.classList.add("os-windows");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

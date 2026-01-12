@@ -46,31 +46,6 @@ body {
 
 #app {
   min-height: 100vh;
-  /* Default background setup */
-  background-color: #f5f5f7;
-  transition:
-    background-image 0.3s ease,
-    background-color 0.3s ease;
-}
-
-/* Mesh gradient for non-Windows */
-:not(.os-windows) #app {
-  background-image:
-    radial-gradient(at 80% 0%, hsla(189, 100%, 96%, 1) 0px, transparent 50%),
-    radial-gradient(at 0% 50%, hsla(341, 100%, 96%, 1) 0px, transparent 50%),
-    radial-gradient(at 80% 50%, hsla(355, 100%, 96%, 1) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, hsla(22, 100%, 96%, 1) 0px, transparent 50%),
-    radial-gradient(at 80% 100%, hsla(240, 100%, 96%, 1) 0px, transparent 50%),
-    radial-gradient(at 0% 0%, hsla(343, 100%, 96%, 1) 0px, transparent 50%);
-  background-size: cover;
-}
-
-/* Windows or Custom BG: Handle via inline style or specific class overrides */
-/* If custom bg is present, it overrides everything via the style binding in template */
-
-/* Windows platform optimization - default state */
-.os-windows #app {
-  background-image: none;
   background-color: #f5f5f7;
 }
 
