@@ -64,6 +64,10 @@ const props = defineProps({
       "#8b5cf6",
     ],
   },
+  metricMode: {
+    type: String,
+    default: "duration", // 'duration' | 'efficiency'
+  },
 });
 
 const emit = defineEmits(["slice-click"]);
@@ -73,12 +77,14 @@ const chartRef = ref();
 const EMPTY_SLICE_NAME = "\u6682\u65e0\u6570\u636e";
 const LEGEND_LIMIT = 10;
 const chartUpdateOptions = { replaceMerge: ["series", "legend"] };
-const uiText = {
-  subtitle: "\u5206\u7c7b\u65f6\u957f\u5360\u6bd4",
-  totalLabel: "\u7d2f\u8ba1",
-  hoursSuffix: "\u5c0f\u65f6",
-  pieName: "\u5b66\u4e60\u5206\u7c7b",
-};
+
+const uiText = computed(() => ({
+  subtitle: props.metricMode === "efficiency" ? "分类效率占比" : "分类时长占比",
+  totalLabel: props.metricMode === "efficiency" ? "效率总量" : "累计",
+  hoursSuffix: props.metricMode === "efficiency" ? "" : "小时",
+  pieName: props.metricMode === "efficiency" ? "学习效率" : "学习分类",
+  tooltipUnit: props.metricMode === "efficiency" ? "效率" : "小时",
+}));
 const baseSlices = computed(() => {
   const labels = Array.isArray(props.data?.labels) ? props.data.labels : [];
   const values = Array.isArray(props.data?.data) ? props.data.data : [];
@@ -131,7 +137,9 @@ const option = computed(() => {
       formatter: ({ name, value, percent }) => {
         const numeric = Number(value ?? 0).toFixed(2);
         const percentText = Number(percent ?? 0).toFixed(1);
-        return `${name}<br/>${numeric} ${uiText.hoursSuffix} (${percentText}%)`;
+        const unit = uiText.value.tooltipUnit;
+        const suffix = unit ? ` ${unit}` : "";
+        return `${name}<br/>${numeric}${suffix} (${percentText}%)`;
       },
     },
     legend: {
@@ -161,7 +169,7 @@ const option = computed(() => {
                   {
                     type: "text",
                     style: {
-                      text: uiText.totalLabel,
+                      text: uiText.value.totalLabel,
                       fill: "#9ca3af",
                       fontSize: 13,
                       fontWeight: 600,
@@ -185,7 +193,7 @@ const option = computed(() => {
                     type: "text",
                     top: 48,
                     style: {
-                      text: uiText.hoursSuffix,
+                      text: uiText.value.hoursSuffix,
                       fill: "#9ca3af",
                       fontSize: 12,
                       fontWeight: 600,
@@ -200,7 +208,7 @@ const option = computed(() => {
         : undefined,
     series: [
       {
-        name: uiText.pieName,
+        name: uiText.value.pieName,
         type: "pie",
         radius: ["68%", "86%"],
         center: ["50%", "48%"],

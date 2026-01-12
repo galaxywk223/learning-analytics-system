@@ -10,6 +10,8 @@ from app.services.chart_service import (
     get_chart_data_for_user,
     get_category_chart_data,
     get_category_trend_series,
+    get_category_efficiency_chart_data,
+    get_category_efficiency_trend_series,
 )
 from app.services.chart_plotter import export_trends_image, export_category_image
 import zipfile
@@ -52,6 +54,7 @@ def get_categories():
     """
     获取分类统计数据（分类占比）
     支持按阶段过滤
+    支持 metric_mode 参数：duration（时长）或 efficiency（效率）
     返回格式与旧项目 /category_charts/api/data 一致
     """
     current_user_id = get_jwt_identity()
@@ -59,6 +62,7 @@ def get_categories():
     range_mode = request.args.get("range_mode", "all")
     start_date_raw = request.args.get("start_date")
     end_date_raw = request.args.get("end_date")
+    metric_mode = request.args.get("metric_mode", "duration")  # 新增参数
 
     def _parse_date(value: str | None):
         if not value:
@@ -87,13 +91,22 @@ def get_categories():
         else:
             stage_id = None
 
-        # 获取分类图表数据
-        category_data = get_category_chart_data(
-            current_user_id,
-            stage_id=stage_id,
-            start_date=parsed_start,
-            end_date=parsed_end,
-        )
+        # 根据 metric_mode 调用不同的服务函数
+        if metric_mode == "efficiency":
+            category_data = get_category_efficiency_chart_data(
+                current_user_id,
+                stage_id=stage_id,
+                start_date=parsed_start,
+                end_date=parsed_end,
+            )
+        else:
+            # 默认：时长模式
+            category_data = get_category_chart_data(
+                current_user_id,
+                stage_id=stage_id,
+                start_date=parsed_start,
+                end_date=parsed_end,
+            )
 
         if category_data is None:
             # 返回空数据结构，与旧项目一致
@@ -192,7 +205,9 @@ def export_charts():
 @bp.route("/category_trend", methods=["GET"])
 @jwt_required()
 def get_category_trend():
-    """按分类/子分类返回学习时长趋势（条形图数据）。"""
+    """按分类/子分类返回学习时长或效率趋势（条形图数据）。
+    支持 metric_mode 参数：duration（时长）或 efficiency（效率）
+    """
 
     user_id = get_jwt_identity()
 
@@ -205,6 +220,7 @@ def get_category_trend():
     category_id = _parse_int(request.args.get("category_id"))
     subcategory_id = _parse_int(request.args.get("subcategory_id"))
     stage_id = _parse_int(request.args.get("stage_id"))
+    metric_mode = request.args.get("metric_mode", "duration")  # 新增参数
 
     range_mode = (request.args.get("range_mode") or "all").lower()
     if range_mode not in {"all", "stage", "daily", "weekly", "monthly", "custom"}:
@@ -231,16 +247,30 @@ def get_category_trend():
     granularity = (request.args.get("granularity") or "").lower() or None
 
     try:
-        data = get_category_trend_series(
-            user_id,
-            category_id=category_id,
-            subcategory_id=subcategory_id,
-            stage_id=stage_id,
-            range_mode=range_mode,
-            start_date=start_date,
-            end_date=end_date,
-            granularity=granularity,
-        )
+        # 根据 metric_mode 调用不同的服务函数
+        if metric_mode == "efficiency":
+            data = get_category_efficiency_trend_series(
+                user_id,
+                category_id=category_id,
+                subcategory_id=subcategory_id,
+                stage_id=stage_id,
+                range_mode=range_mode,
+                start_date=start_date,
+                end_date=end_date,
+                granularity=granularity,
+            )
+        else:
+            # 默认：时长模式
+            data = get_category_trend_series(
+                user_id,
+                category_id=category_id,
+                subcategory_id=subcategory_id,
+                stage_id=stage_id,
+                range_mode=range_mode,
+                start_date=start_date,
+                end_date=end_date,
+                granularity=granularity,
+            )
         return jsonify({"success": True, "data": data}), 200
     except Exception as exc:  # pragma: no cover - runtime diagnostics
         current_app.logger.error("get_category_trend error: %s", exc, exc_info=True)

@@ -7,6 +7,7 @@
         :title="currentTitle"
         :total-hours="totalHours"
         :colors="chartColors"
+        :metric-mode="metricMode"
         @slice-click="handleSliceClick"
       />
 
@@ -38,6 +39,7 @@
             :data="barData"
             :title="barTitle"
             :colors="chartColors"
+            :metric-mode="metricMode"
             @bar-click="handleSliceClick"
             @bar-hover="handleBarHover"
             @bar-leave="handleBarLeave"
@@ -73,6 +75,7 @@ const props = defineProps({
   main: { type: Object, default: () => ({}) },
   drilldown: { type: Object, default: () => ({}) },
   showPanelHeader: { type: Boolean, default: true },
+  metricMode: { type: String, default: "duration" }, // 'duration' | 'efficiency'
 });
 
 const emit = defineEmits(["sliceClick", "back"]);
@@ -82,17 +85,21 @@ const currentCategory = ref("");
 const barRef = ref(null);
 const doughnutRef = ref(null);
 
-const TEXT = {
-  mainTitle: "\u5b66\u4e60\u65f6\u957f\u5360\u6bd4",
-  drillTitleSuffix: "\u7684\u5b50\u5206\u7c7b\u5360\u6bd4",
-  barMainTitle: "\u5168\u90e8\u5206\u7c7b",
-  barDrillSuffix: "\u7684\u5b50\u5206\u7c7b",
-  panelSuffix: "\u7684\u5b50\u5206\u7c7b\u65f6\u957f",
-  back: "\u8fd4\u56de\u4e0a\u7ea7",
-  empty:
-    "\u5f53\u524d\u7b5b\u9009\u8303\u56f4\u6682\u65e0\u5206\u7c7b\u7edf\u8ba1\u6570\u636e",
-  noChild: "\u8be5\u5206\u7c7b\u6682\u65e0\u5b50\u5206\u7c7b",
-};
+const TEXT = computed(() => ({
+  mainTitle:
+    props.metricMode === "efficiency" ? "学习效率占比" : "学习时长占比",
+  drillTitleSuffix:
+    props.metricMode === "efficiency" ? "的子分类效率占比" : "的子分类占比",
+  barMainTitle:
+    props.metricMode === "efficiency" ? "全部分类（效率）" : "全部分类",
+  barDrillSuffix:
+    props.metricMode === "efficiency" ? "的子分类（效率）" : "的子分类",
+  panelSuffix:
+    props.metricMode === "efficiency" ? "的子分类效率" : "的子分类时长",
+  back: "返回上级",
+  empty: "当前筛选范围暂无分类统计数据",
+  noChild: "该分类暂无子分类",
+}));
 
 const hasData = computed(() => {
   if (view.value === "main") {
@@ -113,20 +120,20 @@ const totalHours = computed(() => calculateTotalHours(currentData.value));
 
 const currentTitle = computed(() => {
   if (view.value === "main") {
-    return TEXT.mainTitle;
+    return TEXT.value.mainTitle;
   }
-  return `${currentCategory.value} \u00b7 ${TEXT.drillTitleSuffix}`;
+  return `${currentCategory.value} · ${TEXT.value.drillTitleSuffix}`;
 });
 
 const barTitle = computed(() => {
   if (view.value === "main") {
-    return TEXT.barMainTitle;
+    return TEXT.value.barMainTitle;
   }
-  return `${currentCategory.value} \u00b7 ${TEXT.barDrillSuffix}`;
+  return `${currentCategory.value} · ${TEXT.value.barDrillSuffix}`;
 });
 
 const drilldownPanelTitle = computed(
-  () => `${currentCategory.value} \u00b7 ${TEXT.panelSuffix}`,
+  () => `${currentCategory.value} · ${TEXT.value.panelSuffix}`,
 );
 
 const chartColors = computed(() => {
@@ -141,7 +148,7 @@ function handleSliceClick(label) {
   if (view.value !== "main") return;
   const target = props.drilldown[label];
   if (!target || !target.labels?.length) {
-    ElMessage.info(TEXT.noChild);
+    ElMessage.info(TEXT.value.noChild);
     return;
   }
   currentCategory.value = label;

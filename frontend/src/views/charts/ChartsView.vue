@@ -47,7 +47,22 @@
             v-if="['categories', 'cattrend'].includes(charts.activeTab)"
             class="toolbar-container"
           >
-            <div class="toolbar-left"></div>
+            <div class="toolbar-left">
+              <div class="segmented metric-switch">
+                <button
+                  :class="['seg-btn', metricMode === 'duration' && 'active']"
+                  @click="onMetricModeChange('duration')"
+                >
+                  时长
+                </button>
+                <button
+                  :class="['seg-btn', metricMode === 'efficiency' && 'active']"
+                  @click="onMetricModeChange('efficiency')"
+                >
+                  效率
+                </button>
+              </div>
+            </div>
             <div class="category-filters">
               <div class="segmented filter-switch">
                 <button
@@ -235,6 +250,7 @@
                   </template>
                 </KpiCard>
               </div>
+              <!-- 时长 TOP3 -->
               <div
                 v-if="topSubCards.length"
                 v-loading="charts.loading"
@@ -256,6 +272,40 @@
                     <div class="rank-card">
                       <div class="rank-title">{{ card.name }}</div>
                       <div class="rank-percent">{{ card.percentText }}</div>
+                      <div class="rank-bar">
+                        <span
+                          :style="{
+                            width: card.barWidth,
+                            opacity: card.opacity,
+                          }"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                </KpiCard>
+              </div>
+              <!-- 效率 TOP3 -->
+              <div
+                v-if="topSubEfficiencyCards.length"
+                v-loading="charts.loading"
+                class="kpi-grid top-sub-grid"
+              >
+                <KpiCard
+                  v-for="card in topSubEfficiencyCards"
+                  :key="card.key"
+                  :label="card.label"
+                  color="green"
+                  dense
+                >
+                  <template #icon>
+                    <span class="emoji-icon" aria-hidden="true">{{
+                      card.medal
+                    }}</span>
+                  </template>
+                  <template #value>
+                    <div class="rank-card">
+                      <div class="rank-title">{{ card.name }}</div>
+                      <div class="rank-percent">{{ card.valueText }}</div>
                       <div class="rank-bar">
                         <span
                           :style="{
@@ -308,6 +358,7 @@
                 :drilldown="charts.categoryData.drilldown"
                 :loading="charts.loading"
                 :show-panel-header="false"
+                :metric-mode="metricMode"
                 @slice-click="onCategorySlice"
                 @back="handleCategoryBack"
               />
@@ -338,6 +389,13 @@ import PageContainer from "@/components/layout/PageContainer.vue";
 const charts = useChartsStore();
 const stageStore = useStageStore();
 const stageSelected = ref<string | number>("all");
+
+// 指标模式：时长/效率
+const metricMode = computed({
+  get: () => charts.metricMode,
+  set: (value: "duration" | "efficiency") => charts.setMetricMode(value),
+});
+
 const categoryModes = [
   { value: "all", label: "全部历史" },
   { value: "stage", label: "按阶段" },
@@ -398,12 +456,46 @@ const topSubCards = computed(() => {
           : item.label;
     const pctNum = Number(item.percent || 0);
     return {
-      key: `${item.parent || "legacy"}-${item.label}-${idx}`,
-      label: `TOP${idx + 1}（近30天）`,
+      key: `duration-${item.parent || "legacy"}-${item.label}-${idx}`,
+      label: `时长 TOP${idx + 1}（近30天）`,
       name,
       percentText: item.label === "--" ? "--" : `${pctNum}%`,
       medal: medals[idx] || "🏅",
       barWidth: `${Math.max(10, Math.min(100, pctNum || 0))}%`,
+      opacity: idx === 0 ? 1 : idx === 1 ? 0.75 : 0.6,
+    };
+  });
+});
+
+const topSubEfficiencyCards = computed(() => {
+  const items = charts.kpiTopSubsEfficiency30d || [];
+  const normalized = [...items];
+  while (normalized.length < 3) {
+    normalized.push({ label: "--", parent: "", percent: 0, hours: 0 });
+  }
+  const medals = ["🥇", "🥈", "🥉"];
+  // 找到最大效率值用于归一化进度条
+  const maxEfficiency = Math.max(
+    ...normalized.map((x) => Number(x.hours || 0)),
+    1,
+  );
+  return normalized.slice(0, 3).map((item, idx) => {
+    const hasParent = !!item.parent;
+    const name =
+      item.label === "--"
+        ? "暂无数据"
+        : hasParent
+          ? `${item.parent}：${item.label}`
+          : item.label;
+    const efficiencyValue = Number(item.hours || 0);
+    const barPercent = (efficiencyValue / maxEfficiency) * 100;
+    return {
+      key: `efficiency-${item.parent || "legacy"}-${item.label}-${idx}`,
+      label: `效率 TOP${idx + 1}（近30天）`,
+      name,
+      valueText: item.label === "--" ? "--" : efficiencyValue.toFixed(1),
+      medal: medals[idx] || "🏅",
+      barWidth: `${Math.max(10, Math.min(100, barPercent || 0))}%`,
       opacity: idx === 0 ? 1 : idx === 1 ? 0.75 : 0.6,
     };
   });
@@ -803,6 +895,12 @@ function handleBackClick() {
 function onRangeModeChange(mode: CategoryRangeMode) {
   if (rangeMode.value !== mode) {
     rangeMode.value = mode;
+  }
+}
+
+function onMetricModeChange(mode: "duration" | "efficiency") {
+  if (metricMode.value !== mode) {
+    metricMode.value = mode;
   }
 }
 

@@ -19,7 +19,9 @@
       >
         <div class="bar-info">
           <span class="bar-name">{{ item.name }}</span>
-          <span class="bar-value">{{ formatValue(item.value) }}h</span>
+          <span class="bar-value"
+            >{{ formatValue(item.value) }}{{ unitSuffix }}</span
+          >
         </div>
         <div class="bar-track">
           <div
@@ -42,10 +44,15 @@ const props = defineProps({
   data: { type: Object, required: true },
   title: { type: String, default: "High Frequency Categories" },
   colors: { type: Array, default: () => [] },
+  metricMode: { type: String, default: "duration" }, // 'duration' | 'efficiency'
 });
 
 const emit = defineEmits(["bar-click", "bar-hover", "bar-leave"]);
 const scrollWrapper = ref(null);
+
+const unitSuffix = computed(() =>
+  props.metricMode === "efficiency" ? "" : "h",
+);
 
 function scrollToTop(smooth = true) {
   const el = scrollWrapper.value;

@@ -104,6 +104,7 @@ const {
   trendCategoryId,
   trendSubcategoryId,
   activeTab,
+  metricMode,
 } = storeToRefs(chartsStore);
 
 // 追加“全部分类”与“全部子分类”选项
@@ -224,6 +225,10 @@ const option = computed(() => {
   const rotate = labels.length > 24 ? 45 : labels.length > 14 ? 30 : 0;
   const barWidth = dynamicBarWidth.value;
 
+  const isEfficiency = metricMode.value === "efficiency";
+  const yAxisName = isEfficiency ? "效率指数" : "时长 (h)";
+  const tooltipUnit = isEfficiency ? "效率" : "小时";
+
   return {
     color: ["#5856D6"],
     tooltip: {
@@ -235,7 +240,7 @@ const option = computed(() => {
       formatter: (params: any) => {
         const item = Array.isArray(params) ? params[0] : params;
         return `<div style="font-weight:600;margin-bottom:4px">${item.name}</div>
-                <div style="color:#5856D6">${Number(item.value || 0).toFixed(2)} 小时</div>`;
+                <div style="color:#5856D6">${Number(item.value || 0).toFixed(2)} ${tooltipUnit}</div>`;
       },
       confine: true,
       extraCssText:
@@ -286,7 +291,7 @@ const option = computed(() => {
     },
     yAxis: {
       type: "value",
-      name: "时长 (h)",
+      name: yAxisName,
       nameTextStyle: {
         color: "#8e8e93",
         align: "right",

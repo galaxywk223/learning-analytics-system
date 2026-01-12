@@ -16,6 +16,7 @@ export const useChartsStore = defineStore("charts", () => {
   const viewType = ref("weekly"); // 'weekly' | 'daily'
   const stageId = ref("all");
   const activeTab = ref("trends"); // 'trends' | 'categories' | 'cattrend'
+  const metricMode = ref<"duration" | "efficiency">("duration"); // 新增：指标模式
 
   // 数据状态
   const loading = ref(false);
@@ -39,6 +40,7 @@ export const useChartsStore = defineStore("charts", () => {
     percent: number;
   };
   const kpiTopSubs30d = ref<TopSub[]>([]);
+  const kpiTopSubsEfficiency30d = ref<TopSub[]>([]); // 效率 TOP3
 
   // 趋势图表数据（从rawChartData中提取）
   const trends = ref({
@@ -306,6 +308,84 @@ export const useChartsStore = defineStore("charts", () => {
     }
   }
 
+  /**
+   * 计算近30天效率 Top3 子分类
+   */
+  async function fetchTopSubsEfficiencyLast30d() {
+    try {
+      const today = dayjs();
+      const start = today.subtract(29, "day").format("YYYY-MM-DD");
+      const end = today.format("YYYY-MM-DD");
+      const params: Record<string, any> = {
+        range_mode: "custom",
+        start_date: start,
+        end_date: end,
+        metric_mode: "efficiency",
+      };
+      const resp = await chartsAPI.getCategories(params);
+      const payload = (resp as any).data || resp;
+      const drill = (payload && (payload as any).drilldown) || {};
+      const main = (payload && (payload as any).main) || {
+        labels: [],
+        data: [],
+      };
+      // 汇总所有子分类（名称 + 父类）的效率
+      const map = new Map<
+        string,
+        { label: string; parent?: string; hours: number; count: number }
+      >();
+      let total = 0;
+      Object.keys(drill).forEach((catName) => {
+        const ds = drill[catName] || { labels: [], data: [] };
+        (ds.labels || []).forEach((subName: string, i: number) => {
+          const efficiency = Number((ds.data || [])[i] || 0);
+          total += efficiency;
+          const key = `${catName}__${subName}`;
+          const existed = map.get(key);
+          if (existed) {
+            existed.hours += efficiency;
+            existed.count += 1;
+          } else {
+            map.set(key, {
+              label: subName,
+              parent: catName,
+              hours: efficiency,
+              count: 1,
+            });
+          }
+        });
+      });
+
+      // 若没有 drilldown 数据，尝试用主类作为"伪子类"（legacy 场景）
+      if (map.size === 0 && Array.isArray(main?.labels)) {
+        (main.labels as string[]).forEach((name: string, i: number) => {
+          const efficiency = Number(main.data?.[i] || 0);
+          total += efficiency;
+          const label = `${name} (旧)`;
+          const key = `legacy__${label}`;
+          map.set(key, {
+            label,
+            parent: undefined,
+            hours: efficiency,
+            count: 1,
+          });
+        });
+      }
+
+      const items = Array.from(map.values())
+        .sort((a, b) => b.hours - a.hours)
+        .slice(0, 3)
+        .map((x) => ({
+          ...x,
+          percent: total > 0 ? Math.round((x.hours / total) * 100) : 0,
+        }));
+      kpiTopSubsEfficiency30d.value = items;
+    } catch (e) {
+      // 静默失败，不影响页面其他数据
+      kpiTopSubsEfficiency30d.value = [];
+    }
+  }
+
   async function fetchCategories() {
     loading.value = true;
     try {
@@ -319,6 +399,9 @@ export const useChartsStore = defineStore("charts", () => {
         currentCategory.value = "";
         return;
       }
+
+      // 添加 metric_mode 参数
+      params.metric_mode = metricMode.value;
 
       console.log("[Charts Store] Fetching categories with params:", params);
       const response = await chartsAPI.getCategories(params);
@@ -375,6 +458,7 @@ export const useChartsStore = defineStore("charts", () => {
         category_id: trendCategoryId.value,
         subcategory_id: trendSubcategoryId.value,
         granularity: "daily",
+        metric_mode: metricMode.value, // 添加 metric_mode 参数
       };
       console.log("[Charts Store] Fetching category trend with:", query);
       const response = await chartsAPI.getCategoryTrend(query);
@@ -448,6 +532,8 @@ export const useChartsStore = defineStore("charts", () => {
     }
     // 计算 Top3 子分类（近30天）
     await fetchTopSubsLast30d();
+    // 计算效率 Top3 子分类（近30天）
+    await fetchTopSubsEfficiencyLast30d();
   }
 
   function setCategoryRangeMode(mode: typeof categoryRangeMode.value) {
@@ -528,6 +614,21 @@ export const useChartsStore = defineStore("charts", () => {
     }
   }
 
+  /**
+   * 设置指标模式
+   */
+  function setMetricMode(mode: "duration" | "efficiency") {
+    if (metricMode.value !== mode) {
+      metricMode.value = mode;
+      // 切换模式时重新加载数据
+      if (activeTab.value === "categories") {
+        fetchCategories();
+      } else if (activeTab.value === "cattrend") {
+        fetchCategoryTrend();
+      }
+    }
+  }
+
   function setTrendCategory(id: number | null) {
     trendCategoryId.value = id;
     if (!id) {
@@ -558,10 +659,12 @@ export const useChartsStore = defineStore("charts", () => {
     viewType,
     stageId,
     activeTab,
+    metricMode,
     loading,
     rawChartData,
     kpis,
     kpiTopSubs30d,
+    kpiTopSubsEfficiency30d,
     trends,
     stageAnnotations,
     categoryData,
@@ -582,6 +685,7 @@ export const useChartsStore = defineStore("charts", () => {
     initStages,
     fetchTrends,
     fetchTopSubsLast30d,
+    fetchTopSubsEfficiencyLast30d,
     fetchCategories,
     fetchCategoryTrend,
     drillCategory,
@@ -593,6 +697,7 @@ export const useChartsStore = defineStore("charts", () => {
     setViewType,
     setStage,
     setActiveTab,
+    setMetricMode,
     setTrendCategory,
     setTrendSubcategory,
     getFormattedAvgDailyDuration,
