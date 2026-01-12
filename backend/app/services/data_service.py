@@ -223,8 +223,6 @@ def import_data_for_user(user, zip_stream):
                 MilestoneAttachment.__tablename__,
                 CountdownEvent.__tablename__,
                 Motto.__tablename__,
-                CountdownEvent.__tablename__,
-                Motto.__tablename__,
             ]
 
             pending_records = {}

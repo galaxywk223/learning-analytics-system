@@ -4,7 +4,7 @@
 
 import re
 import numpy as np
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 
 def get_custom_week_info(log_date, start_date):
@@ -23,7 +23,9 @@ def get_custom_week_info(log_date, start_date):
     days_diff = (log_date - start_date).days
     if days_diff < 0:
         return start_date.year, 1
-    return log_date.year, (days_diff // 7) + 1
+    week_num = (days_diff // 7) + 1
+    week_start_date = start_date + timedelta(weeks=week_num - 1)
+    return week_start_date.year, week_num
 
 
 def parse_csv_duration(duration_str):
