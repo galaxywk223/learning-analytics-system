@@ -174,8 +174,11 @@ const showStageHelper = computed(
 
 const chartOption = computed(() => {
   const { labels, durationActual, efficiencyActual } = viewSource.value;
-  const enableZoom = labels.length > 14;
-  const sliderStart = 0; // 默认显示全范围
+  const windowSize = currentView.value === "weekly" ? 26 : 90;
+  const enableZoom = labels.length > windowSize;
+  const startIndex = Math.max(0, labels.length - windowSize);
+  const zoomStartValue = labels[startIndex];
+  const zoomEndValue = labels[labels.length - 1];
 
   // Apple-style Colors
   const colors = {
@@ -228,11 +231,15 @@ const chartOption = computed(() => {
     },
     dataZoom: enableZoom
       ? [
-          { type: "inside", start: sliderStart, end: 100 },
+          {
+            type: "inside",
+            startValue: zoomStartValue,
+            endValue: zoomEndValue,
+          },
           {
             type: "slider",
-            start: sliderStart,
-            end: 100,
+            startValue: zoomStartValue,
+            endValue: zoomEndValue,
             bottom: 16,
             height: 4, // Thinner slider
             borderRadius: 2,
