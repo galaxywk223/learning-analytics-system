@@ -46,7 +46,6 @@ body {
 
 #app {
   min-height: 100vh;
-  background-color: #f5f5f7;
 }
 
 /* 性能优化：减少动画计算（用户系统级偏好） */
