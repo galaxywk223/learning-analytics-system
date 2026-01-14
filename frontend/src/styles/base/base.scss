@@ -7,8 +7,9 @@
 /* ===== 3. CSS Variables (Theme Colors & Properties) ===== */
 :root {
   /* Typography */
-  --font-family-base: "Inter", "PingFang SC", "Microsoft YaHei", "Helvetica Neue",
-    "Segoe UI", Arial, sans-serif;
+  --font-family-base:
+    "Inter", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", "Segoe UI",
+    Arial, sans-serif;
   --font-family-heading: var(--font-family-base);
 
   /* Base Palette */
@@ -83,8 +84,8 @@
   --transition-speed: 0.18s;
 }
 
-/* Windows 平台下进一步减弱通用阴影，降低重绘开销 */
-.os-windows :root {
+/* Windows style shadows applied globally */
+:root {
   --box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   --box-shadow-hover: 0 2px 4px rgba(15, 23, 42, 0.06);
 }
@@ -221,7 +222,8 @@ i {
   border: 1px solid var(--color-border-input);
   border-radius: 12px;
   box-shadow: none;
-  transition: border-color var(--transition-speed) ease,
+  transition:
+    border-color var(--transition-speed) ease,
     background-color var(--transition-speed) ease;
 }
 
@@ -249,7 +251,8 @@ i {
   border-radius: 12px;
   border: 1px solid var(--color-border-input);
   background: var(--surface-card-muted);
-  transition: border-color var(--transition-speed) ease,
+  transition:
+    border-color var(--transition-speed) ease,
     background-color var(--transition-speed) ease;
 }
 
@@ -280,22 +283,22 @@ i {
   color: var(--color-text-secondary);
 }
 
-/* Windows 下进一步简化表单与输入框样式，降低 focus/输入时重绘成本 */
-.os-windows :where(.el-form):not(.el-form--inline) {
+/* Global form simplification (previously Windows-only) */
+:where(.el-form):not(.el-form--inline) {
   background: transparent;
   border: none;
   padding: 12px 0;
 }
 
-.os-windows :where(.el-input__wrapper),
-.os-windows :where(.el-date-editor .el-input__wrapper),
-.os-windows :where(.el-select .el-input__wrapper) {
+:where(.el-input__wrapper),
+:where(.el-date-editor .el-input__wrapper),
+:where(.el-select .el-input__wrapper) {
   transition: none;
   box-shadow: none;
   transform: translateZ(0);
 }
 
-.os-windows .el-textarea__inner {
+.el-textarea__inner {
   transition: none;
 }
 
