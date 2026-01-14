@@ -2,7 +2,7 @@
   <div id="app">
     <router-view v-slot="{ Component }">
       <keep-alive :max="5">
-        <component :is="Component" :key="$route.fullPath" />
+        <component :is="Component" :key="$route.path" />
       </keep-alive>
     </router-view>
   </div>

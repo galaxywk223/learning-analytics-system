@@ -210,7 +210,7 @@ function handleChartFinished() {
 const option = computed(() => {
   const labels = trendSeries.value.labels || [];
   const values = (trendSeries.value.data || []).map((v) =>
-    Number.isFinite(Number(v)) ? Number(v) : 0,
+    Number.isFinite(Number(v)) ? Number(v) : 0
   );
   const enableZoom = labels.length > 14;
   const initialStart = 0; // 默认全区间
@@ -345,7 +345,7 @@ watch(
     if (len && !trendCategoryId.value) {
       selectedCategory.value = categoryOptions.value[0].value as any;
     }
-  },
+  }
 );
 
 watch(
@@ -357,7 +357,7 @@ watch(
     ) {
       selectedSubcategory.value = null;
     }
-  },
+  }
 );
 
 // 数据加载完成后再按真实数据重算一次柱宽
@@ -378,7 +378,7 @@ watch(
         calcBarWidth();
       }
     });
-  },
+  }
 );
 
 watch(
@@ -392,7 +392,7 @@ watch(
       });
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 onUnmounted(() => {
@@ -400,8 +400,12 @@ onUnmounted(() => {
 });
 
 function onResize() {
-  calcBarWidth();
+  if (timer) clearTimeout(timer);
+  timer = setTimeout(() => {
+    calcBarWidth();
+  }, 100);
 }
+let timer: any = null;
 </script>
 
 <style scoped lang="scss">
