@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from "vue";
+import { reactive, watch, nextTick, ref } from "vue";
 
 const props = defineProps({
   form: {
@@ -37,28 +37,27 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:form"]);
-const localForm = ref({});
+const localForm = reactive({});
 const syncing = ref(false);
 
 watch(
   () => props.form,
   (value) => {
     syncing.value = true;
-    localForm.value = { ...(value || {}) };
+    Object.assign(localForm, value || {});
     nextTick(() => {
       syncing.value = false;
     });
   },
-  { deep: true, immediate: true },
+  { immediate: true },
 );
 
 watch(
-  localForm,
-  (value) => {
+  () => [localForm.notes, localForm.mood],
+  () => {
     if (syncing.value) return;
-    emit("update:form", { ...(value || {}) });
+    emit("update:form", { ...localForm });
   },
-  { deep: true },
 );
 </script>
 

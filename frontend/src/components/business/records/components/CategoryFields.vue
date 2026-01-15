@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from "vue";
+import { reactive, watch, nextTick, ref } from "vue";
 
 const props = defineProps({
   form: {
@@ -61,33 +61,32 @@ const props = defineProps({
 
 const emit = defineEmits(["update:form", "category-change"]);
 
-const localForm = ref({});
+const localForm = reactive({});
 const syncing = ref(false);
 
 watch(
   () => props.form,
   (value) => {
     syncing.value = true;
-    localForm.value = { ...(value || {}) };
+    Object.assign(localForm, value || {});
     nextTick(() => {
       syncing.value = false;
     });
   },
-  { deep: true, immediate: true },
+  { immediate: true },
 );
 
 watch(
-  localForm,
-  (value) => {
+  () => [localForm.category_id, localForm.subcategory_id],
+  () => {
     if (syncing.value) return;
-    emit("update:form", { ...(value || {}) });
+    emit("update:form", { ...localForm });
   },
-  { deep: true },
 );
 
 function handleCategoryChange(value) {
   // 清空子分类选择
-  localForm.value.subcategory_id = null;
+  localForm.subcategory_id = null;
   emit("category-change", value);
 }
 </script>

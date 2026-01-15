@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { computed, watch, ref, nextTick } from "vue";
+import { computed, watch, ref, nextTick, reactive } from "vue";
 
 // Refs
 const formRef = ref(null);
@@ -92,28 +92,31 @@ const props = defineProps({
 // Emits
 const emit = defineEmits(["update:formData", "category-change"]);
 
-const localForm = ref({});
+const localForm = reactive({
+  name: "",
+  categoryId: null,
+  subcategoryId: null,
+});
 const syncing = ref(false);
 
 watch(
   () => props.formData,
   (value) => {
     syncing.value = true;
-    localForm.value = { ...(value || {}) };
+    Object.assign(localForm, value || {});
     nextTick(() => {
       syncing.value = false;
     });
   },
-  { deep: true, immediate: true },
+  { immediate: true },
 );
 
 watch(
-  localForm,
-  (value) => {
+  () => [localForm.name, localForm.categoryId, localForm.subcategoryId],
+  () => {
     if (syncing.value) return;
-    emit("update:formData", { ...(value || {}) });
+    emit("update:formData", { ...localForm });
   },
-  { deep: true },
 );
 
 // 表单验证规则
@@ -127,17 +130,17 @@ const rules = {
 
 // 可用的子分类
 const availableSubcategories = computed(() => {
-  if (!localForm.value.categoryId) return [];
+  if (!localForm.categoryId) return [];
   return props.subcategories.filter(
-    (sub) => sub.category_id === localForm.value.categoryId,
+    (sub) => sub.category_id === localForm.categoryId,
   );
 });
 
 // 分类变化时的处理
 const onCategoryChange = () => {
   // 清空子分类选择，仅通知父组件分类已变更
-  localForm.value.subcategoryId = null;
-  emit("category-change", localForm.value.categoryId);
+  localForm.subcategoryId = null;
+  emit("category-change", localForm.categoryId);
 };
 
 // 暴露验证方法给父组件
