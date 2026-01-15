@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { computed, watch, ref } from "vue";
+import { computed, watch, ref, nextTick } from "vue";
 
 // Refs
 const formRef = ref(null);
@@ -93,11 +93,16 @@ const props = defineProps({
 const emit = defineEmits(["update:formData", "category-change"]);
 
 const localForm = ref({});
+const syncing = ref(false);
 
 watch(
   () => props.formData,
   (value) => {
+    syncing.value = true;
     localForm.value = { ...(value || {}) };
+    nextTick(() => {
+      syncing.value = false;
+    });
   },
   { deep: true, immediate: true },
 );
@@ -105,6 +110,7 @@ watch(
 watch(
   localForm,
   (value) => {
+    if (syncing.value) return;
     emit("update:formData", { ...(value || {}) });
   },
   { deep: true },

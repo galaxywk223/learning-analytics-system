@@ -63,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, nextTick } from "vue";
 
 const props = defineProps({
   form: {
@@ -75,11 +75,16 @@ const props = defineProps({
 const emit = defineEmits(["update:form"]);
 
 const localForm = ref({});
+const syncing = ref(false);
 
 watch(
   () => props.form,
   (value) => {
+    syncing.value = true;
     localForm.value = { ...(value || {}) };
+    nextTick(() => {
+      syncing.value = false;
+    });
   },
   { deep: true, immediate: true },
 );
@@ -87,6 +92,7 @@ watch(
 watch(
   localForm,
   (value) => {
+    if (syncing.value) return;
     emit("update:form", { ...(value || {}) });
   },
   { deep: true },
