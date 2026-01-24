@@ -36,6 +36,11 @@
           <!-- 3. Duration -->
           <div class="col-duration">{{ log.actual_duration }} min</div>
 
+          <!-- 3.5 Mood -->
+          <div class="col-mood" :title="moodTitle(log.mood)">
+            {{ moodEmoji(log.mood) }}
+          </div>
+
           <!-- 4. Actions (Hover/Right) -->
           <div class="col-actions">
             <el-button
@@ -87,6 +92,22 @@ defineProps({
 });
 
 defineEmits(["toggle-notes", "edit-record", "delete-record"]);
+
+const moodEmoji = (mood) => {
+  const moods = {
+    5: "😃",
+    4: "😊",
+    3: "😐",
+    2: "😟",
+    1: "😠",
+  };
+  return moods[mood] || "⚪️";
+};
+
+const moodTitle = (mood) => {
+  if (!mood) return "心情：未记录";
+  return `心情：${mood}/5`;
+};
 </script>
 
 <style scoped lang="scss">
@@ -197,6 +218,15 @@ defineEmits(["toggle-notes", "edit-record", "delete-record"]);
   text-align: right;
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
+}
+
+/* 3.5 Mood Column */
+.col-mood {
+  width: 40px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 18px;
+  line-height: 1;
 }
 
 /* 4. Actions Column */
