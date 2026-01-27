@@ -150,6 +150,7 @@ async function handleSubmit() {
     const submitData = {
       name: form.value.name.trim(),
       parent_id: form.value.parent_id,
+      category_id: form.value.parent_id,
     };
 
     // 如果没有选择父分类，且原本有(或props传递了)，说明可能意图是设为根
