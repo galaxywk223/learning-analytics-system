@@ -7,6 +7,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
 from app import db
 from app.models import Stage
+from app.services import record_service
 
 bp = Blueprint("stages", __name__)
 
@@ -61,6 +62,9 @@ def create_stage():
         db.session.add(stage)
         db.session.commit()
 
+        # Update log consistency
+        record_service.ensure_log_stage_consistency(current_user_id)
+
         return jsonify(
             {"success": True, "message": "阶段创建成功", "stage": stage.to_dict()}
         ), 201
@@ -90,6 +94,9 @@ def update_stage(stage_id):
 
         db.session.commit()
 
+        # Update log consistency
+        record_service.ensure_log_stage_consistency(current_user_id)
+
         return jsonify(
             {"success": True, "message": "阶段更新成功", "stage": stage.to_dict()}
         ), 200
@@ -112,6 +119,9 @@ def delete_stage(stage_id):
     try:
         db.session.delete(stage)
         db.session.commit()
+
+        # Update log consistency
+        record_service.ensure_log_stage_consistency(current_user_id)
 
         return jsonify({"success": True, "message": "阶段已删除"}), 200
     except Exception as e:

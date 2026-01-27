@@ -214,18 +214,54 @@ const handleSubmit = async (formData) => {
   try {
     if (isEditing.value) {
       // 更新记录
-      await request.put(`/api/records/${currentRecord.value.id}`, {
+      const response = await request.put(`/api/records/${currentRecord.value.id}`, {
         ...formData,
-        stage_id: currentStage.value.id,
       });
       ElMessage.success("记录更新成功!");
+      const resolvedStageId = response?.data?.stage_id || response?.data?.stage?.id;
+      if (resolvedStageId && `${resolvedStageId}` !== `${currentStage.value.id}`) {
+        if (!stagesStore.stages.length) {
+          await stagesStore.fetchStages(true);
+        }
+        let targetStage = stagesStore.stages.find(
+          (stage) => `${stage.id}` === `${resolvedStageId}`,
+        );
+        if (!targetStage) {
+          await stagesStore.fetchStages(true);
+          targetStage = stagesStore.stages.find(
+            (stage) => `${stage.id}` === `${resolvedStageId}`,
+          );
+        }
+        if (targetStage) {
+          stagesStore.setActiveStage(targetStage);
+          ElMessage.info(`该记录已按日期归类到阶段：${targetStage.name}`);
+        }
+      }
     } else {
       // 创建新记录
-      await request.post("/api/records", {
+      const response = await request.post("/api/records", {
         ...formData,
-        stage_id: currentStage.value.id,
       });
       ElMessage.success("记录添加成功!");
+      const resolvedStageId = response?.data?.stage_id || response?.data?.stage?.id;
+      if (resolvedStageId && `${resolvedStageId}` !== `${currentStage.value.id}`) {
+        if (!stagesStore.stages.length) {
+          await stagesStore.fetchStages(true);
+        }
+        let targetStage = stagesStore.stages.find(
+          (stage) => `${stage.id}` === `${resolvedStageId}`,
+        );
+        if (!targetStage) {
+          await stagesStore.fetchStages(true);
+          targetStage = stagesStore.stages.find(
+            (stage) => `${stage.id}` === `${resolvedStageId}`,
+          );
+        }
+        if (targetStage) {
+          stagesStore.setActiveStage(targetStage);
+          ElMessage.info(`该记录已按日期归类到阶段：${targetStage.name}`);
+        }
+      }
     }
     dialogVisible.value = false;
     loadRecords(true);

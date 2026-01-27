@@ -49,23 +49,6 @@ def create_record():
                 }
             ), 400
 
-        # 获取或验证阶段
-        stage_id = data.get("stage_id")
-        if stage_id:
-            stage = Stage.query.filter_by(id=stage_id, user_id=current_user_id).first()
-            if not stage:
-                return jsonify({"success": False, "message": "阶段不存在"}), 404
-        else:
-            # 如果没有提供stage_id，使用用户最新的阶段
-            stage = (
-                Stage.query.filter_by(user_id=current_user_id)
-                .order_by(Stage.start_date.desc())
-                .first()
-            )
-            if not stage:
-                return jsonify({"success": False, "message": "请先创建学习阶段"}), 400
-            stage_id = stage.id
-
         # 验证子分类归属
         subcategory = (
             SubCategory.query.join(SubCategory.category)
@@ -102,6 +85,26 @@ def create_record():
         except (ValueError, TypeError):
             return jsonify({"success": False, "message": "日期格式错误"}), 400
 
+        # 根据日期获取阶段（忽略当前激活阶段）
+        stage_id = data.get("stage_id")
+        if stage_id:
+            stage = Stage.query.filter_by(id=stage_id, user_id=current_user_id).first()
+            if not stage:
+                return jsonify({"success": False, "message": "阶段不存在"}), 404
+
+        stage = record_service.get_stage_for_date(current_user_id, log_date)
+        if not stage:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "该日期早于最早阶段，请先创建对应阶段或调整日期",
+                    }
+                ),
+                400,
+            )
+        stage_id = stage.id
+
         # 创建记录 - 只包含必要字段
         record = LogEntry(
             stage_id=stage_id,
@@ -125,13 +128,7 @@ def create_record():
             {
                 "success": True,
                 "message": "记录创建成功",
-                "data": {
-                    "id": record.id,
-                    "task": record.task,
-                    "actual_duration": int(record.actual_duration or 0),
-                    "log_date": record.log_date.isoformat(),
-                    "time_slot": record.time_slot,
-                },
+                "data": record_service.format_record_for_response(record),
             }
         ), 201
 
@@ -188,7 +185,6 @@ def update_record(record_id):
         # 更新字段
         updateable_fields = [
             "task",
-            "stage_id",
             "subcategory_id",
             "actual_duration",
             "mood",
@@ -214,6 +210,28 @@ def update_record(record_id):
                         setattr(record, field, data[field])
                 else:
                     setattr(record, field, data[field])
+
+        # 根据日期重新计算阶段（忽略传入的 stage_id）
+        effective_log_date = record.log_date
+        if "stage_id" in data:
+            stage = Stage.query.filter_by(
+                id=data["stage_id"], user_id=current_user_id
+            ).first()
+            if not stage:
+                return jsonify({"success": False, "message": "阶段不存在"}), 404
+
+        stage = record_service.get_stage_for_date(current_user_id, effective_log_date)
+        if not stage:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "该日期早于最早阶段，请先创建对应阶段或调整日期",
+                    }
+                ),
+                400,
+            )
+        record.stage_id = stage.id
 
         record.updated_at = datetime.utcnow()
         db.session.commit()

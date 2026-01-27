@@ -39,7 +39,11 @@
 
           <!-- Date Column -->
           <div class="col-date">
-            <span class="date-text">{{ formatDate(stage.start_date) }}</span>
+            <span class="date-text">
+              {{ formatDate(stage.start_date) }}
+              <span class="range-sep">~</span>
+              {{ getStageEndDate(stage.id) ? formatDate(getStageEndDate(stage.id)) : "至今" }}
+            </span>
           </div>
 
           <!-- Actions Column -->
@@ -153,7 +157,6 @@ const form = ref({
   id: null,
   name: "",
   start_date: "",
-  end_date: "",
 });
 
 onMounted(async () => {
@@ -166,10 +169,36 @@ onMounted(async () => {
   }
 });
 
+function toLocalDate(value) {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if (typeof value === "string") {
+    const normalized = value.length >= 10 ? value.slice(0, 10) : value;
+    return new Date(`${normalized}T00:00:00`);
+  }
+  return new Date(value);
+}
+
 function formatDate(d) {
-  if (!d) return "";
-  const date = new Date(d);
+  const date = toLocalDate(d);
+  if (!date || Number.isNaN(date.getTime())) return "";
   return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function addDays(dateValue, days) {
+  const date = toLocalDate(dateValue);
+  if (!date || Number.isNaN(date.getTime())) return null;
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+function getStageEndDate(stageId) {
+  const list = stages.value;
+  const index = list.findIndex((s) => `${s.id}` === `${stageId}`);
+  if (index <= 0) return null;
+  const nextStart = list[index - 1]?.start_date;
+  return nextStart ? addDays(nextStart, -1) : null;
 }
 
 function openCreate() {

@@ -14,6 +14,72 @@ from app.models import Stage, LogEntry, WeeklyData, DailyData, Category, SubCate
 from .helpers import get_custom_week_info
 
 
+def get_stage_for_date(user_id, log_date):
+    """根据日期选择所属阶段：start_date <= log_date 的最新阶段。"""
+    return (
+        Stage.query.filter(
+            Stage.user_id == user_id,
+            Stage.start_date <= log_date,
+        )
+        .order_by(Stage.start_date.desc())
+        .first()
+    )
+
+
+def ensure_log_stage_consistency(user_id):
+    """
+    Ensure all logs for a user are assigned to the correct stage based on their date.
+    This should be called when stages are modified (created, updated dates, deleted).
+    """
+    try:
+        current_app.logger.info(f"Starting stage consistency check for user {user_id}")
+        
+        # Performance optimization: Fetch all stages and sort them once
+        stages = Stage.query.filter_by(user_id=user_id).order_by(Stage.start_date.desc()).all()
+        
+        if not stages:
+            current_app.logger.warning(f"No stages found for user {user_id}, skipping consistency check")
+            return
+
+        # Fetch all logs
+        logs = LogEntry.query.join(Stage).filter(Stage.user_id == user_id).all()
+        
+        updates_count = 0
+        
+        for log in logs:
+            # Find correct stage in memory
+            correct_stage = None
+            for stage in stages:
+                if stage.start_date <= log.log_date:
+                    correct_stage = stage
+                    break
+            
+            if correct_stage and log.stage_id != correct_stage.id:
+                old_stage_id = log.stage_id
+                log.stage_id = correct_stage.id
+                updates_count += 1
+                # Note: We might want to update efficiency stats here too if we want to be 100% correct,
+                # but recalculating everything might be heavy. 
+                # Ideally, we should mark involved stages for recalculation.
+                
+        if updates_count > 0:
+            db.session.commit()
+            
+            # Recalculate efficiency for ALL stages to be safe and consistent
+            # This is heavy but ensures data integrity after a structural change
+            for stage in stages:
+                recalculate_efficiency_for_stage(stage)
+                
+            current_app.logger.info(f"Updated {updates_count} logs to correct stages for user {user_id}")
+        else:
+            current_app.logger.info(f"No inconsistencies found for user {user_id}")
+            
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error ensuring log stage consistency: {e}", exc_info=True)
+
+
+
 def _normalize_duration_minutes(value):
     """将存储的时长统一转换为分钟，兼容历史小时制浮点数。"""
     if value is None:
@@ -243,10 +309,50 @@ def recalculate_efficiency_for_stage(stage):
 def get_structured_logs_for_stage(stage, sort_order="desc"):
     is_reverse = sort_order == "desc"
 
-    log_query = stage.log_entries.options(
+    next_stage = (
+        Stage.query.filter(
+            Stage.user_id == stage.user_id, Stage.start_date > stage.start_date
+        )
+        .order_by(Stage.start_date.asc())
+        .first()
+    )
+    stage_end_date = (
+        (next_stage.start_date - timedelta(days=1)) if next_stage else None
+    )
+
+    log_query = (
+        LogEntry.query.join(Stage)
+        .filter(
+            Stage.user_id == stage.user_id,
+            LogEntry.log_date >= stage.start_date,
+            LogEntry.log_date <= stage_end_date,
+        )
+        if stage_end_date
+        else LogEntry.query.join(Stage).filter(
+            Stage.user_id == stage.user_id,
+            LogEntry.log_date >= stage.start_date,
+        )
+    )
+
+    log_query = log_query.options(
         joinedload(LogEntry.subcategory).joinedload(SubCategory.category)
     ).order_by(LogEntry.log_date.asc(), LogEntry.id.asc())
+
     all_logs = log_query.all()
+
+    touched_stage_ids = set()
+    for log in all_logs:
+        if log.stage_id != stage.id:
+            touched_stage_ids.add(log.stage_id)
+            log.stage_id = stage.id
+
+    if touched_stage_ids:
+        touched_stage_ids.add(stage.id)
+        db.session.commit()
+        for stage_id in sorted(touched_stage_ids):
+            touched_stage = Stage.query.filter_by(id=stage_id, user_id=stage.user_id).first()
+            if touched_stage:
+                recalculate_efficiency_for_stage(touched_stage)
 
     structured_logs: list[dict[str, Any]] = []
     if not all_logs:
@@ -332,12 +438,13 @@ def calculate_record_statistics(records):
         "avg_mood": avg_mood,
     }
 
-
 def add_log_for_stage(stage_id, user, form_data):
-    stage = Stage.query.filter_by(id=stage_id, user_id=user.id).first()
+    # Auto-assign stage based on date
+    log_date_obj = date.fromisoformat(form_data["log_date"])
+    stage = get_stage_for_date(user.id, log_date_obj)
 
     if not stage:
-        return False, "指定的阶段不存在或无权访问。", None
+        return False, "无法找到匹配日期的学习阶段，请检查日期或先创建对应阶段。", None
 
     try:
         subcategory_id = form_data.get("subcategory_id", type=int)
@@ -358,7 +465,7 @@ def add_log_for_stage(stage_id, user, form_data):
 
         new_log = LogEntry(
             stage_id=stage.id,
-            log_date=date.fromisoformat(form_data["log_date"]),
+            log_date=log_date_obj,
             task=form_data.get("task"),
             time_slot=form_data.get("time_slot"),
             notes=form_data.get("notes"),
@@ -388,10 +495,16 @@ def update_log_for_user(log_id, user, form_data):
     if not log:
         return False, "未找到要编辑的记录或无权访问。"
     try:
-        stage = log.stage
-
         old_date = log.log_date
         new_date = date.fromisoformat(form_data.get("log_date"))
+        
+        # Recalculate stage if date changed or just to be safe
+        new_stage = get_stage_for_date(user.id, new_date)
+        if not new_stage:
+             return False, "无法找到匹配新日期的学习阶段。"
+             
+        log.stage_id = new_stage.id
+        stage = new_stage # Update local ref for efficiency update
 
         subcategory_id = form_data.get("subcategory_id", type=int)
         if subcategory_id:
@@ -422,7 +535,9 @@ def update_log_for_user(log_id, user, form_data):
         update_efficiency_for_date(new_date, stage)
 
         if old_date != new_date:
-            update_efficiency_for_date(old_date, stage)
+            old_stage = get_stage_for_date(user.id, old_date)
+            if old_stage:
+                update_efficiency_for_date(old_date, old_stage)
 
         return True, "记录更新成功!"
     except Exception as e:
