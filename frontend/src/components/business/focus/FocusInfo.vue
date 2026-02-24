@@ -62,13 +62,9 @@ const currentSubcategory = computed(() => {
   margin-top: 1.5rem;
   padding: 1.75rem;
   border-radius: 18px;
-  background: linear-gradient(
-    150deg,
-    rgba(248, 250, 255, 0.95),
-    rgba(236, 244, 255, 0.9)
-  );
-  border: 1px solid rgba(203, 213, 225, 0.6);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  background: var(--surface-card);
+  border: 1px solid var(--stroke-soft);
+  box-shadow: var(--box-shadow-card);
 
   .info-item {
     display: flex;
@@ -77,12 +73,12 @@ const currentSubcategory = computed(() => {
     padding: 0.9rem 0;
 
     &:not(:last-child) {
-      border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+      border-bottom: 1px solid var(--stroke-soft);
     }
 
     .info-label {
       font-weight: 600;
-      color: #475569;
+      color: var(--color-text-secondary);
       font-size: 0.95rem;
       letter-spacing: 0.01em;
     }
@@ -90,15 +86,15 @@ const currentSubcategory = computed(() => {
     .info-value {
       flex: 1;
       text-align: right;
-      color: #1f2937;
+      color: var(--color-text-heading);
       font-size: 1rem;
       font-weight: 500;
 
       :deep(.el-tag) {
         margin-left: 0.6rem;
-        background: rgba(129, 140, 248, 0.12);
-        border-color: rgba(129, 140, 248, 0.35);
-        color: #4338ca;
+        background: var(--color-primary-light);
+        border-color: var(--stroke-soft);
+        color: var(--color-primary-dark);
       }
     }
   }

@@ -115,7 +115,7 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
   font-weight: 600;
   border-radius: 999px; /* Pill shape */
   border: none;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--box-shadow-card);
   padding: 0 1.2rem;
   transition:
     transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
@@ -137,7 +137,7 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
 
   &:hover {
     transform: scale(1.02);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--box-shadow-hover);
   }
 
   &:active {
@@ -152,75 +152,67 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
 
 :deep(.primary-btn),
 :deep(.resume-btn) {
-  /* Dynamic gradient based on theme */
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: #ffffff;
-  /* Soft shadow matching primary color */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); 
-  
-  [data-theme='cyberpunk'] & {
-      background: linear-gradient(135deg, #00f0ff 0%, #0077ff 100%);
-      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
-      color: #000;
-  }
-  
-  [data-theme='light'] &, [data-theme='forest'] &, [data-theme='ocean'] &, [data-theme='sakura'] & {
-      /* Ensure white text is visible on light themes' primary buttons */
-      color: #ffffff;
-  }
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: var(--color-text-inverse);
+  box-shadow: var(--box-shadow-card);
 
   &:hover {
-    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
-    /* Adjust shadow on hover */
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
-    
-    [data-theme='cyberpunk'] & {
-      background: linear-gradient(135deg, #22f2ff 0%, #3388ff 100%);
-      box-shadow: 0 0 30px rgba(0, 240, 255, 0.6);
-    }
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-dark) 0%,
+      var(--color-primary) 100%
+    );
+    box-shadow: var(--box-shadow-hover);
   }
 }
 
 :deep(.pause-btn) {
-  background: linear-gradient(135deg, #ffd60a 0%, #ff9f0a 100%);
-  color: #000000;
-  box-shadow: 0 8px 20px rgba(255, 159, 10, 0.3);
+  background: linear-gradient(
+    135deg,
+    var(--color-warning) 0%,
+    var(--color-accent) 100%
+  );
+  color: var(--color-text-inverse);
+  box-shadow: var(--box-shadow-card);
 
   &:hover {
-    background: linear-gradient(135deg, #ffe033 0%, #ffb333 100%);
+    box-shadow: var(--box-shadow-hover);
   }
 }
 
 :deep(.stop-btn) {
-  background: linear-gradient(135deg, #ff453a 0%, #ff3b30 100%);
-  color: #ffffff;
-  box-shadow: 0 8px 20px rgba(255, 59, 48, 0.3);
+  background: linear-gradient(
+    135deg,
+    var(--color-error) 0%,
+    var(--color-error) 100%
+  );
+  color: var(--color-text-inverse);
+  box-shadow: var(--box-shadow-card);
 
   &:hover {
-    background: linear-gradient(135deg, #ff6961 0%, #ff5e55 100%);
+    box-shadow: var(--box-shadow-hover);
   }
 }
 
 :deep(.secondary-btn),
 :deep(.cancel-btn) {
-  background: rgba(118, 118, 128, 0.12);
-  color: #000000;
+  background: var(--surface-card-muted);
+  color: var(--color-text-heading);
   box-shadow: none;
-  
-  [data-theme='cyberpunk'] & {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-  }
 
   &:hover {
-    background: rgba(118, 118, 128, 0.24);
+    background: var(--surface-soft);
   }
 }
 
 .return-link {
   background: transparent;
   border: none;
-  color: #8e8e93;
+  color: var(--color-text-secondary);
   font-weight: 500;
   font-size: 17px;
   cursor: pointer;
@@ -230,8 +222,7 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
   margin-top: 4px;
 
   &:hover {
-    color: #000000;
-    [data-theme='cyberpunk'] & { color: #fff; }
+    color: var(--color-text-heading);
   }
 }
 

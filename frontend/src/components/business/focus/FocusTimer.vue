@@ -4,27 +4,46 @@
     <div class="time-circle">
       <svg class="progress-ring" :width="ringSize" :height="ringSize">
         <circle
-          class="progress-ring-bg"
+          class="progress-ring-bg outer"
           :cx="center"
           :cy="center"
-          :r="radius"
+          :r="outerRadius"
           fill="none"
-          stroke-width="8"
+          stroke-width="10"
         />
         <circle
-          class="progress-ring-circle"
+          class="progress-ring-circle outer"
           :cx="center"
           :cy="center"
-          :r="radius"
+          :r="outerRadius"
           fill="none"
-          stroke-width="8"
-          :stroke-dasharray="circumference"
-          :stroke-dashoffset="progressOffset"
+          stroke-width="10"
+          :stroke-dasharray="outerCircumference"
+          :stroke-dashoffset="outerProgressOffset"
+        />
+        <circle
+          class="progress-ring-bg inner"
+          :cx="center"
+          :cy="center"
+          :r="innerRadius"
+          fill="none"
+          stroke-width="6"
+        />
+        <circle
+          class="progress-ring-circle inner"
+          :cx="center"
+          :cy="center"
+          :r="innerRadius"
+          fill="none"
+          stroke-width="6"
+          :stroke-dasharray="innerCircumference"
+          :stroke-dashoffset="innerProgressOffset"
         />
       </svg>
       <div class="time-text">
         <span class="time-value">{{ formattedTime }}</span>
         <span class="time-label">{{ timeLabel }}</span>
+        <span class="time-hint">{{ progressHint }}</span>
       </div>
     </div>
   </div>
@@ -46,17 +65,39 @@ const props = defineProps({
 });
 
 // 计算属性
-// Reduced size to fit inside circle better
-const ringSize = 300; // Reduced from 340
+const ringSize = 300;
 const center = ringSize / 2;
-const radius = center - 15; // Padding for stroke
-const circumference = 2 * Math.PI * radius;
+const outerRadius = center - 14;
+const innerRadius = center - 34;
+const outerCircumference = 2 * Math.PI * outerRadius;
+const innerCircumference = 2 * Math.PI * innerRadius;
 
-const progressOffset = computed(() => {
-  // 以1小时为一个周期
-  const maxSeconds = 3600; // 1小时
-  const progress = Math.min(props.elapsedSeconds / maxSeconds, 1);
+const innerCycleSeconds = 60 * 60; // 内环：每 60 分钟一圈
+const outerCycleSeconds = 12 * 60 * 60; // 外环：每 12 小时一圈
+
+function calcCycleOffset(elapsed, cycle, circumference) {
+  if (elapsed <= 0) {
+    return circumference;
+  }
+  const remainder = elapsed % cycle;
+  const progress = remainder === 0 ? 1 : remainder / cycle;
   return circumference - progress * circumference;
+}
+
+const innerProgressOffset = computed(() => {
+  return calcCycleOffset(
+    props.elapsedSeconds,
+    innerCycleSeconds,
+    innerCircumference,
+  );
+});
+
+const outerProgressOffset = computed(() => {
+  return calcCycleOffset(
+    props.elapsedSeconds,
+    outerCycleSeconds,
+    outerCircumference,
+  );
 });
 
 const formattedTime = computed(() => {
@@ -70,6 +111,10 @@ const formattedTime = computed(() => {
 
 const timeLabel = computed(() => {
   return "时 : 分 : 秒";
+});
+
+const progressHint = computed(() => {
+  return "内环 1h · 外环 12h";
 });
 </script>
 
@@ -96,22 +141,43 @@ const timeLabel = computed(() => {
       transform: rotate(-90deg);
 
       &-bg {
-        stroke: var(--surface-card-strong); /* Use theme variable */
-        stroke-width: 8;
         transition: stroke 0.3s ease;
+
+        &.outer {
+          stroke: var(--surface-soft);
+        }
+
+        &.inner {
+          stroke: var(--surface-card-strong);
+        }
       }
 
       &-circle {
-        stroke: var(--color-primary); /* Use theme variable */
-        stroke-width: 8;
         stroke-linecap: round;
-        transition:
-          stroke-dashoffset 0.25s ease,
-          stroke 0.3s ease,
-          filter 0.3s ease;
-          
-        [data-theme='cyberpunk'] & { 
-          filter: drop-shadow(0 0 5px var(--color-primary)); 
+        transition: stroke 0.3s ease;
+
+        &.outer {
+          stroke: var(--color-primary);
+          transition:
+            stroke-dashoffset 0.25s ease,
+            stroke 0.3s ease,
+            filter 0.3s ease;
+
+          [data-theme="cyberpunk"] & {
+            filter: drop-shadow(0 0 5px var(--color-primary));
+          }
+        }
+
+        &.inner {
+          stroke: var(--color-accent);
+          transition:
+            stroke-dashoffset 0.2s linear,
+            stroke 0.3s ease,
+            filter 0.3s ease;
+
+          [data-theme="cyberpunk"] & {
+            filter: drop-shadow(0 0 6px var(--color-accent));
+          }
         }
       }
     }
@@ -122,24 +188,25 @@ const timeLabel = computed(() => {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      width: 100%; /* Ensure text centers properly */
+      width: 68%;
+      padding: 0 6px;
 
       .time-value {
-        /* Responsive font size based on container */
-        font-size: clamp(2rem, 7vw, 3rem); 
+        /* 预留圆环内安全边距，避免数字与内环重叠 */
+        font-size: clamp(1.75rem, 5.8vw, 2.45rem);
         font-weight: 700;
         color: var(--color-text-heading); /* Use theme variable */
-        letter-spacing: 0.05em;
+        letter-spacing: 0.03em;
         font-family: "SFMono-Regular", "JetBrains Mono", monospace;
         line-height: 1;
         transition: color 0.3s ease, text-shadow 0.3s ease;
-        max-width: 75%; /* More restrictive width */
+        max-width: 100%;
         text-align: center;
         white-space: nowrap;
         margin-bottom: 0.25rem; /* Slight optical adjustment */
-        
-        [data-theme='cyberpunk'] & {
-            text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+
+        [data-theme="cyberpunk"] & {
+          text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
         }
       }
 
@@ -151,15 +218,28 @@ const timeLabel = computed(() => {
         text-transform: uppercase;
         transition: color 0.3s ease;
       }
+
+      .time-hint {
+        margin-top: 0.4rem;
+        font-size: 0.72rem;
+        color: var(--color-text-muted);
+        letter-spacing: 0.05em;
+      }
     }
   }
 
   &.timer-active {
-    .progress-ring-circle {
-      stroke: var(--color-accent); /* Use theme variable for active state */
-      
-      [data-theme='cyberpunk'] & { 
-        filter: drop-shadow(0 0 8px var(--color-accent)); 
+    .progress-ring-circle.outer {
+      stroke: var(--color-accent);
+      [data-theme="cyberpunk"] & {
+        filter: drop-shadow(0 0 8px var(--color-accent));
+      }
+    }
+
+    .progress-ring-circle.inner {
+      stroke: var(--color-primary-dark);
+      [data-theme="cyberpunk"] & {
+        filter: drop-shadow(0 0 8px var(--color-primary-dark));
       }
     }
   }
