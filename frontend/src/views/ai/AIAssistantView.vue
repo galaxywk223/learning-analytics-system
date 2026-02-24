@@ -571,16 +571,17 @@ onMounted(async () => {
 
 /* --- iOS Card Generic --- */
 .ios-card {
-  background: #ffffff;
+  background: var(--surface-card);
+  border: 1px solid var(--stroke-soft);
   border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--box-shadow-card);
   overflow: hidden;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
 
   &:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--box-shadow-hover);
   }
 }
 
@@ -597,7 +598,7 @@ onMounted(async () => {
     .panel-title {
       font-size: 20px;
       font-weight: 700;
-      color: #1c1c1e;
+      color: var(--color-text-heading);
       margin: 0;
     }
 
@@ -608,15 +609,15 @@ onMounted(async () => {
 
     .status-badge {
       padding: 6px 12px;
-      background: #e5e5ea; /* iOS System Gray 5 */
-      color: #1c1c1e;
+      background: var(--surface-soft); /* iOS System Gray 5 */
+      color: var(--color-text-heading);
       border-radius: 999px;
       font-size: 13px;
       font-weight: 600;
 
       &.secondary {
-        background: #f2f2f7;
-        color: #8e8e93;
+        background: var(--surface-card-muted);
+        color: var(--color-text-secondary);
       }
     }
   }
@@ -637,14 +638,14 @@ onMounted(async () => {
   .group-label {
     font-size: 13px;
     font-weight: 600;
-    color: #8e8e93; /* iOS System Gray */
+    color: var(--color-text-secondary); /* iOS System Gray */
     margin-left: 4px;
   }
 }
 
 /* iOS Segmented Control */
 .ios-segmented-control {
-  background: #e5e5ea;
+  background: var(--surface-soft);
   padding: 3px;
   border-radius: 9px;
   display: inline-flex;
@@ -667,13 +668,13 @@ onMounted(async () => {
     border-radius: 7px;
     font-size: 14px;
     font-weight: 500;
-    color: #1c1c1e;
+    color: var(--color-text-heading);
     cursor: pointer;
     transition: all 0.2s ease;
 
     &.active {
-      background: #ffffff;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+      background: var(--surface-card);
+      box-shadow: var(--box-shadow);
       font-weight: 600;
     }
   }
@@ -686,7 +687,7 @@ onMounted(async () => {
 }
 
 .ios-picker-btn {
-  background: #f2f2f7;
+  background: var(--surface-card-muted);
   border: none;
   padding: 10px 16px;
   border-radius: 12px;
@@ -699,7 +700,7 @@ onMounted(async () => {
   justify-content: space-between;
 
   &:hover {
-    background: #e5e5ea;
+    background: var(--surface-soft);
   }
 
   .icon {
@@ -709,14 +710,14 @@ onMounted(async () => {
   .value {
     font-size: 15px;
     font-weight: 600;
-    color: #007aff; /* iOS Blue */
+    color: var(--color-primary); /* iOS Blue */
     flex: 1;
     text-align: left;
   }
 
   .arrow {
     font-size: 14px;
-    color: #c7c7cc;
+    color: var(--color-text-muted);
   }
 }
 
@@ -724,7 +725,7 @@ onMounted(async () => {
   width: 220px;
 
   :deep(.el-input__wrapper) {
-    background-color: #f2f2f7;
+    background-color: var(--surface-card-muted);
     border-radius: 12px;
     box-shadow: none !important;
     padding: 4px 12px;
@@ -732,7 +733,7 @@ onMounted(async () => {
 
   :deep(.el-input__inner) {
     font-weight: 600;
-    color: #007aff;
+    color: var(--color-primary);
   }
 }
 
@@ -776,32 +777,32 @@ onMounted(async () => {
   }
 
   &.primary {
-    background: #007aff;
-    color: white;
-    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    box-shadow: var(--box-shadow);
 
     &:hover:not(:disabled) {
-      background: #006ce6;
+      background: var(--color-primary-dark);
     }
   }
 
   &.primary-alt {
-    background: #34c759; /* iOS Green */
-    color: white;
-    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+    background: var(--color-success); /* iOS Green */
+    color: var(--color-text-inverse);
+    box-shadow: var(--box-shadow);
 
     &:hover:not(:disabled) {
-      background: #2db84f;
+      background: var(--color-success);
     }
   }
 
   &.ghost {
-    background: #f2f2f7;
-    color: #ff3b30; /* iOS Red */
+    background: var(--surface-card-muted);
+    color: var(--color-error); /* iOS Red */
     padding: 12px;
 
     &:hover:not(:disabled) {
-      background: #e5e5ea;
+      background: var(--surface-soft);
     }
   }
 }
@@ -825,7 +826,7 @@ onMounted(async () => {
 
   .card-header {
     padding: 20px 24px;
-    border-bottom: 1px solid #f2f2f7;
+    border-bottom: 1px solid var(--stroke-soft);
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -845,10 +846,10 @@ onMounted(async () => {
       font-size: 24px;
 
       &.analysis-icon {
-        background: #eaf2ff; /* Light Blue */
+        background: var(--color-primary-light); /* Light Blue */
       }
       &.plan-icon {
-        background: #e8f8f0; /* Light Green */
+        background: var(--surface-subtle); /* Light Green */
       }
     }
 
@@ -856,14 +857,14 @@ onMounted(async () => {
       .title {
         font-size: 18px;
         font-weight: 700;
-        color: #1c1c1e;
+        color: var(--color-text-heading);
         margin: 0 0 4px 0;
       }
 
       .subtitle,
       .subtitle-row {
         font-size: 13px;
-        color: #8e8e93;
+        color: var(--color-text-secondary);
         display: flex;
         align-items: center;
         gap: 4px;
@@ -880,12 +881,12 @@ onMounted(async () => {
     letter-spacing: 0.5px;
 
     &.latest {
-      background: #eaf2ff;
-      color: #007aff;
+      background: var(--color-primary-light);
+      color: var(--color-primary);
     }
     &.plan {
-      background: #e8f8f0;
-      color: #34c759;
+      background: var(--surface-subtle);
+      color: var(--color-success);
     }
   }
 
@@ -893,7 +894,7 @@ onMounted(async () => {
     flex: 1;
     padding: 24px;
     overflow-y: auto;
-    background: #ffffff;
+    background: var(--surface-card);
   }
 }
 
@@ -901,7 +902,7 @@ onMounted(async () => {
   .timestamp {
     margin-top: 24px;
     font-size: 12px;
-    color: #c7c7cc;
+    color: var(--color-text-muted);
     text-align: right;
   }
 }
@@ -912,7 +913,7 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #c7c7cc;
+  color: var(--color-text-muted);
   gap: 12px;
 
   .emoji {
@@ -948,7 +949,7 @@ onMounted(async () => {
         margin: 0;
         font-size: 18px;
         font-weight: 700;
-        color: #1c1c1e;
+        color: var(--color-text-heading);
       }
     }
 
@@ -959,7 +960,7 @@ onMounted(async () => {
     }
 
     .icon-btn {
-      background: #f2f2f7;
+      background: var(--surface-card-muted);
       border: none;
       width: 32px;
       height: 32px;
@@ -968,12 +969,12 @@ onMounted(async () => {
       display: grid;
       place-items: center;
       font-size: 14px;
-      color: #8e8e93;
+      color: var(--color-text-secondary);
       transition: all 0.2s;
 
       &:hover {
-        background: #e5e5ea;
-        color: #007aff;
+        background: var(--surface-soft);
+        color: var(--color-primary);
       }
     }
   }
@@ -986,7 +987,7 @@ onMounted(async () => {
 }
 
 .history-item {
-  background: #f9f9f9; /* Very light gray */
+  background: var(--surface-subtle); /* Very light gray */
   border-radius: 16px;
   padding: 16px;
   display: flex;
@@ -996,7 +997,7 @@ onMounted(async () => {
   transition: background 0.2s;
 
   &:hover {
-    background: #f2f2f7;
+    background: var(--surface-card-muted);
   }
 
   .item-icon {
@@ -1009,10 +1010,10 @@ onMounted(async () => {
     flex-shrink: 0;
 
     &.analysis {
-      background: #eaf2ff;
+      background: var(--color-primary-light);
     }
     &.plan {
-      background: #e8f8f0;
+      background: var(--surface-subtle);
     }
   }
 
@@ -1032,12 +1033,12 @@ onMounted(async () => {
     .item-title {
       font-size: 15px;
       font-weight: 600;
-      color: #1c1c1e;
+      color: var(--color-text-heading);
     }
 
     .item-date {
       font-size: 12px;
-      color: #8e8e93;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -1048,7 +1049,7 @@ onMounted(async () => {
 
     .item-period {
       font-size: 13px;
-      color: #3a3a3c;
+      color: var(--color-text-base);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1056,15 +1057,15 @@ onMounted(async () => {
 
     .item-scope {
       font-size: 11px;
-      color: #8e8e93;
-      background: #ffffff;
+      color: var(--color-text-secondary);
+      background: var(--surface-card);
       padding: 2px 6px;
       border-radius: 4px;
     }
   }
 
   .item-arrow {
-    color: #c7c7cc;
+    color: var(--color-text-muted);
     font-size: 14px;
   }
 }
@@ -1072,7 +1073,7 @@ onMounted(async () => {
 .empty-history {
   padding: 40px;
   text-align: center;
-  color: #8e8e93;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
@@ -1086,7 +1087,7 @@ onMounted(async () => {
   :deep(.el-dialog__header) {
     margin: 0;
     padding: 20px 24px;
-    border-bottom: 1px solid #f2f2f7;
+    border-bottom: 1px solid var(--stroke-soft);
 
     .el-dialog__title {
       font-weight: 700;
@@ -1106,14 +1107,14 @@ onMounted(async () => {
   gap: 16px;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px dashed #e5e5ea;
+  border-bottom: 1px dashed var(--stroke-soft);
 
   .meta-item {
     display: flex;
     align-items: center;
     gap: 6px;
     font-size: 13px;
-    color: #8e8e93;
+    color: var(--color-text-secondary);
   }
 }
 
@@ -1122,7 +1123,7 @@ onMounted(async () => {
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
     sans-serif;
-  color: #1c1c1e;
+  color: var(--color-text-heading);
   line-height: 1.6;
 
   h1,
@@ -1159,30 +1160,30 @@ onMounted(async () => {
   }
 
   blockquote {
-    border-left: 4px solid #007aff;
-    background: #f2f2f7;
+    border-left: 4px solid var(--color-primary);
+    background: var(--surface-card-muted);
     padding: 12px 16px;
     border-radius: 8px;
-    color: #3a3a3c;
+    color: var(--color-text-base);
     margin: 16px 0;
   }
 
   code {
-    background: #f2f2f7;
-    color: #ff2d55;
+    background: var(--surface-card-muted);
+    color: var(--color-error);
     padding: 2px 6px;
     border-radius: 6px;
     font-size: 0.9em;
   }
 
   pre {
-    background: #1c1c1e;
+    background: var(--surface-card-strong);
     border-radius: 12px;
     padding: 16px;
 
     code {
       background: transparent;
-      color: #ffffff;
+      color: var(--color-text-heading);
       padding: 0;
     }
   }
@@ -1209,3 +1210,4 @@ onMounted(async () => {
   }
 }
 </style>
+

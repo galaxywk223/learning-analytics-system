@@ -13,3 +13,4 @@ export { useSettingsStore } from "./modules/settings";
 export { useStageStore } from "./modules/stage";
 
 export { useAIAssistantStore } from "./modules/aiAssistant";
+export { useThemeStore } from "./modules/theme";

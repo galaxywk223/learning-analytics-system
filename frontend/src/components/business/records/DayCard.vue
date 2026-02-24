@@ -134,7 +134,7 @@ const getProgressColor = (duration) => {
     .date-badge {
       font-size: 17px;
       font-weight: 600;
-      color: #000;
+      color: var(--color-text-heading);
       display: flex;
       align-items: center;
       gap: 6px;
@@ -150,13 +150,13 @@ const getProgressColor = (duration) => {
       max-width: 120px; /* Smaller progress bar */
 
       :deep(.el-progress-bar__outer) {
-        background-color: rgba(118, 118, 128, 0.12);
+        background-color: var(--color-bg-hover);
       }
     }
 
     .total-duration-text {
       font-size: 17px;
-      color: #8e8e93;
+      color: var(--color-text-secondary);
       font-weight: 500;
       display: flex;
       align-items: center;
@@ -171,7 +171,7 @@ const getProgressColor = (duration) => {
 
     .daily-eff {
       font-size: 17px;
-      color: #8e8e93;
+      color: var(--color-text-secondary);
       font-weight: 500;
       margin-right: 12px;
     }
@@ -180,7 +180,7 @@ const getProgressColor = (duration) => {
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      background: #007aff;
+      background: var(--color-primary);
       color: white;
       border: none;
       display: flex;
@@ -189,7 +189,7 @@ const getProgressColor = (duration) => {
       padding: 0;
 
       &:hover {
-        background: #0062cc;
+        background: var(--color-primary-dark);
       }
 
       :deep(.iconify) {

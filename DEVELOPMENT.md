@@ -37,7 +37,7 @@ pip install -r requirements.txt
 
 ### 2.3 数据库配置
 
-项目默认在开发环境使用 PostgreSQL，连接配置为 `postgresql://kai:123456@localhost:5432/learning_analytics_system`。
+项目默认在开发环境使用 PostgreSQL，连接配置为 `postgresql://postgres:123456@localhost:5432/learning_analytics_system`。
 详细的数据库初始化步骤请参考 [DATABASE_SETUP.md](./DATABASE_SETUP.md)。
 
 **初始化数据库表结构：**

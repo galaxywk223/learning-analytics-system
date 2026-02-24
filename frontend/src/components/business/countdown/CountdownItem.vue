@@ -24,10 +24,13 @@
               x2="100%"
               y2="100%"
             >
-              <stop offset="0%" style="stop-color: #2563eb; stop-opacity: 1" />
+              <stop
+                offset="0%"
+                style="stop-color: var(--color-primary); stop-opacity: 1"
+              />
               <stop
                 offset="100%"
-                style="stop-color: #3b82f6; stop-opacity: 1"
+                style="stop-color: var(--color-primary-dark); stop-opacity: 1"
               />
             </linearGradient>
             <linearGradient
@@ -37,10 +40,13 @@
               x2="100%"
               y2="100%"
             >
-              <stop offset="0%" style="stop-color: #fcd34d; stop-opacity: 1" />
+              <stop
+                offset="0%"
+                style="stop-color: var(--color-warning); stop-opacity: 1"
+              />
               <stop
                 offset="100%"
-                style="stop-color: #f59e0b; stop-opacity: 1"
+                style="stop-color: var(--color-warning); stop-opacity: 1"
               />
             </linearGradient>
             <linearGradient
@@ -50,10 +56,13 @@
               x2="100%"
               y2="100%"
             >
-              <stop offset="0%" style="stop-color: #fb7185; stop-opacity: 1" />
+              <stop
+                offset="0%"
+                style="stop-color: var(--color-error); stop-opacity: 1"
+              />
               <stop
                 offset="100%"
-                style="stop-color: #dc2626; stop-opacity: 1"
+                style="stop-color: var(--color-error); stop-opacity: 1"
               />
             </linearGradient>
           </defs>
@@ -62,7 +71,7 @@
             cy="60"
             r="54"
             fill="none"
-            stroke="#e6e6e6"
+            stroke="var(--stroke-soft)"
             stroke-width="12"
           />
           <circle
@@ -172,13 +181,13 @@ const strokeId = computed(() => {
 const strokeColor = computed(() => {
   switch (derivedStatus.value) {
     case "warning":
-      return "#f59e0b";
+      return "var(--color-warning)";
     case "urgent":
-      return "#dc2626";
+      return "var(--color-error)";
     case "expired":
-      return "#9ca3af";
+      return "var(--color-text-muted)";
     default:
-      return "#2563eb";
+      return "var(--color-primary)";
   }
 });
 

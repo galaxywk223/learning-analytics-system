@@ -129,7 +129,10 @@ const moodTitle = (mood) => {
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
-
+  
+  /* Fallback or base color if needed, but categories handle bg */
+  /* If dark mode needs specific bg override for category colors, handle below */
+  
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
@@ -150,7 +153,7 @@ const moodTitle = (mood) => {
 /* 1. Time Column */
 .col-time {
   font-size: 15px; /* Increased from 13px */
-  color: #8e8e93;
+  color: var(--color-text-secondary);
   width: 110px; /* Increased width to accommodate larger font */
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
@@ -175,7 +178,7 @@ const moodTitle = (mood) => {
   .task-name {
     font-size: 17px; /* Increased from 15px */
     font-weight: 600;
-    color: #000;
+    color: var(--color-text-base);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -183,8 +186,8 @@ const moodTitle = (mood) => {
 
   .category-tag {
     font-size: 13px; /* Increased from 11px */
-    color: #8e8e93;
-    background: #f2f2f7;
+    color: var(--color-text-secondary);
+    background: var(--surface-section);
     padding: 2px 8px; /* Slightly more padding */
     border-radius: 4px;
     white-space: nowrap;
@@ -195,7 +198,7 @@ const moodTitle = (mood) => {
     display: flex;
     align-items: center;
     cursor: pointer;
-    color: #007aff;
+    color: var(--color-primary);
     margin-left: 4px;
 
     &:hover {
@@ -213,7 +216,7 @@ const moodTitle = (mood) => {
 .col-duration {
   font-size: 16px; /* Increased from 14px */
   font-weight: 500;
-  color: #000;
+  color: var(--color-text-base);
   width: 80px; /* Increased width */
   text-align: right;
   flex-shrink: 0;
@@ -242,16 +245,16 @@ const moodTitle = (mood) => {
     padding: 4px;
     height: 28px; /* Increased from 24px */
     width: 28px; /* Increased from 24px */
-    color: #8e8e93;
+    color: var(--color-text-secondary);
 
     &:hover {
-      color: #007aff;
-      background-color: rgba(0, 122, 255, 0.1);
+      color: var(--color-primary);
+      background-color: var(--color-primary-light);
     }
 
     &.delete:hover {
-      color: #ff3b30;
-      background-color: rgba(255, 59, 48, 0.1);
+      color: var(--color-error);
+      background-color: rgba(255, 59, 48, 0.1); /* Keep this or use variable */
     }
 
     :deep(.iconify) {
@@ -264,9 +267,9 @@ const moodTitle = (mood) => {
 .expanded-notes {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 0.5px solid rgba(60, 60, 67, 0.1);
+  border-top: 0.5px solid var(--color-border-card);
   font-size: 15px; /* Increased from 13px */
-  color: #3c3c43;
+  color: var(--color-text-secondary);
   line-height: 1.5;
   padding-left: 122px; /* Align with task name (Time width + gap) */
 }
@@ -292,6 +295,7 @@ const moodTitle = (mood) => {
 }
 
 /* Category Backgrounds (Subtle/Pastel) */
+/* We might want to make these adaptive to dark mode too, using rgba with white/black or variable opacity */
 .category-bg-0 {
   background-color: rgba(0, 122, 255, 0.04);
 }
@@ -317,4 +321,13 @@ const moodTitle = (mood) => {
     0.98
   ); /* Slightly darken on hover instead of generic shadow change only */
 }
+
+/* Dark mode overrides for category backgrounds to ensure visibility */
+[data-theme='dark'] .category-bg-0 { background-color: rgba(0, 122, 255, 0.15); }
+[data-theme='dark'] .category-bg-1 { background-color: rgba(255, 45, 85, 0.15); }
+[data-theme='dark'] .category-bg-2 { background-color: rgba(52, 199, 89, 0.15); }
+[data-theme='dark'] .category-bg-3 { background-color: rgba(255, 149, 0, 0.15); }
+[data-theme='dark'] .category-bg-4 { background-color: rgba(88, 86, 214, 0.15); }
+[data-theme='dark'] .category-bg-5 { background-color: rgba(255, 59, 48, 0.15); }
+
 </style>

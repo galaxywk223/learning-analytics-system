@@ -39,7 +39,7 @@
   padding: 10px 14px;
   border-radius: 999px;
   text-decoration: none;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-weight: 600;
   font-size: 15px;
   transition: all 0.18s ease;
@@ -50,23 +50,23 @@
 }
 
 .settings-nav-item:hover {
-  color: #111827;
+  color: var(--color-text-heading);
   transform: translateX(1px);
 }
 
 .settings-nav-item.router-link-exact-active {
-  background: rgba(255, 255, 255, 0.9);
-  color: #2563eb;
+  background: var(--surface-card);
+  color: var(--color-primary);
   font-weight: 700;
   box-shadow: none;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid var(--stroke-soft);
 }
 
 .settings-content {
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 12px;
   padding: 20px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--stroke-soft);
   min-height: 500px;
 }
 
@@ -122,7 +122,7 @@
   }
 
   .settings-nav::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: var(--stroke-strong);
     border-radius: 2px;
   }
 

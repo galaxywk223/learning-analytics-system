@@ -22,7 +22,18 @@ def normalize_postgres_url(raw_url: str | None) -> str | None:
     if not raw_url:
         return raw_url
 
-    scheme = urlsplit(raw_url).scheme.lower()
+    normalized_url = raw_url.strip()
+    if (
+        len(normalized_url) >= 2
+        and normalized_url[0] == normalized_url[-1]
+        and normalized_url[0] in {"'", '"'}
+    ):
+        normalized_url = normalized_url[1:-1].strip()
+
+    if not normalized_url:
+        return normalized_url
+
+    scheme = urlsplit(normalized_url).scheme.lower()
     if not (scheme.startswith("postgresql") or scheme == "postgres"):
         return raw_url
 
@@ -47,9 +58,9 @@ def normalize_postgres_url(raw_url: str | None) -> str | None:
         return PERCENT_ENCODED_RUN_RE.sub(_replace, text)
 
     # First pass: repair broken percent-encoded bytes globally.
-    raw_url = _repair_percent_encoded_runs(raw_url)
+    normalized_url = _repair_percent_encoded_runs(normalized_url)
 
-    parsed = urlsplit(raw_url)
+    parsed = urlsplit(normalized_url)
 
     def _normalize_component(component: str, safe: str = "") -> str:
         if not component:
@@ -198,7 +209,7 @@ class DevelopmentConfig(Config):
     # PostgreSQL 配置
     SQLALCHEMY_DATABASE_URI = normalize_postgres_url(
         os.environ.get("DEV_DATABASE_URL")
-    ) or "postgresql://kai:123456@localhost:5432/learning_analytics_system"
+    ) or "postgresql://postgres:123456@localhost:5432/learning_analytics_system"
 
     @staticmethod
     def init_app(app):

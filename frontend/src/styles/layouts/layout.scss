@@ -19,20 +19,22 @@
   position: fixed;
   top: 0;
   left: 0;
-  background-color: rgba(255, 255, 255, 0.96);
-  border-right: none;
-  color: #555555;
+  background-color: var(--color-bg-sidebar); /* Use theme variable */
+  border-right: 1px solid var(--color-border-sidebar); /* Use theme variable */
+  color: var(--color-text-secondary); /* Use theme variable */
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem;
   transition:
     width 0.2s ease,
-    padding 0.2s ease;
+    padding 0.2s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease;
   will-change: width, padding;
   z-index: 50;
   overflow-x: hidden;
   overflow-y: auto;
-  box-shadow: 8px 0 30px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--box-shadow); /* Use theme variable */
 }
 
 /* 自定义侧边栏滚动条样式 */
@@ -45,12 +47,12 @@
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--surface-card-strong); /* Use theme variable */
   border-radius: 3px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--color-border-hover); /* Use theme variable */
 }
 
 /* 折叠状态：仅保留 Logo 和图标列 */
@@ -103,12 +105,12 @@
 }
 
 .main-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--surface-card-strong);
   border-radius: 4px;
 }
 
 .main-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--color-border-hover);
 }
 
 /* 侧边栏展开状态下的主内容区 */
@@ -129,7 +131,6 @@
 .stages-view,
 .stage-management,
 .categories-view,
-
 .focus-view,
 .settings-layout-container {
   padding: 24px;
@@ -163,7 +164,7 @@
 .settings-layout-container h1 {
   font-size: 28px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--color-text-heading); /* Use theme variable */
   margin: 0;
   line-height: 1.25;
 }
@@ -179,7 +180,7 @@
 .milestone-category-manager p,
 .settings-layout-container p {
   font-size: 16px;
-  color: #4b5563;
+  color: var(--color-text-secondary); /* Use theme variable */
   margin: 6px 0 0;
   line-height: 1.5;
 }
@@ -205,7 +206,7 @@
 }
 
 .logo-text {
-  color: #111827;
+  color: var(--color-text-logo); /* Use theme variable */
   white-space: nowrap;
 }
 
@@ -233,13 +234,13 @@
 .sidebar-footer {
   padding-top: 1.5rem;
   margin-top: auto;
-  border-top: 1px solid rgba(226, 232, 240, 0.7);
+  border-top: 1px solid var(--color-border-sidebar); /* Use theme variable */
 }
 
 .sidebar-footer p {
   text-align: center;
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--color-text-muted); /* Use theme variable */
   margin: 0.5rem 0 0;
 }
 
@@ -248,7 +249,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem;
-  color: var(--color-text-light);
+  color: var(--color-text-base); /* Use theme variable */
   margin-bottom: 0.5rem;
 }
 
@@ -262,7 +263,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem;
-  color: #475569;
+  color: var(--color-text-secondary); /* Use theme variable */
   text-decoration: none;
   border-radius: var(--border-radius-sm);
   transition: all 0.2s;
@@ -270,7 +271,7 @@
 
 .sidebar-footer .logout-link:hover {
   background-color: var(--color-bg-hover);
-  color: var(--color-text-light);
+  color: var(--color-text-heading); /* Use theme variable */
 }
 
 /* ===== Page Headers ===== */
@@ -298,21 +299,33 @@
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: 14px;
-  color: #555555;
+  color: var(--color-text-secondary); /* Use theme variable */
   text-decoration: none;
   font-weight: 600;
   transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
-    background-color: rgba(59, 130, 246, 0.08);
-    color: #1f2937;
+    background-color: var(--color-bg-hover); /* Use theme variable */
+    color: var(--color-text-heading); /* Use theme variable */
+    
+    [data-theme='cyberpunk'] & {
+        color: var(--color-primary);
+        background-color: rgba(0, 240, 255, 0.1);
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    }
   }
 
   &.router-link-exact-active {
-    background-color: rgba(59, 130, 246, 0.14);
-    color: #1d4ed8;
+    background-color: var(--color-primary-light); /* Use theme variable */
+    color: var(--color-primary); /* Use theme variable */
     font-weight: 700;
-    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.16);
+    box-shadow: var(--box-shadow); /* Use theme variable */
+    
+    [data-theme='cyberpunk'] & {
+        background-color: rgba(0, 240, 255, 0.15);
+        color: var(--color-primary);
+        box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    }
   }
 
   .icon,

@@ -261,11 +261,11 @@ async function confirmClear() {
 }
 
 .data-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-card);
+  border: 1px solid var(--stroke-soft);
   border-radius: 20px;
   padding: 18px 18px 16px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--box-shadow-card);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -276,12 +276,12 @@ async function confirmClear() {
   margin: 0;
   font-size: 17px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--color-text-heading);
 }
 
 .data-card p {
   margin: 0;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 13px;
 }
 
@@ -291,15 +291,15 @@ async function confirmClear() {
   border-radius: 16px;
   display: grid;
   place-items: center;
-  background: rgba(59, 130, 246, 0.12);
+  background: var(--color-primary-light);
   font-size: 28px;
-  color: #2563eb;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  color: var(--color-primary);
+  box-shadow: inset 0 1px 0 var(--surface-card);
 }
 
 .card-icon.ghost {
-  background: rgba(99, 102, 241, 0.08);
-  color: #4f46e5;
+  background: var(--surface-card-muted);
+  color: var(--color-primary);
 }
 
 .card-text {
@@ -325,9 +325,13 @@ async function confirmClear() {
 }
 
 .pill-btn.primary {
-  background: linear-gradient(135deg, #6d7cff, #4f46e5);
-  color: #ffffff;
-  box-shadow: 0 12px 26px rgba(79, 70, 229, 0.28);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-dark)
+  );
+  color: var(--color-text-inverse);
+  box-shadow: var(--box-shadow);
 }
 
 .pill-btn.primary:disabled {
@@ -337,35 +341,35 @@ async function confirmClear() {
 }
 
 .pill-btn.ghost {
-  background: #f8fafc;
-  color: #475569;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-card-muted);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--stroke-soft);
 }
 
 .pill-btn.danger {
-  background: rgba(239, 68, 68, 0.1);
-  color: #b91c1c;
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.14);
+  color: var(--color-error);
+  border: 1px solid rgba(239, 68, 68, 0.28);
 }
 
 .pill-btn.danger.solid {
-  background: #ef4444;
-  color: #ffffff;
+  background: var(--color-error);
+  color: var(--color-text-inverse);
   border: none;
-  box-shadow: 0 10px 22px rgba(239, 68, 68, 0.25);
+  box-shadow: var(--box-shadow);
 }
 
 .import-card {
-  background: #f9fafb;
-  border: 2px dashed rgba(99, 102, 241, 0.35);
+  background: var(--surface-card-muted);
+  border: 2px dashed var(--stroke-strong);
   justify-content: center;
   position: relative;
   overflow: hidden;
 }
 
 .import-card.dragging {
-  border-color: #4f46e5;
-  background: rgba(79, 70, 229, 0.04);
+  border-color: var(--color-primary);
+  background: var(--surface-subtle);
 }
 
 .file-input {
@@ -391,20 +395,20 @@ async function confirmClear() {
 
 .import-content .desc {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .import-content .warn {
   font-size: 12px;
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .file-info {
   margin-top: auto;
-  background: #fff;
+  background: var(--surface-card);
   border-radius: 12px;
   padding: 10px 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--stroke-soft);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -420,8 +424,8 @@ async function confirmClear() {
 
 .danger-row {
   grid-column: span 2;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
   border-radius: 16px;
   padding: 14px 16px;
   display: flex;
@@ -442,12 +446,12 @@ async function confirmClear() {
 
 .danger-title {
   font-weight: 800;
-  color: #b91c1c;
+  color: var(--color-error);
   font-size: 15px;
 }
 
 .danger-desc {
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 13px;
 }
 

@@ -3,46 +3,46 @@
 .account-container {
   max-width: 800px;
   margin: 0 auto;
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--box-shadow-card);
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--stroke-soft);
 }
 
 .account-header {
   padding: 32px 40px;
-  background: linear-gradient(to right, #f8fafc, #ffffff);
+  background: linear-gradient(to right, var(--surface-card-muted), var(--surface-card));
   display: flex;
   align-items: center;
   gap: 24px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--stroke-soft);
 }
 
 .avatar-preview {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6d7cff, #4f46e5);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 28px;
   font-weight: 700;
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+  box-shadow: var(--box-shadow);
 }
 
 .header-info h3 {
   margin: 0;
   font-size: 20px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text-heading);
 }
 
 .header-info p {
   margin: 4px 0 0;
-  color: #64748b;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
@@ -56,7 +56,7 @@
 .form-section h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--color-text-heading);
   margin: 0 0 16px 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -64,16 +64,16 @@
 }
 
 .ios-input-group {
-  background: #f8fafc;
+  background: var(--surface-card-muted);
   border-radius: 12px;
   padding: 0 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--stroke-soft);
   
   .input-row {
     display: flex;
     align-items: center;
     padding: 12px 0;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--stroke-soft);
     
     &:last-child {
       border-bottom: none;
@@ -83,7 +83,7 @@
       width: 80px;
       font-size: 14px;
       font-weight: 500;
-      color: #64748b;
+      color: var(--color-text-secondary);
     }
     
     input {
@@ -92,15 +92,15 @@
       border: none;
       outline: none;
       font-size: 14px;
-      color: #0f172a;
+      color: var(--color-text-heading);
       padding: 0;
       
       &::placeholder {
-        color: #cbd5e1;
+        color: var(--color-text-muted);
       }
       
       &.text-muted {
-        color: #94a3b8;
+        color: var(--color-text-muted);
       }
     }
   }
@@ -112,7 +112,7 @@
   
   .error-text {
     font-size: 12px;
-    color: #ef4444;
+    color: var(--color-error);
     margin: 2px 0;
   }
 }
@@ -138,11 +138,11 @@
   }
   
   &.primary {
-    background: #4f46e5;
-    color: white;
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
     
     &:hover {
-      background: #4338ca;
+      background: var(--color-primary-dark);
     }
     
     &:disabled {
@@ -153,29 +153,29 @@
   
   &.ghost {
     background: transparent;
-    color: #64748b;
+    color: var(--color-text-secondary);
     
     &:hover {
-      background: #f1f5f9;
-      color: #0f172a;
+      background: var(--surface-subtle);
+      color: var(--color-text-heading);
     }
   }
   
   &.text-danger {
     background: transparent;
-    color: #ef4444;
+    color: var(--color-error);
     width: 100%;
     padding: 12px;
     
     &:hover {
-      background: #fef2f2;
+      background: var(--surface-card-muted);
     }
   }
 }
 
 .account-footer {
-  border-top: 1px solid #f1f5f9;
-  background: #fcfcfc;
+  border-top: 1px solid var(--stroke-soft);
+  background: var(--surface-card-muted);
 }
 
 .danger-zone {

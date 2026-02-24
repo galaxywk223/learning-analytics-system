@@ -291,26 +291,26 @@ function confirmDelete(stage) {
 <style scoped>
 .stage-container {
   width: 100%; /* Full width */
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 16px;
-  border: 1px solid #e5e7eb; /* Flat border */
+  border: 1px solid var(--stroke-soft); /* Flat border */
   overflow: hidden;
 }
 
 .stage-header {
   padding: 16px 24px;
-  background: #f9fafb; /* Very light gray */
+  background: var(--surface-card-muted); /* Very light gray */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--stroke-soft);
 }
 
 .header-left h4 {
   margin: 0;
   font-size: 16px;
   font-weight: 700;
-  color: #111827;
+  color: var(--color-text-heading);
 }
 
 .btn-create-flat {
@@ -318,9 +318,9 @@ function confirmDelete(stage) {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: #ffffff;
-  color: #111827;
-  border: 1px solid #d1d5db;
+  background: var(--surface-card);
+  color: var(--color-text-heading);
+  border: 1px solid var(--stroke-soft);
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
@@ -329,8 +329,8 @@ function confirmDelete(stage) {
 }
 
 .btn-create-flat:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
+  background: var(--surface-card-muted);
+  border-color: var(--stroke-strong);
 }
 
 /* Flat List Styles */
@@ -342,11 +342,11 @@ function confirmDelete(stage) {
 .list-header {
   display: flex;
   padding: 12px 24px;
-  background: #ffffff;
-  border-bottom: 1px solid #f3f4f6;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--stroke-soft);
   font-size: 12px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -355,7 +355,7 @@ function confirmDelete(stage) {
   display: flex;
   align-items: center;
   padding: 16px 24px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--stroke-soft);
   transition: background-color 0.1s ease;
 }
 
@@ -364,11 +364,11 @@ function confirmDelete(stage) {
 }
 
 .stage-row:hover {
-  background: #f9fafb;
+  background: var(--surface-card-muted);
 }
 
 .stage-row.current {
-  background: #f0fdf4; /* Very subtle green */
+  background: var(--surface-subtle); /* Very subtle green */
 }
 
 /* Columns */
@@ -384,7 +384,7 @@ function confirmDelete(stage) {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #4b5563;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
@@ -398,20 +398,20 @@ function confirmDelete(stage) {
 .stage-name {
   font-size: 15px;
   font-weight: 600;
-  color: #111827;
+  color: var(--color-text-heading);
 }
 
 .badge-current {
   font-size: 11px;
   font-weight: 600;
-  color: #059669;
-  background: #d1fae5;
+  color: var(--color-success);
+  background: var(--surface-subtle);
   padding: 2px 8px;
   border-radius: 4px; /* Less rounded */
 }
 
 .separator {
-  color: #9ca3af;
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
@@ -420,7 +420,7 @@ function confirmDelete(stage) {
 }
 
 .text-present {
-  color: #059669;
+  color: var(--color-success);
   font-weight: 500;
 }
 
@@ -469,7 +469,7 @@ function confirmDelete(stage) {
   border-radius: 4px;
   border: 1px solid transparent;
   background: transparent;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 14px;
   cursor: pointer;
   display: flex;
@@ -479,21 +479,21 @@ function confirmDelete(stage) {
 }
 
 .action-btn:hover {
-  background: #f3f4f6;
-  color: #111827;
-  border-color: #d1d5db;
+  background: var(--surface-card-muted);
+  color: var(--color-text-heading);
+  border-color: var(--stroke-soft);
 }
 
 .action-btn.danger:hover {
-  background: #fef2f2;
-  color: #dc2626;
-  border-color: #fecaca;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+  border-color: rgba(239, 68, 68, 0.25);
 }
 
 .empty-state {
   text-align: center;
   padding: 60px 0;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -507,10 +507,10 @@ function confirmDelete(stage) {
 
 /* Dialog Styles */
 .ios-input-group {
-  background: #f9fafb;
+  background: var(--surface-card-muted);
   border-radius: 8px;
   padding: 0 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--stroke-soft);
   margin-bottom: 20px;
 }
 
@@ -518,7 +518,7 @@ function confirmDelete(stage) {
   display: flex;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--stroke-soft);
 }
 
 .input-row:last-child {
@@ -529,16 +529,16 @@ function confirmDelete(stage) {
   width: 60px;
   font-size: 14px;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .input-row input {
   flex: 1;
-  background: transparent;
+  background: var(--surface-card);
   border: none;
   outline: none;
   font-size: 14px;
-  color: #111827;
+  color: var(--color-text-heading);
   padding: 0;
 }
 

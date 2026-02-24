@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import { use } from "echarts/core";
 import { PieChart } from "echarts/charts";
 import { TooltipComponent, LegendComponent } from "echarts/components";
@@ -73,10 +73,35 @@ const props = defineProps({
 const emit = defineEmits(["slice-click"]);
 
 const chartRef = ref();
+const themeVersion = ref(0);
+let themeObserver = null;
 
 const EMPTY_SLICE_NAME = "\u6682\u65e0\u6570\u636e";
 const LEGEND_LIMIT = 10;
 const chartUpdateOptions = { replaceMerge: ["series", "legend"] };
+
+const readThemeVar = (name, fallback) => {
+  if (typeof window === "undefined") return fallback;
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return value || fallback;
+};
+
+const themeTokens = computed(() => {
+  themeVersion.value;
+  return {
+    textBase: readThemeVar("--color-text-base", "#1f2937"),
+    textSecondary: readThemeVar("--color-text-secondary", "#6b7280"),
+    textMuted: readThemeVar("--color-text-muted", "#9ca3af"),
+    textHeading: readThemeVar("--color-text-heading", "#0f172a"),
+    card: readThemeVar("--surface-card", "#ffffff"),
+    border: readThemeVar("--color-border-card", "#e2e8f0"),
+    inverse: readThemeVar("--color-text-inverse", "#ffffff"),
+    primary: readThemeVar("--color-primary", "#6366f1"),
+    primaryLight: readThemeVar("--color-primary-light", "#dee4ff"),
+  };
+});
 
 const uiText = computed(() => ({
   subtitle: props.metricMode === "efficiency" ? "分类效率占比" : "分类时长占比",
@@ -131,9 +156,10 @@ const option = computed(() => {
     animation: false,
     tooltip: {
       trigger: "item",
-      backgroundColor: "rgba(30, 27, 75, 0.92)",
-      borderWidth: 0,
-      textStyle: { color: "#f8fafc" },
+      backgroundColor: themeTokens.value.card,
+      borderColor: themeTokens.value.border,
+      borderWidth: 1,
+      textStyle: { color: themeTokens.value.textBase },
       formatter: ({ name, value, percent }) => {
         const numeric = Number(value ?? 0).toFixed(2);
         const percentText = Number(percent ?? 0).toFixed(1);
@@ -153,7 +179,7 @@ const option = computed(() => {
       itemHeight: 8,
       itemGap: 14,
       textStyle: {
-        color: "#6b7280",
+        color: themeTokens.value.textSecondary,
         fontSize: 12,
       },
     },
@@ -170,7 +196,7 @@ const option = computed(() => {
                     type: "text",
                     style: {
                       text: uiText.value.totalLabel,
-                      fill: "#9ca3af",
+                      fill: themeTokens.value.textMuted,
                       fontSize: 13,
                       fontWeight: 600,
                       textAlign: "center",
@@ -182,7 +208,7 @@ const option = computed(() => {
                     top: 22,
                     style: {
                       text: `${computedTotal.value.toFixed(1)}`,
-                      fill: "#0f172a",
+                      fill: themeTokens.value.textHeading,
                       fontSize: 26,
                       fontWeight: 800,
                       textAlign: "center",
@@ -194,7 +220,7 @@ const option = computed(() => {
                     top: 48,
                     style: {
                       text: uiText.value.hoursSuffix,
-                      fill: "#9ca3af",
+                      fill: themeTokens.value.textMuted,
                       fontSize: 12,
                       fontWeight: 600,
                       textAlign: "center",
@@ -215,7 +241,7 @@ const option = computed(() => {
         avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: 8,
-          borderColor: "#fff",
+          borderColor: themeTokens.value.card,
           borderWidth: 2,
         },
         label: {
@@ -253,15 +279,33 @@ function clearHighlight() {
 }
 
 defineExpose({ highlightSlice, clearHighlight });
+
+onMounted(() => {
+  if (typeof window === "undefined" || !window.MutationObserver) return;
+  themeObserver = new MutationObserver(() => {
+    themeVersion.value += 1;
+  });
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme", "class", "style"],
+  });
+});
+
+onUnmounted(() => {
+  if (themeObserver) {
+    themeObserver.disconnect();
+    themeObserver = null;
+  }
+});
 </script>
 
 <style scoped lang="scss">
 .doughnut-card {
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 24px;
   padding: 24px;
-  border: none;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--color-border-card);
+  box-shadow: var(--box-shadow-card);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -273,7 +317,7 @@ defineExpose({ highlightSlice, clearHighlight });
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+    box-shadow: var(--box-shadow-hover);
   }
 
   &__header {
@@ -293,24 +337,24 @@ defineExpose({ highlightSlice, clearHighlight });
     svg {
       width: 32px;
       height: 32px;
-      color: #5856d6; /* Indigo */
+      color: var(--color-primary);
       padding: 6px;
       border-radius: 10px;
-      background: rgba(88, 86, 214, 0.1);
+      background: var(--color-primary-light);
     }
 
     h5 {
       margin: 0;
       font-size: 17px;
       font-weight: 700;
-      color: #1c1c1e;
+      color: var(--color-text-heading);
       letter-spacing: -0.5px;
     }
 
     p {
       margin: 2px 0 0;
       font-size: 13px;
-      color: #8e8e93;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -338,13 +382,13 @@ defineExpose({ highlightSlice, clearHighlight });
     z-index: 2;
 
     .center-label {
-      color: #8e8e93;
+      color: var(--color-text-secondary);
       font-size: 13px;
       font-weight: 600;
     }
 
     .center-value {
-      color: #1c1c1e;
+      color: var(--color-text-heading);
       font-size: 28px;
       font-weight: 800;
       line-height: 1.2;
@@ -352,7 +396,7 @@ defineExpose({ highlightSlice, clearHighlight });
     }
 
     .center-unit {
-      color: #8e8e93;
+      color: var(--color-text-secondary);
       font-size: 12px;
       font-weight: 600;
     }
@@ -365,4 +409,3 @@ defineExpose({ highlightSlice, clearHighlight });
   }
 }
 </style>
-```

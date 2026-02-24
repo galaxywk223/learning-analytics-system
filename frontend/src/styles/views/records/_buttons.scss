@@ -1,9 +1,10 @@
-/* 按钮组与主按钮 */
+// 按钮组与主按钮
 :deep(.el-button-group) {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border-radius: 10px;
   overflow: hidden;
 }
+
 :deep(.el-button-group .el-button) {
   border: none;
   font-weight: 600;
@@ -13,35 +14,41 @@
     background 0.2s ease,
     color 0.2s ease;
 }
+
 :deep(.el-button-group .el-button--primary) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: #fff;
 }
+
 :deep(.el-button-group .el-button:not(.el-button--primary)) {
-  background: #fff;
-  color: #64748b;
+  background: var(--surface-card);
+  color: var(--color-text-secondary);
 }
+
 :deep(.el-button-group .el-button:not(.el-button--primary)):hover {
-  background: #f8fafc;
-  color: #667eea;
+  background: var(--color-bg-hover);
+  color: var(--color-primary);
 }
+
 :deep(.page-header-records .el-button--primary) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   border: none;
   padding: 12px 24px;
   font-size: 1rem;
   border-radius: 12px;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: var(--box-shadow-hover);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
   will-change: transform;
 }
+
 :deep(.page-header-records .el-button--primary):hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(102, 126, 234, 0.4);
+  box-shadow: var(--box-shadow-hover);
 }
+
 :deep(.page-header-records .el-button--primary .el-icon) {
   font-size: 1.2rem;
   color: #fff !important;
@@ -63,7 +70,7 @@
   }
 
   &:hover {
-    background-color: rgba(102, 126, 234, 0.1);
+    background-color: var(--color-bg-hover);
 
     svg {
       transform: scale(1.15);
@@ -72,6 +79,28 @@
 
   &.el-button--danger:hover {
     background-color: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    color: var(--color-error);
+  }
+}
+
+/* 浮动操作按钮 FAB */
+.fab-add {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: #fff;
+  box-shadow: var(--box-shadow-hover);
+  
+  &:hover {
+    box-shadow: var(--box-shadow-hover);
+  }
+}
+
+.fab-sort {
+  background: var(--surface-card);
+  color: var(--color-text-base);
+  box-shadow: var(--box-shadow);
+  
+  &:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-primary);
   }
 }

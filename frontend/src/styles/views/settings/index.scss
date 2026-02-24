@@ -46,11 +46,11 @@
 }
 
 .text-muted {
-  color: #64748b !important;
+  color: var(--color-text-secondary) !important;
 }
 
 .text-danger {
-  color: #ef4444 !important;
+  color: var(--color-error) !important;
 }
 
 .small {

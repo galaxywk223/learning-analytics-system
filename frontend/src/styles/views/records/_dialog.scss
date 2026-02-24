@@ -1,12 +1,13 @@
-/* 对话框与骨架屏 */
+// 对话框与骨架屏
 :deep(.record-dialog) {
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--box-shadow-hover);
+  background: var(--surface-card);
 
   .el-dialog__header {
     padding: 24px 32px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     border: none;
     margin: 0;
     position: relative;
@@ -61,14 +62,14 @@
 
   .el-dialog__body {
     padding: 32px;
-    background: #fff;
+    background: var(--surface-card);
     min-height: 400px;
   }
 
   .el-dialog__footer {
     padding: 20px 32px 32px;
-    background: #fff;
-    border-top: 1px solid #f0f0f0;
+    background: var(--surface-card);
+    border-top: 1px solid var(--color-border-card);
   }
 }
 
@@ -77,14 +78,14 @@
 }
 
 :deep(.el-skeleton) {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--surface-card);
   border-radius: 16px;
   padding: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--box-shadow);
 }
 
 :deep(.el-skeleton__item) {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, var(--color-bg-hover) 25%, var(--color-border-card) 50%, var(--color-bg-hover) 75%);
   background-size: 200% 100%;
   animation: loading 1.5s ease-in-out infinite;
 }

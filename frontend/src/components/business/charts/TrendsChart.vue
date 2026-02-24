@@ -47,7 +47,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { use, graphic } from "echarts/core";
 import { LineChart } from "echarts/charts";
 import {
@@ -84,6 +84,34 @@ const props = defineProps({
 const emit = defineEmits(["view-change"]);
 
 const currentView = ref(props.initialView === "daily" ? "daily" : "weekly");
+const themeVersion = ref(0);
+let themeObserver = null;
+
+const readThemeVar = (name, fallback) => {
+  if (typeof window === "undefined") return fallback;
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return value || fallback;
+};
+
+const themeTokens = computed(() => {
+  themeVersion.value;
+  return {
+    textBase: readThemeVar("--color-text-base", "#1c1c1e"),
+    textSecondary: readThemeVar("--color-text-secondary", "#8e8e93"),
+    textHeading: readThemeVar("--color-text-heading", "#1c1c1e"),
+    card: readThemeVar("--surface-card", "#ffffff"),
+    subtle: readThemeVar("--surface-subtle", "#f2f2f7"),
+    border: readThemeVar("--color-border-card", "#e5e5ea"),
+    primary: readThemeVar("--color-primary", "#5856D6"),
+    primaryDark: readThemeVar("--color-primary-dark", "#AF52DE"),
+    warning: readThemeVar("--color-warning", "#FF9500"),
+    warningSoft: "rgba(255, 149, 0, 0.18)",
+    primarySoft: readThemeVar("--color-primary-light", "rgba(88, 86, 214, 0.2)"),
+    inverse: readThemeVar("--color-text-inverse", "#ffffff"),
+  };
+});
 
 watch(
   () => props.initialView,
@@ -162,7 +190,11 @@ const stageMarkArea = computed(() => {
         name: item.name,
         xAxis: item.start_week_label,
         itemStyle: { opacity: 0.04 }, // Even more subtle
-        label: { color: "#5856D6", fontWeight: 600, fontSize: 12 },
+        label: {
+          color: themeTokens.value.primary,
+          fontWeight: 600,
+          fontSize: 12,
+        },
       },
       { xAxis: item.end_week_label },
     ]);
@@ -180,16 +212,18 @@ const chartOption = computed(() => {
   const zoomStartValue = labels[startIndex];
   const zoomEndValue = labels[labels.length - 1];
 
+  const token = themeTokens.value;
+
   // Apple-style Colors
   const colors = {
     duration: {
-      line: "#5856D6", // Indigo
-      areaStart: "rgba(88, 86, 214, 0.25)",
+      line: token.primary,
+      areaStart: token.primarySoft,
       areaEnd: "rgba(88, 86, 214, 0.02)",
     },
     efficiency: {
-      line: "#FF9500", // Orange
-      areaStart: "rgba(255, 149, 0, 0.25)",
+      line: token.warning,
+      areaStart: token.warningSoft,
       areaEnd: "rgba(255, 149, 0, 0.02)",
     },
   };
@@ -198,12 +232,12 @@ const chartOption = computed(() => {
     color: [colors.duration.line, colors.efficiency.line],
     tooltip: {
       trigger: "axis",
-      backgroundColor: "rgba(255, 255, 255, 0.9)",
-      borderColor: "rgba(0,0,0,0.05)",
+      backgroundColor: token.card,
+      borderColor: token.border,
       borderWidth: 1,
       padding: [12, 16],
       textStyle: {
-        color: "#1C1C1E",
+        color: token.textBase,
         fontSize: 13,
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
@@ -216,7 +250,7 @@ const chartOption = computed(() => {
       icon: "circle",
       itemGap: 24,
       textStyle: {
-        color: "#8E8E93",
+        color: token.textSecondary,
         fontSize: 13,
       },
       data: [durationSeriesLabel.value, "学习效率"],
@@ -227,7 +261,7 @@ const chartOption = computed(() => {
       top: 80,
       bottom: enableZoom ? 60 : 20,
       containLabel: true,
-      borderColor: "#E5E5EA",
+      borderColor: token.border,
     },
     dataZoom: enableZoom
       ? [
@@ -246,14 +280,14 @@ const chartOption = computed(() => {
             brushSelect: false,
             handleSize: 16,
             handleStyle: {
-              color: "#fff",
-              borderColor: "#D1D1D6",
+              color: token.card,
+              borderColor: token.border,
               shadowBlur: 2,
               shadowColor: "rgba(0,0,0,0.1)",
             },
-            fillerColor: "rgba(0, 122, 255, 0.15)",
+            fillerColor: token.primarySoft,
             borderColor: "transparent",
-            backgroundColor: "#F2F2F7",
+            backgroundColor: token.subtle,
             showDataShadow: false,
             showDetail: false,
           },
@@ -264,7 +298,7 @@ const chartOption = computed(() => {
       boundaryGap: false,
       data: labels,
       axisLabel: {
-        color: "#8E8E93",
+        color: token.textSecondary,
         fontSize: 12,
         margin: 12,
         formatter: (value) => value.slice(5),
@@ -277,18 +311,18 @@ const chartOption = computed(() => {
         type: "value",
         name: "学习时长 (小时)",
         min: 0,
-        nameTextStyle: { color: "#8E8E93", padding: [0, 0, 0, 20] },
-        axisLabel: { color: "#8E8E93", fontSize: 12 },
+        nameTextStyle: { color: token.textSecondary, padding: [0, 0, 0, 20] },
+        axisLabel: { color: token.textSecondary, fontSize: 12 },
         splitLine: {
-          lineStyle: { type: "dashed", color: "#E5E5EA" },
+          lineStyle: { type: "dashed", color: token.border },
         },
       },
       {
         type: "value",
         name: "效率指数",
         min: 0,
-        nameTextStyle: { color: "#8E8E93", padding: [0, 20, 0, 0] },
-        axisLabel: { color: "#8E8E93", fontSize: 12 },
+        nameTextStyle: { color: token.textSecondary, padding: [0, 20, 0, 0] },
+        axisLabel: { color: token.textSecondary, fontSize: 12 },
         splitLine: { show: false },
       },
     ],
@@ -304,7 +338,7 @@ const chartOption = computed(() => {
         itemStyle: {
           color: colors.duration.line,
           borderWidth: 2,
-          borderColor: "#fff",
+          borderColor: token.card,
         },
         lineStyle: {
           width: 3,
@@ -334,7 +368,7 @@ const chartOption = computed(() => {
         itemStyle: {
           color: colors.efficiency.line,
           borderWidth: 2,
-          borderColor: "#fff",
+          borderColor: token.card,
         },
         lineStyle: {
           width: 3,
@@ -352,6 +386,24 @@ const chartOption = computed(() => {
       },
     ],
   };
+});
+
+onMounted(() => {
+  if (typeof window === "undefined" || !window.MutationObserver) return;
+  themeObserver = new MutationObserver(() => {
+    themeVersion.value += 1;
+  });
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme", "class", "style"],
+  });
+});
+
+onUnmounted(() => {
+  if (themeObserver) {
+    themeObserver.disconnect();
+    themeObserver = null;
+  }
 });
 </script>
 

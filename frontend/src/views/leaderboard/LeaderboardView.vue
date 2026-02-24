@@ -467,7 +467,7 @@ async function handleLeave() {
     gap: 12px;
 
     .seg-label {
-      color: #8e8e93;
+      color: var(--color-text-secondary);
       font-weight: 600;
       font-size: 13px;
     }
@@ -475,10 +475,11 @@ async function handleLeave() {
 
   .segmented {
     display: inline-flex;
-    background: #e5e5ea; /* iOS System Gray 5 */
+    background: var(--surface-subtle);
     border-radius: 999px;
     padding: 3px;
     gap: 2px;
+    border: 1px solid var(--color-border-card);
   }
 
   .seg-btn {
@@ -488,35 +489,33 @@ async function handleLeave() {
     border-radius: 999px;
     font-size: 13px;
     font-weight: 500;
-    color: #000000;
+    color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
     min-width: 72px;
     box-shadow: none;
 
     &:hover {
-      color: #000000;
+      color: var(--color-text-heading);
     }
   }
 
   .seg-btn.active {
-    background: #ffffff;
-    color: #000000;
+    background: var(--surface-card);
+    color: var(--color-text-heading);
     font-weight: 600;
-    box-shadow:
-      0 2px 6px rgba(0, 0, 0, 0.12),
-      0 0 1px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--box-shadow);
   }
 
   .exit-link {
-    border: none;
-    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--color-border-card);
+    background: var(--surface-card);
     border-radius: 999px;
     padding: 8px 16px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #ff3b30; /* iOS Red */
+    color: var(--color-error);
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 13px;
@@ -524,8 +523,8 @@ async function handleLeave() {
     margin-left: auto;
 
     &:hover {
-      background: #ffffff;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      background: var(--surface-subtle);
+      box-shadow: var(--box-shadow);
     }
   }
 }
@@ -537,9 +536,9 @@ async function handleLeave() {
   gap: 24px;
   padding: 24px 32px;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: var(--surface-card);
+  box-shadow: var(--box-shadow-card);
+  border: 1px solid var(--color-border-card);
 }
 
 .join-banner__left {
@@ -555,23 +554,27 @@ async function handleLeave() {
   border-radius: 16px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #007aff, #5856d6);
-  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-primary-dark)
+  );
+  color: var(--color-text-inverse);
   font-size: 24px;
-  box-shadow: 0 8px 16px rgba(0, 122, 255, 0.25);
+  box-shadow: var(--box-shadow);
 }
 
 .join-copy {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  color: #1c1c1e;
+  color: var(--color-text-base);
 }
 
 .join-eyebrow {
   font-size: 13px;
   font-weight: 600;
-  color: #007aff;
+  color: var(--color-primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -579,13 +582,13 @@ async function handleLeave() {
 .join-title {
   font-size: 19px;
   font-weight: 700;
-  color: #1c1c1e;
+  color: var(--color-text-heading);
   letter-spacing: -0.5px;
 }
 
 .join-sub {
   font-size: 15px;
-  color: #8e8e93;
+  color: var(--color-text-secondary);
 }
 
 .join-banner__actions {
@@ -600,30 +603,32 @@ async function handleLeave() {
   height: auto;
   font-weight: 600;
   font-size: 15px;
-  background: #007aff;
-  border: none;
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary-dark);
+  box-shadow: var(--box-shadow);
+  color: var(--color-text-inverse);
 
   &:hover {
-    background: #0062cc;
+    background: var(--color-primary-dark);
   }
 }
 
 .join-banner :deep(.el-button.is-link) {
   font-weight: 600;
-  color: #8e8e93;
+  color: var(--color-text-secondary);
   font-size: 15px;
 
   &:hover {
-    color: #1c1c1e;
+    color: var(--color-text-heading);
   }
 }
 
 .podium-card {
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 24px;
   padding: 24px;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--box-shadow-card);
+  border: 1px solid var(--color-border-card);
 }
 
 .podium-header {
@@ -636,13 +641,13 @@ async function handleLeave() {
     margin: 0;
     font-size: 20px;
     font-weight: 700;
-    color: #1c1c1e;
+    color: var(--color-text-heading);
     letter-spacing: -0.5px;
   }
 
   p {
     margin: 0;
-    color: #8e8e93;
+    color: var(--color-text-secondary);
     font-size: 14px;
   }
 }
@@ -655,7 +660,7 @@ async function handleLeave() {
 }
 
 .podium-slot {
-  background: #f9f9f9;
+  background: var(--surface-subtle);
   border-radius: 20px;
   padding: 20px 16px;
   text-align: center;
@@ -672,14 +677,14 @@ async function handleLeave() {
   &.empty {
     cursor: default;
     opacity: 0.5;
-    background: #f2f2f7;
+    background: var(--surface-card-muted);
   }
 
   &:hover:not(.empty) {
     transform: translateY(-4px);
-    background: #ffffff;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
-    border-color: rgba(0, 0, 0, 0.04);
+    background: var(--surface-card);
+    box-shadow: var(--box-shadow-hover);
+    border-color: var(--color-border-card);
   }
 }
 
@@ -698,12 +703,12 @@ async function handleLeave() {
   height: 72px;
   border-radius: 50%;
   margin: 0 auto 8px;
-  border: 4px solid #ffffff;
-  background: #e5e5ea;
+  border: 4px solid var(--surface-card);
+  background: var(--surface-soft);
   display: grid;
   place-items: center;
   position: relative;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--box-shadow);
 }
 
 .podium-slot.pos-1 .avatar-wrap {
@@ -734,13 +739,13 @@ async function handleLeave() {
 
 .avatar-text {
   font-weight: 700;
-  color: #1c1c1e;
+  color: var(--color-text-heading);
   font-size: 24px;
 }
 
 .podium-name {
   font-weight: 600;
-  color: #1c1c1e;
+  color: var(--color-text-heading);
   font-size: 15px;
   display: inline-flex;
   align-items: center;
@@ -749,8 +754,8 @@ async function handleLeave() {
 }
 
 .tag-me {
-  background: #007aff;
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 11px;
@@ -760,27 +765,28 @@ async function handleLeave() {
 .podium-value {
   font-size: 17px;
   font-weight: 800;
-  color: #1c1c1e;
+  color: var(--color-text-heading);
   letter-spacing: -0.5px;
 }
 
 .podium-rank {
   font-size: 13px;
-  color: #8e8e93;
+  color: var(--color-text-secondary);
   font-weight: 600;
   margin-top: 4px;
 }
 
 .list-card {
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 24px;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--box-shadow-card);
+  border: 1px solid var(--color-border-card);
   overflow: hidden;
 }
 
 .list-header {
   padding: 20px 24px;
-  border-bottom: 1px solid #f2f2f7;
+  border-bottom: 1px solid var(--color-border-card);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -790,12 +796,12 @@ async function handleLeave() {
     margin: 0;
     font-size: 17px;
     font-weight: 700;
-    color: #1c1c1e;
+    color: var(--color-text-heading);
   }
 
   p {
     margin: 4px 0 0;
-    color: #8e8e93;
+    color: var(--color-text-secondary);
     font-size: 13px;
   }
 }
@@ -816,14 +822,14 @@ async function handleLeave() {
   background: transparent;
   transition: all 0.2s ease;
   cursor: pointer;
-  border-bottom: 1px solid #f2f2f7;
+  border-bottom: 1px solid var(--color-border-card);
 
   &:last-child {
     border-bottom: none;
   }
 
   &:hover {
-    background: #f9f9f9;
+    background: var(--surface-subtle);
   }
 }
 
@@ -836,7 +842,7 @@ async function handleLeave() {
 .rank-no {
   font-size: 17px;
   font-weight: 700;
-  color: #8e8e93;
+  color: var(--color-text-secondary);
   width: 32px;
   text-align: center;
 }
@@ -851,11 +857,11 @@ async function handleLeave() {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #e5e5ea;
+  background: var(--surface-soft);
   display: grid;
   place-items: center;
   font-weight: 600;
-  color: #1c1c1e;
+  color: var(--color-text-heading);
   font-size: 16px;
 }
 
@@ -868,7 +874,7 @@ async function handleLeave() {
 .user-name {
   font-size: 15px;
   font-weight: 600;
-  color: #1c1c1e;
+  color: var(--color-text-heading);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -876,7 +882,7 @@ async function handleLeave() {
 
 .user-sub {
   font-size: 13px;
-  color: #8e8e93;
+  color: var(--color-text-secondary);
 }
 
 .rank-right {
@@ -886,13 +892,13 @@ async function handleLeave() {
 .metric-value {
   font-size: 17px;
   font-weight: 700;
-  color: #1c1c1e;
+  color: var(--color-text-heading);
   letter-spacing: -0.5px;
 }
 
 .metric-sub {
   font-size: 12px;
-  color: #8e8e93;
+  color: var(--color-text-secondary);
   margin-top: 2px;
 }
 
@@ -900,7 +906,7 @@ async function handleLeave() {
   display: flex;
   justify-content: center;
   padding: 24px;
-  border-top: 1px solid #f2f2f7;
+  border-top: 1px solid var(--color-border-card);
 }
 
 // Drawer Styles
@@ -916,12 +922,12 @@ async function handleLeave() {
     margin: 0;
     font-size: 24px;
     font-weight: 700;
-    color: #1c1c1e;
+    color: var(--color-text-heading);
   }
 
   p {
     margin: 4px 0 0;
-    color: #8e8e93;
+    color: var(--color-text-secondary);
     font-size: 14px;
   }
 }
@@ -933,9 +939,9 @@ async function handleLeave() {
 
   :deep(.el-card) {
     border-radius: 16px;
-    border: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-    background: #f9f9f9;
+    border: 1px solid var(--color-border-card);
+    box-shadow: var(--box-shadow);
+    background: var(--surface-subtle);
 
     .el-card__body {
       padding: 16px;
@@ -949,14 +955,14 @@ async function handleLeave() {
 
     .label {
       font-size: 13px;
-      color: #8e8e93;
+      color: var(--color-text-secondary);
       font-weight: 500;
     }
 
     .value {
       font-size: 18px;
       font-weight: 700;
-      color: #1c1c1e;
+      color: var(--color-text-heading);
     }
   }
 }
@@ -1020,4 +1026,3 @@ async function handleLeave() {
   }
 }
 </style>
-```

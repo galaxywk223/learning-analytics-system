@@ -4,93 +4,10 @@
 /* ===== 1. Google Font Import (Removed for performance in China) ===== */
 /* @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"); */
 
-/* ===== 3. CSS Variables (Theme Colors & Properties) ===== */
-:root {
-  /* Typography */
-  --font-family-base:
-    "Inter", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", "Segoe UI",
-    Arial, sans-serif;
-  --font-family-heading: var(--font-family-base);
+/* ===== 2. Theme Variables ===== */
+@import "./themes";
 
-  /* Base Palette */
-  --color-primary: #5564d8;
-  /* 主色 */
-  --color-primary-light: #dee4ff;
-  /* 主色-浅 */
-  --color-primary-dark: #3945a6;
-  /* 主色-深 */
-  --color-accent: #f4b740;
-  /* 强调色 */
-
-  /* Text Colors */
-  --color-text-base: #1d2433;
-  /* 基础文本 */
-  --color-text-secondary: #4b5565;
-  /* 次要文本 */
-  --color-text-muted: #868fa0;
-  /* 禁用/提示文本 */
-  --color-text-light: #f8fafc;
-  /* 亮色文本 (用于深色背景) */
-  --color-text-heading: #111827;
-  /* 标题 */
-  --color-text-logo: #f9fafb;
-  /* Logo文本 */
-
-  /* Background Colors */
-  --color-bg-page: #f2f4f7;
-  /* 页面背景 */
-  --color-bg-sidebar: #111a2b;
-  /* 侧边栏背景 */
-  --color-bg-card: #ffffff;
-  /* 卡片背景 */
-  --color-bg-hover: rgba(255, 255, 255, 0.08);
-  /* 悬浮背景 (侧边栏) */
-
-  /* Border Colors */
-  --color-border-card: #d5ddf1;
-  /* 卡片边框 */
-  --color-border-sidebar: rgba(255, 255, 255, 0.18);
-  /* 侧边栏边框 */
-  --color-border-input: #c7d0e6;
-  /* 输入框边框 */
-
-  /* Surface Palette */
-  --surface-page: #f2f4f7;
-  --surface-section: #edf1f6;
-  --surface-card: rgba(255, 255, 255, 0.88);
-  --surface-card-muted: rgba(247, 248, 253, 0.86);
-  --surface-card-strong: #e4e9fb;
-  --surface-subtle: #f1f3fa;
-  --surface-soft: #dfe5f7;
-  --stroke-soft: #d5ddf1;
-  --stroke-strong: #c0c9e5;
-
-  /* Status Colors */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
-
-  /* Other Properties */
-  --border-radius-sm: 0.375rem;
-  /* 6px */
-  --border-radius-md: 0.5rem;
-  /* 8px */
-  --box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
-  --box-shadow-hover: 0 4px 8px rgba(15, 23, 42, 0.08);
-  --sidebar-width: 260px;
-  --sidebar-collapsed-width: 72px;
-  /* 折叠后侧边栏宽度，仅显示图标与 Logo */
-  --transition-speed: 0.18s;
-}
-
-/* Windows style shadows applied globally */
-:root {
-  --box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --box-shadow-hover: 0 2px 4px rgba(15, 23, 42, 0.06);
-}
-
-/* ===== 4. Global Styles & Resets ===== */
+/* ===== 3. Global Styles & Resets ===== */
 *,
 *::before,
 *::after {
@@ -104,7 +21,8 @@ body {
   padding: 0;
   height: 100%;
   /* 基础底色 */
-  background-color: #f5f7fa;
+  background-color: var(--color-bg-page);
+  transition: background-color var(--transition-speed) var(--transition-ease), color var(--transition-speed) var(--transition-ease);
 }
 
 body {
@@ -123,6 +41,20 @@ body {
   background-color: transparent;
   z-index: 1;
   overflow-x: hidden;
+}
+
+/* Global Theme Transitions */
+.sidebar,
+.main-content,
+.el-card,
+.el-dialog,
+.el-drawer,
+.el-button,
+.nav-link {
+  transition: background-color var(--transition-speed) var(--transition-ease),
+              color var(--transition-speed) var(--transition-ease),
+              border-color var(--transition-speed) var(--transition-ease),
+              box-shadow var(--transition-speed) var(--transition-ease);
 }
 
 /* ===== 5. Utility Classes ===== */
@@ -239,6 +171,32 @@ i {
 :where(.el-select .el-input__wrapper.is-focus) {
   border-color: var(--color-primary-dark);
   background: var(--surface-card);
+}
+
+/* Disabled controls should follow app theme in both old/new Element Plus structures */
+:where(.el-select) {
+  --el-fill-color-light: var(--surface-card-muted);
+  --el-disabled-bg-color: var(--surface-card-muted);
+  --el-disabled-border-color: var(--color-border-input);
+  --el-select-disabled-border: var(--color-border-input);
+  --el-disabled-text-color: var(--color-text-muted);
+}
+
+:where(.el-input.is-disabled .el-input__wrapper),
+:where(.el-input__wrapper.is-disabled),
+:where(.el-select__wrapper.is-disabled) {
+  background: var(--surface-card-muted) !important;
+  border-color: var(--color-border-input) !important;
+  box-shadow: 0 0 0 1px var(--color-border-input) inset !important;
+}
+
+:where(.el-input.is-disabled .el-input__inner),
+:where(.el-input__inner:disabled),
+:where(.el-select__wrapper.is-disabled .el-select__selected-item),
+:where(.el-select__wrapper.is-disabled .el-select__placeholder),
+:where(.el-select__wrapper.is-disabled .el-select__caret) {
+  color: var(--color-text-muted) !important;
+  -webkit-text-fill-color: var(--color-text-muted) !important;
 }
 
 .el-input__inner,

@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import { use } from "echarts/core";
 import { PieChart } from "echarts/charts";
 import { TooltipComponent, LegendComponent } from "echarts/components";
@@ -21,7 +21,30 @@ const props = defineProps({
   },
 });
 
+const themeVersion = ref(0);
+let themeObserver = null;
+
+const readThemeVar = (name, fallback) => {
+  if (typeof window === "undefined") return fallback;
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return value || fallback;
+};
+
+const themeTokens = computed(() => {
+  themeVersion.value;
+  return {
+    textBase: readThemeVar("--color-text-base", "#1f2937"),
+    textSecondary: readThemeVar("--color-text-secondary", "#6b7280"),
+    textHeading: readThemeVar("--color-text-heading", "#111827"),
+    card: readThemeVar("--surface-card", "#ffffff"),
+    border: readThemeVar("--color-border-card", "#e2e8f0"),
+  };
+});
+
 const option = computed(() => {
+  const token = themeTokens.value;
   const source = (props.data || []).map((item) => {
     const hours = Number(item?.hours ?? item?.value ?? 0);
     return {
@@ -45,6 +68,10 @@ const option = computed(() => {
     animation: false,
     tooltip: {
       trigger: "item",
+      backgroundColor: token.card,
+      borderColor: token.border,
+      borderWidth: 1,
+      textStyle: { color: token.textBase },
       formatter: ({ name, value, percent }) =>
         `${name}<br/>${value.toFixed(2)} 小时 (${percent}%)`,
     },
@@ -54,6 +81,9 @@ const option = computed(() => {
       bottom: 0,
       left: "center",
       icon: "circle",
+      textStyle: {
+        color: token.textSecondary,
+      },
     },
     series: [
       {
@@ -78,7 +108,7 @@ const option = computed(() => {
             ],
         itemStyle: {
           borderRadius: 8,
-          borderColor: "#fff",
+          borderColor: token.card,
           borderWidth: 1,
         },
       },
@@ -93,7 +123,7 @@ const option = computed(() => {
               style: {
                 text: totalHours.toFixed(1),
                 textAlign: "center",
-                fill: "#111827",
+                fill: token.textHeading,
                 fontSize: 22,
                 fontWeight: 600,
               },
@@ -105,7 +135,7 @@ const option = computed(() => {
               style: {
                 text: "总时长 (小时)",
                 textAlign: "center",
-                fill: "#6b7280",
+                fill: token.textSecondary,
                 fontSize: 12,
               },
             },
@@ -113,16 +143,35 @@ const option = computed(() => {
         : [],
   };
 });
+
+onMounted(() => {
+  if (typeof window === "undefined" || !window.MutationObserver) return;
+  themeObserver = new MutationObserver(() => {
+    themeVersion.value += 1;
+  });
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme", "class", "style"],
+  });
+});
+
+onUnmounted(() => {
+  if (themeObserver) {
+    themeObserver.disconnect();
+    themeObserver = null;
+  }
+});
 </script>
 
 <style scoped>
 .user-category-chart {
   width: 100%;
   min-height: 260px;
-  background: #fff;
+  background: var(--surface-card);
   border-radius: 12px;
   padding: 12px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--box-shadow-card);
+  border: 1px solid var(--color-border-card);
 }
 
 .chart {

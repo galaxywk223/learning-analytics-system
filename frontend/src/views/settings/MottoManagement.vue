@@ -194,19 +194,19 @@ onMounted(() => {
 <style scoped>
 .motto-container-flat {
   width: 100%;
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--stroke-soft);
   overflow: hidden;
 }
 
 .motto-header {
   padding: 16px 24px;
-  background: #f9fafb;
+  background: var(--surface-card-muted);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--stroke-soft);
   gap: 24px;
 }
 
@@ -214,7 +214,7 @@ onMounted(() => {
   margin: 0;
   font-size: 16px;
   font-weight: 700;
-  color: #111827;
+  color: var(--color-text-heading);
   white-space: nowrap;
 }
 
@@ -229,24 +229,30 @@ onMounted(() => {
 .add-wrapper input {
   flex: 1;
   height: 36px;
-  border: 1px solid #d1d5db;
+  background: var(--surface-card);
+  border: 1px solid var(--color-border-input);
   border-radius: 8px;
   padding: 0 12px;
   font-size: 14px;
+  color: var(--color-text-heading);
   outline: none;
   transition: all 0.15s ease;
 }
 
+.add-wrapper input::placeholder {
+  color: var(--color-text-muted);
+}
+
 .add-wrapper input:focus {
-  border-color: #111827;
-  box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
 .btn-add {
   height: 36px;
   padding: 0 16px;
-  background: #111827;
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
   border: none;
   border-radius: 8px;
   font-size: 13px;
@@ -257,7 +263,7 @@ onMounted(() => {
 }
 
 .btn-add:hover {
-  background: #374151;
+  background: var(--color-primary-dark);
 }
 
 .btn-add:disabled {
@@ -274,11 +280,11 @@ onMounted(() => {
 .list-header {
   display: flex;
   padding: 12px 24px;
-  background: #ffffff;
-  border-bottom: 1px solid #f3f4f6;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--stroke-soft);
   font-size: 12px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -287,7 +293,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 16px 24px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--stroke-soft);
   transition: background-color 0.1s ease;
 }
 
@@ -296,7 +302,7 @@ onMounted(() => {
 }
 
 .motto-row:hover {
-  background: #f9fafb;
+  background: var(--surface-card-muted);
 }
 
 .col-content {
@@ -315,7 +321,7 @@ onMounted(() => {
 
 .quote-mark {
   font-size: 20px;
-  color: #cbd5e1;
+  color: var(--color-text-muted);
   line-height: 1;
   margin-top: 2px;
 }
@@ -323,7 +329,7 @@ onMounted(() => {
 .motto-text {
   font-family: "Georgia", "Times New Roman", serif;
   font-size: 15px;
-  color: #111827;
+  color: var(--color-text-heading);
   line-height: 1.5;
 }
 
@@ -344,7 +350,7 @@ onMounted(() => {
   border-radius: 4px;
   border: 1px solid transparent;
   background: transparent;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 14px;
   cursor: pointer;
   display: flex;
@@ -354,15 +360,15 @@ onMounted(() => {
 }
 
 .action-btn:hover {
-  background: #f3f4f6;
-  color: #111827;
-  border-color: #d1d5db;
+  background: var(--surface-card-muted);
+  color: var(--color-text-heading);
+  border-color: var(--stroke-soft);
 }
 
 .action-btn.danger:hover {
-  background: #fef2f2;
-  color: #dc2626;
-  border-color: #fecaca;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+  border-color: rgba(239, 68, 68, 0.25);
 }
 
 @media (max-width: 768px) {
@@ -388,7 +394,7 @@ onMounted(() => {
 .empty-state {
   text-align: center;
   padding: 60px 0;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -402,15 +408,15 @@ onMounted(() => {
 
 .empty-sub {
   font-size: 13px;
-  color: #d1d5db;
+  color: var(--color-text-muted);
 }
 
 /* Dialog Styles */
 .ios-input-group {
-  background: #f9fafb;
+  background: var(--surface-card-muted);
   border-radius: 12px;
   padding: 0 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--stroke-soft);
   margin-bottom: 24px;
 }
 
@@ -424,7 +430,7 @@ onMounted(() => {
   width: 60px;
   font-size: 14px;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   padding-top: 8px;
 }
 
@@ -434,7 +440,7 @@ onMounted(() => {
   border: none;
   outline: none;
   font-size: 14px;
-  color: #111827;
+  color: var(--color-text-heading);
   padding: 8px 0;
   resize: none;
   font-family: inherit;

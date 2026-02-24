@@ -118,7 +118,7 @@ defineEmits([
     .week-title {
       font-size: 22px;
       font-weight: 700;
-      color: #000000;
+      color: var(--color-text-heading);
       letter-spacing: -0.5px;
       display: flex;
       align-items: center;
@@ -131,7 +131,7 @@ defineEmits([
 
     .week-eff {
       font-size: 17px;
-      color: #8e8e93;
+      color: var(--color-text-secondary);
       font-weight: 500;
     }
   }

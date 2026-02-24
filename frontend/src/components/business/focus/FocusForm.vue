@@ -1,4 +1,3 @@
-<!-- 专注表单组件 -->
 <template>
   <div class="focus-form">
     <el-form
@@ -8,6 +7,9 @@
       label-position="top"
     >
       <el-form-item label="记录名称" prop="name">
+        <template #label>
+           <span class="required-star">*</span> 记录名称
+        </template>
         <el-input
           v-model="localForm.name"
           placeholder="请输入本次专注的内容"
@@ -19,6 +21,9 @@
 
       <div class="category-row">
         <el-form-item label="分类" prop="categoryId" class="category-item">
+          <template #label>
+             <span class="required-star">*</span> 分类
+          </template>
           <el-select
             v-model="localForm.categoryId"
             placeholder="请选择分类"
@@ -26,6 +31,7 @@
             size="large"
             filterable
             @change="onCategoryChange"
+            popper-class="dark-dropdown"
           >
             <el-option
               v-for="cat in categories"
@@ -43,6 +49,7 @@
           <el-select
             v-model="localForm.subcategoryId"
             placeholder="请选择子分类"
+            class="subcategory-select"
             style="width: 100%"
             size="large"
             filterable
@@ -55,12 +62,6 @@
               :value="subcat.id"
             />
           </el-select>
-          <div
-            v-if="localForm.categoryId && !availableSubcategories.length"
-            class="el-form-item__tip"
-          >
-            该分类下暂无子分类
-          </div>
         </el-form-item>
       </div>
     </el-form>
@@ -117,6 +118,7 @@ watch(
     if (syncing.value) return;
     emit("update:formData", { ...localForm });
   },
+  { deep: true }
 );
 
 // 表单验证规则
@@ -157,18 +159,19 @@ defineExpose({
   :deep(.el-form) {
     display: flex;
     flex-direction: column;
-    gap: 1.2rem;
-    padding: clamp(1.8rem, 3vw, 2.1rem);
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+    gap: 1.5rem;
+    padding: 2rem;
+    border-radius: var(--border-radius-lg);
+    background: var(--surface-card);
+    border: 1px solid var(--color-border-card);
+    box-shadow: var(--box-shadow-card);
+    transition: all 0.3s ease;
   }
 
   .category-row {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.1rem;
+    gap: 1.5rem;
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
@@ -177,6 +180,20 @@ defineExpose({
 
   .category-item {
     margin-bottom: 0;
+
+    :deep(.el-input__wrapper) {
+      background: var(--surface-page) !important;
+      border-color: var(--color-border-input);
+
+      .el-input__inner { color: var(--color-text-base); }
+      .el-input__suffix { color: var(--color-text-secondary); }
+    }
+  }
+  
+  .required-star {
+      color: var(--color-error);
+      margin-right: 4px;
+      font-weight: bold;
   }
 
   :deep(.el-form-item) {
@@ -184,58 +201,87 @@ defineExpose({
   }
 
   :deep(.el-form-item__label) {
-    color: #334155;
-    font-weight: 600;
-    font-size: 0.92rem;
-    padding-bottom: 0.4rem;
+    color: var(--color-text-heading);
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding-bottom: 0.5rem;
+    line-height: 1.2;
   }
 
+  /* Input Styles */
   :deep(.el-input__wrapper),
   :deep(.el-select .el-input__wrapper) {
-    background: rgba(255, 255, 255, 0.9) !important;
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    border-radius: 14px;
+    background: var(--surface-page) !important;
+    border: 1px solid var(--color-border-input);
+    border-radius: var(--border-radius-md);
     box-shadow: none !important;
-    padding: 12px 14px;
-    min-height: 48px;
-    transition:
-      border-color 0.2s ease,
-      background-color 0.2s ease,
-      box-shadow 0.2s ease;
+    padding: 8px 12px;
+    min-height: 42px;
+    transition: all 0.2s ease;
 
     &:hover {
-      border-color: rgba(99, 102, 241, 0.65);
+      border-color: var(--color-border-hover);
     }
 
     &.is-focus {
-      border-color: rgba(79, 70, 229, 0.95);
-      background: #ffffff !important;
-      box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.14) !important;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 1px var(--color-primary) !important;
+    }
+  }
+  
+  /* Text colors */
+  :deep(.el-input__inner) {
+    color: var(--color-text-base);
+    font-size: 0.95rem;
+    
+    &::placeholder {
+      color: var(--color-text-muted);
     }
   }
 
-  :deep(.el-input__inner),
-  :deep(.el-select__placeholder),
-  :deep(.el-select__selected-item) {
-    color: #1f2937;
-    font-size: 0.98rem;
+  /* Keep disabled select consistent with themed form surface */
+  :deep(.subcategory-select) {
+    --el-fill-color-light: var(--surface-page);
+    --el-fill-color-blank: var(--surface-page);
+    --el-select-disabled-border: var(--color-border-input);
+    --el-disabled-border-color: var(--color-border-input);
+    --el-disabled-bg-color: var(--surface-page);
+    --el-disabled-text-color: var(--color-text-muted);
+  }
 
-    &::placeholder {
-      color: #94a3b8;
-    }
+  :deep(.subcategory-select .el-input.is-disabled .el-input__wrapper),
+  :deep(.subcategory-select .el-input__wrapper.is-disabled),
+  :deep(.subcategory-select .el-select__wrapper.is-disabled) {
+    background: var(--surface-page) !important;
+    border-color: var(--color-border-input) !important;
+    box-shadow: 0 0 0 1px var(--color-border-input) inset !important;
+    cursor: not-allowed;
+    opacity: 0.72;
+  }
+
+  :deep(.subcategory-select .el-input.is-disabled .el-input__inner),
+  :deep(.subcategory-select .el-input__inner:disabled),
+  :deep(.subcategory-select .el-select__wrapper.is-disabled .el-select__selected-item),
+  :deep(.subcategory-select .el-select__wrapper.is-disabled .el-select__placeholder) {
+    -webkit-text-fill-color: var(--color-text-muted) !important;
+    color: var(--color-text-muted) !important;
+  }
+
+  :deep(.subcategory-select .el-input.is-disabled .el-input__inner::placeholder),
+  :deep(.subcategory-select .el-input__inner:disabled::placeholder),
+  :deep(.subcategory-select .el-select__wrapper.is-disabled .el-select__placeholder.is-transparent) {
+    color: var(--color-text-muted) !important;
+  }
+
+  :deep(.subcategory-select .el-select__caret),
+  :deep(.subcategory-select .el-select__wrapper.is-disabled .el-select__caret) {
+    color: var(--color-text-muted) !important;
   }
 
   :deep(.el-input__count) {
     background: transparent;
-    color: #94a3b8;
-    font-size: 0.78rem;
-    font-weight: 500;
-  }
-
-  .el-form-item__tip {
-    color: #6b7280;
-    font-size: 0.82rem;
-    margin-top: 0.35rem;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
   }
 }
 </style>

@@ -1,17 +1,17 @@
 .trend-chart-card {
   position: relative;
   overflow: hidden;
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 24px;
   padding: 24px;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
-  border: none;
+  box-shadow: var(--box-shadow-card);
+  border: 1px solid var(--color-border-card);
   min-height: 380px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+    box-shadow: var(--box-shadow-hover);
   }
 
   &__panel {
@@ -41,14 +41,14 @@
       margin: 0;
       font-size: 20px;
       font-weight: 700;
-      color: #1c1c1e;
+      color: var(--color-text-heading);
       letter-spacing: -0.5px;
     }
 
     p {
       margin: 0;
       font-size: 13px;
-      color: #8e8e93;
+      color: var(--color-text-secondary);
     }
   }
 
@@ -73,15 +73,15 @@
     justify-content: center;
     gap: 16px;
     text-align: center;
-    color: #8e8e93;
-    background: #f9f9f9;
+    color: var(--color-text-secondary);
+    background: var(--surface-subtle);
     border-radius: 18px;
   }
 
   &__empty-icon {
     width: 48px;
     height: 48px;
-    color: #d1d1d6;
+    color: var(--color-text-muted);
   }
 
   &__empty-text {
@@ -95,8 +95,7 @@
   /* iOS Segmented Control Style */
   &__switch {
     display: inline-flex;
-    background: #efeff4;
-    /* iOS System Gray 6 */
+    background: var(--surface-subtle);
     padding: 2px;
     border-radius: 9px;
     position: relative;
@@ -108,7 +107,7 @@
       border-radius: 7px;
       font-size: 13px;
       font-weight: 500;
-      color: #000000;
+      color: var(--color-text-secondary);
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -121,13 +120,18 @@
       .emoji-icon {
         font-size: 14px;
       }
+
+      &:hover {
+        background: var(--surface-card);
+        color: var(--color-text-heading);
+      }
     }
 
     .seg-btn.active {
-      background: #ffffff;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0.5px 1px rgba(0, 0, 0, 0.04);
+      background: var(--surface-card);
+      box-shadow: var(--box-shadow);
       font-weight: 600;
-      color: #000000;
+      color: var(--color-text-heading);
     }
   }
 }

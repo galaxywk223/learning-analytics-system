@@ -206,10 +206,10 @@ watch(
 <style scoped>
 /* Reuse iOS Dialog Styles */
 .ios-input-group {
-  background: #f9fafb;
+  background: var(--surface-card-muted);
   border-radius: 12px;
   padding: 0 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--stroke-soft);
   margin-bottom: 24px;
 }
 
@@ -217,7 +217,7 @@ watch(
   display: flex;
   align-items: center;
   padding: 14px 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--stroke-soft);
 }
 
 .input-row:last-child {
@@ -228,23 +228,23 @@ watch(
   width: 70px;
   font-size: 14px;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .input-row input {
   flex: 1;
-  background: transparent;
+  background: var(--surface-card);
   border: none;
   outline: none;
   font-size: 14px;
-  color: #111827;
+  color: var(--color-text-heading);
   padding: 0;
 }
 
 .static-value {
   flex: 1;
   font-size: 14px;
-  color: #374151;
+  color: var(--color-text-base);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -271,22 +271,22 @@ watch(
 }
 
 .btn.primary {
-  background: #111827;
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
 }
 
 .btn.primary:hover {
-  background: #374151;
+  background: var(--color-primary-dark);
 }
 
 .btn.ghost {
   background: transparent;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .btn.ghost:hover {
-  background: #f3f4f6;
-  color: #111827;
+  background: var(--surface-card-muted);
+  color: var(--color-text-heading);
 }
 
 /* Override Element Dialog Styles locally if needed, 
@@ -294,13 +294,13 @@ watch(
 :deep(.el-dialog__header) {
   margin-right: 0;
   padding: 20px 24px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--stroke-soft);
 }
 
 :deep(.el-dialog__title) {
   font-weight: 700;
   font-size: 16px;
-  color: #111827;
+  color: var(--color-text-heading);
 }
 
 :deep(.el-dialog__body) {
@@ -317,22 +317,18 @@ watch(
 
 .custom-select {
   width: 100%;
-  background: transparent;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-card);
+  border: 1px solid var(--color-border-input);
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 14px;
-  color: #111827;
+  color: var(--color-text-heading);
   outline: none;
-  appearance: none; /* Remove default arrow */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
+  appearance: auto;
 }
 
 .custom-select:focus {
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 </style>

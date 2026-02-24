@@ -89,6 +89,9 @@
         </keep-alive>
       </router-view>
     </main>
+
+    <!-- Theme Switcher -->
+    <ThemeSwitcher class="theme-switcher-fixed" />
   </div>
 </template>
 
@@ -96,6 +99,7 @@
 import { computed, onMounted } from "vue";
 import { Icon } from "@iconify/vue";
 import { useSettingsStore } from "@/stores/modules/settings";
+import ThemeSwitcher from "@/components/common/ThemeSwitcher.vue";
 
 const settingsStore = useSettingsStore();
 
@@ -117,5 +121,12 @@ const handleMouseLeave = () => {};
 /* 组件特定样式，主要样式已在全局CSS中定义 */
 .page-wrapper {
   min-height: 100vh;
+}
+
+.theme-switcher-fixed {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
 }
 </style>

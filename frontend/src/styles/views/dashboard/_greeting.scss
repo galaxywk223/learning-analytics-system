@@ -1,110 +1,56 @@
-/* Header Styles */
 .dashboard-header {
-  text-align: center;
-  padding: 16px 0 20px;
+  padding: 30px 40px;
+  position: relative;
+  min-height: 160px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-
-  .greeting-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #111827;
-    margin: 0 0 8px;
-    letter-spacing: -0.02em;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-  }
-}
-
-.emoji-icon {
-  user-select: none;
-  pointer-events: none;
-}
-
-.greeting-content {
-  max-width: 720px;
-  width: clamp(280px, 80vw, 720px);
-  padding: 28px 36px;
-  border-radius: 20px;
-  text-align: center;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-}
-
-.header-stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.motto-block {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-radius: 16px;
-  background: transparent;
-  box-shadow: none;
-  border: none;
-  max-width: 820px;
-}
-
-.motto-display {
-  margin: 0;
-  font-size: 1.2rem;
-  color: #4b5563;
-  text-align: left;
-  display: -webkit-box;
-  -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.motto-refresh {
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  background: rgba(255, 255, 255, 0.72);
-  color: #2563eb;
-  display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    background-color 0.15s ease;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
 
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 18px rgba(37, 99, 235, 0.18);
-    background: #ffffff;
-  }
+.header-content {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-
-  .spinning {
-    display: inline-flex;
-    animation: spin 0.8s linear infinite;
+.cheer-title {
+  position: absolute;
+  right: -20px;
+  top: -40px;
+  font-size: 140px;
+  font-weight: 900;
+  color: var(--color-text-heading);
+  opacity: 0.04;
+  z-index: -1;
+  line-height: 1;
+  letter-spacing: 4px;
+  user-select: none;
+  pointer-events: none;
+  
+  [data-theme='cyberpunk'] & {
+      opacity: 0.15;
+      text-shadow: 0 0 40px var(--color-primary);
+      color: var(--color-primary);
   }
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+.cheer-intro {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  max-width: 640px;
+  text-align: left;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  
+  [data-theme='cyberpunk'] & {
+      color: rgba(255, 255, 255, 0.6);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
   }
 }

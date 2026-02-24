@@ -8,15 +8,18 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted } from "vue";
 import { useAuthStore } from "@/stores/modules/auth";
 import { useSettingsStore } from "@/stores/modules/settings";
+import { useThemeStore } from "@/stores/modules/theme";
 
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
+const themeStore = useThemeStore();
 
 onMounted(() => {
+  themeStore.initTheme();
   // 应用加载时检查登录状态
   authStore.checkAuth();
   // 加载用户设置

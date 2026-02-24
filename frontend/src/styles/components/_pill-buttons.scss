@@ -27,50 +27,58 @@
 
 // 主按钮 (紫色/蓝色渐变)
 .pill-btn.primary {
-    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+    background: linear-gradient(
+        135deg,
+        var(--color-primary) 0%,
+        var(--color-primary-dark) 100%
+    );
+    color: var(--color-text-inverse);
+    box-shadow: var(--box-shadow);
 
     &:hover:not(:disabled) {
-        box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+        box-shadow: var(--box-shadow-hover);
         transform: translateY(-1px);
     }
 }
 
 // 危险按钮 (红色/橙色渐变)
 .pill-btn.danger {
-    background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    background: linear-gradient(
+        135deg,
+        var(--color-error) 0%,
+        var(--color-warning) 100%
+    );
+    color: var(--color-text-inverse);
+    box-shadow: var(--box-shadow);
 
     &:hover:not(:disabled) {
-        box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+        box-shadow: var(--box-shadow-hover);
         transform: translateY(-1px);
     }
 }
 
 // 次要按钮 (灰色)
 .pill-btn.secondary {
-    background: #f3f4f6;
-    color: #374151;
-    border: 1px solid transparent; // 占位，防止抖动
+    background: var(--surface-card-muted);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--stroke-soft);
 
     &:hover:not(:disabled) {
-        background: #e5e7eb;
-        color: #111827;
+        background: var(--surface-soft);
+        color: var(--color-text-heading);
     }
 }
 
 // 描边按钮
 .pill-btn.outline {
     background: transparent;
-    border: 1px solid #d1d5db;
-    color: #6b7280;
+    border: 1px solid var(--stroke-soft);
+    color: var(--color-text-secondary);
 
     &:hover:not(:disabled) {
-        border-color: #9ca3af;
-        color: #374151;
-        background: #f9fafb;
+        border-color: var(--stroke-strong);
+        color: var(--color-text-heading);
+        background: var(--surface-card-muted);
     }
 }
 

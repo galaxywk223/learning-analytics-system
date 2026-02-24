@@ -16,14 +16,14 @@
 | :--------------------- | :-------------------------- | :------------------- |
 | **主机 (Host)**        | `localhost`                 | 数据库服务器地址     |
 | **端口 (Port)**        | `5432`                      | 默认 PostgreSQL 端口 |
-| **用户名 (User)**      | `kai`                       | 数据库用户名         |
+| **用户名 (User)**      | `postgres`                  | 数据库用户名         |
 | **密码 (Password)**    | `123456`                    | 数据库密码           |
 | **数据库名 (DB Name)** | `learning_analytics_system` | 业务数据库名称       |
 
 **默认连接字符串 (URI):**
 
 ```
-postgresql://kai:123456@localhost:5432/learning_analytics_system
+postgresql://postgres:123456@localhost:5432/learning_analytics_system
 ```
 
 ## 3. 配置修改 (环境变量)
@@ -62,8 +62,8 @@ sudo service postgresql start
 sudo -u postgres psql
 
 # 在 psql 终端中执行 SQL:
-CREATE USER kai WITH PASSWORD '123456';
-CREATE DATABASE learning_analytics_system OWNER kai;
+ALTER USER postgres WITH PASSWORD '123456';
+CREATE DATABASE learning_analytics_system OWNER postgres;
 \q
 ```
 
@@ -72,7 +72,7 @@ CREATE DATABASE learning_analytics_system OWNER kai;
 如果您已拥有导出的 `schema.sql` 文件，可以直接导入结构：
 
 ```bash
-psql -h localhost -U kai -d learning_analytics_system -f schema.sql
+psql -h localhost -U postgres -d learning_analytics_system -f schema.sql
 ```
 
 或者，使用 Flask-Migrate 进行迁移初始化（推荐用于从零构建）：
@@ -87,7 +87,7 @@ flask db upgrade
 若需导出当前的数据库结构（不含数据），可使用 `pg_dump` 工具：
 
 ```bash
-pg_dump -s -h localhost -p 5432 -U kai -d learning_analytics_system > schema.sql
+pg_dump -s -h localhost -p 5432 -U postgres -d learning_analytics_system > schema.sql
 ```
 
 ## 6. 常见问题

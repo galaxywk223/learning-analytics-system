@@ -2,20 +2,20 @@
 <template>
   <div class="timer-display" :class="{ 'timer-active': isActive }">
     <div class="time-circle">
-      <svg class="progress-ring" width="340" height="340">
+      <svg class="progress-ring" :width="ringSize" :height="ringSize">
         <circle
           class="progress-ring-bg"
-          cx="170"
-          cy="170"
-          r="155"
+          :cx="center"
+          :cy="center"
+          :r="radius"
           fill="none"
           stroke-width="8"
         />
         <circle
           class="progress-ring-circle"
-          cx="170"
-          cy="170"
-          r="155"
+          :cx="center"
+          :cy="center"
+          :r="radius"
           fill="none"
           stroke-width="8"
           :stroke-dasharray="circumference"
@@ -46,8 +46,11 @@ const props = defineProps({
 });
 
 // 计算属性
-const RADIUS = 155;
-const circumference = 2 * Math.PI * RADIUS;
+// Reduced size to fit inside circle better
+const ringSize = 300; // Reduced from 340
+const center = ringSize / 2;
+const radius = center - 15; // Padding for stroke
+const circumference = 2 * Math.PI * radius;
 
 const progressOffset = computed(() => {
   // 以1小时为一个周期
@@ -77,7 +80,7 @@ const timeLabel = computed(() => {
   align-items: center;
   margin: 0;
   position: relative;
-  min-height: 360px;
+  min-height: 320px; /* Adjusted height */
 
   &::before {
     display: none;
@@ -93,17 +96,23 @@ const timeLabel = computed(() => {
       transform: rotate(-90deg);
 
       &-bg {
-        stroke: rgba(99, 102, 241, 0.12);
-        stroke-width: 12;
+        stroke: var(--surface-card-strong); /* Use theme variable */
+        stroke-width: 8;
+        transition: stroke 0.3s ease;
       }
 
       &-circle {
-        stroke: #4f46e5;
-        stroke-width: 12;
+        stroke: var(--color-primary); /* Use theme variable */
+        stroke-width: 8;
         stroke-linecap: round;
         transition:
           stroke-dashoffset 0.25s ease,
-          stroke 0.25s ease;
+          stroke 0.3s ease,
+          filter 0.3s ease;
+          
+        [data-theme='cyberpunk'] & { 
+          filter: drop-shadow(0 0 5px var(--color-primary)); 
+        }
       }
     }
 
@@ -113,28 +122,45 @@ const timeLabel = computed(() => {
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      width: 100%; /* Ensure text centers properly */
 
       .time-value {
-        font-size: clamp(2.8rem, 5.4vw, 3.4rem);
+        /* Responsive font size based on container */
+        font-size: clamp(2rem, 7vw, 3rem); 
         font-weight: 700;
-        color: #0f172a;
-        letter-spacing: 0.08em;
+        color: var(--color-text-heading); /* Use theme variable */
+        letter-spacing: 0.05em;
         font-family: "SFMono-Regular", "JetBrains Mono", monospace;
+        line-height: 1;
+        transition: color 0.3s ease, text-shadow 0.3s ease;
+        max-width: 75%; /* More restrictive width */
+        text-align: center;
+        white-space: nowrap;
+        margin-bottom: 0.25rem; /* Slight optical adjustment */
+        
+        [data-theme='cyberpunk'] & {
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+        }
       }
 
       .time-label {
         font-size: 0.85rem;
-        color: #64748b;
-        margin-top: 0.35rem;
-        letter-spacing: 0.08em;
+        color: var(--color-text-muted); /* Use theme variable */
+        margin-top: 0.5rem;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
+        transition: color 0.3s ease;
       }
     }
   }
 
   &.timer-active {
     .progress-ring-circle {
-      stroke: #4338ca;
+      stroke: var(--color-accent); /* Use theme variable for active state */
+      
+      [data-theme='cyberpunk'] & { 
+        filter: drop-shadow(0 0 8px var(--color-accent)); 
+      }
     }
   }
 }

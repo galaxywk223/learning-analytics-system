@@ -112,7 +112,7 @@ const moodEmoji = (mood) => {
   overflow: hidden;
   font-size: 1.05rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-text-heading);
 }
 
 .category-tag {
@@ -156,17 +156,26 @@ const moodEmoji = (mood) => {
 
 .action-btn {
   padding: 0.25rem 0.5rem;
+  color: var(--color-text-secondary);
+}
+
+.action-btn:hover {
+  color: var(--color-primary);
+}
+
+.action-btn.delete:hover {
+  color: var(--color-error);
 }
 
 .log-notes-row {
-  background-color: #f9fafb;
+  background-color: var(--surface-subtle);
 }
 
 .log-notes-cell {
   padding-top: 0.5rem !important;
   padding-bottom: 0.5rem !important;
   border-top: 0 !important;
-  color: #6c757d;
+  color: var(--color-text-secondary);
   font-size: 0.9rem;
   white-space: normal;
 }
@@ -182,13 +191,13 @@ const moodEmoji = (mood) => {
 .time-slot-cell {
   font-size: 1rem;
   font-weight: 500;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .duration-cell {
   font-size: 1.05rem;
   font-weight: 600;
-  color: #667eea;
+  color: var(--color-primary);
 }
 
 .mood-cell {

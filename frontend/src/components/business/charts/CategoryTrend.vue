@@ -139,6 +139,32 @@ const zoomRange = ref<{ start: number | null; end: number | null }>({
   end: null,
 });
 const dynamicBarWidth = ref(22);
+const themeVersion = ref(0);
+let themeObserver: MutationObserver | null = null;
+
+const readThemeVar = (name: string, fallback: string) => {
+  if (typeof window === "undefined") return fallback;
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return value || fallback;
+};
+
+const themeTokens = computed(() => {
+  themeVersion.value;
+  return {
+    textBase: readThemeVar("--color-text-base", "#1f2937"),
+    textSecondary: readThemeVar("--color-text-secondary", "#8e8e93"),
+    textMuted: readThemeVar("--color-text-muted", "#8e8e93"),
+    heading: readThemeVar("--color-text-heading", "#1c1c1e"),
+    card: readThemeVar("--surface-card", "#ffffff"),
+    subtle: readThemeVar("--surface-subtle", "#f2f2f7"),
+    border: readThemeVar("--color-border-card", "#e5e5ea"),
+    primary: readThemeVar("--color-primary", "#5856D6"),
+    primaryDark: readThemeVar("--color-primary-dark", "#AF52DE"),
+    primaryLight: readThemeVar("--color-primary-light", "#dee4ff"),
+  };
+});
 
 const trendMeta = computed(() => {
   if (!trendSeries.value.labels.length) return "";
@@ -228,19 +254,20 @@ const option = computed(() => {
   const isEfficiency = metricMode.value === "efficiency";
   const yAxisName = isEfficiency ? "效率指数" : "时长 (h)";
   const tooltipUnit = isEfficiency ? "效率" : "小时";
+  const token = themeTokens.value;
 
   return {
-    color: ["#5856D6"],
+    color: [token.primary],
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "shadow" },
-      backgroundColor: "rgba(255, 255, 255, 0.95)",
-      borderColor: "rgba(0, 0, 0, 0.05)",
-      textStyle: { color: "#1c1c1e" },
+      backgroundColor: token.card,
+      borderColor: token.border,
+      textStyle: { color: token.textBase },
       formatter: (params: any) => {
         const item = Array.isArray(params) ? params[0] : params;
         return `<div style="font-weight:600;margin-bottom:4px">${item.name}</div>
-                <div style="color:#5856D6">${Number(item.value || 0).toFixed(2)} ${tooltipUnit}</div>`;
+                <div style="color:${token.primary}">${Number(item.value || 0).toFixed(2)} ${tooltipUnit}</div>`;
       },
       confine: true,
       extraCssText:
@@ -266,10 +293,10 @@ const option = computed(() => {
             handleSize: 12,
             brushSelect: false,
             borderColor: "transparent",
-            backgroundColor: "#f2f2f7",
-            fillerColor: "rgba(88, 86, 214, 0.15)",
+            backgroundColor: token.subtle,
+            fillerColor: token.primaryLight,
             handleStyle: {
-              color: "#5856D6",
+              color: token.primary,
               shadowBlur: 4,
               shadowColor: "rgba(0, 0, 0, 0.2)",
             },
@@ -281,7 +308,7 @@ const option = computed(() => {
       boundaryGap: true,
       data: labels,
       axisLabel: {
-        color: "#8e8e93",
+        color: token.textSecondary,
         formatter: (value: string) => value?.slice(5),
         rotate,
         fontSize: 11,
@@ -293,14 +320,14 @@ const option = computed(() => {
       type: "value",
       name: yAxisName,
       nameTextStyle: {
-        color: "#8e8e93",
+        color: token.textSecondary,
         align: "right",
         padding: [0, 6, 0, 0],
       },
       min: 0,
-      axisLabel: { color: "#8e8e93", fontSize: 11 },
+      axisLabel: { color: token.textSecondary, fontSize: 11 },
       splitLine: {
-        lineStyle: { type: "dashed", color: "#e5e5ea" },
+        lineStyle: { type: "dashed", color: token.border },
       },
     },
     series: [
@@ -313,14 +340,14 @@ const option = computed(() => {
         itemStyle: {
           borderRadius: [6, 6, 2, 2],
           color: new graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: "#5856D6" }, // Indigo
-            { offset: 1, color: "#AF52DE" }, // Purple
+            { offset: 0, color: token.primary },
+            { offset: 1, color: token.primaryDark },
           ]),
         },
         emphasis: {
           itemStyle: {
             shadowBlur: 12,
-            shadowColor: "rgba(88, 86, 214, 0.3)",
+            shadowColor: token.primaryLight,
           },
         },
       },
@@ -329,6 +356,16 @@ const option = computed(() => {
 });
 
 onMounted(async () => {
+  if (typeof window !== "undefined" && window.MutationObserver) {
+    themeObserver = new MutationObserver(() => {
+      themeVersion.value += 1;
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme", "class", "style"],
+    });
+  }
+
   await categoryStore.ensureLoaded();
   if (!trendCategoryId.value && categoryOptions.value.length) {
     // 默认选择“全部分类”
@@ -397,6 +434,10 @@ watch(
 
 onUnmounted(() => {
   window.removeEventListener("resize", onResize);
+  if (themeObserver) {
+    themeObserver.disconnect();
+    themeObserver = null;
+  }
 });
 
 function onResize() {
@@ -410,10 +451,11 @@ let timer: any = null;
 
 <style scoped lang="scss">
 .category-trend-card {
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 24px;
   padding: 24px;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--box-shadow-card);
+  border: 1px solid var(--color-border-card);
   min-height: 420px;
   display: flex;
   flex-direction: column;
@@ -424,7 +466,7 @@ let timer: any = null;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+    box-shadow: var(--box-shadow-hover);
   }
 }
 
@@ -445,14 +487,14 @@ let timer: any = null;
     margin: 0;
     font-size: 20px;
     font-weight: 700;
-    color: #1c1c1e;
+    color: var(--color-text-heading);
     letter-spacing: -0.5px;
   }
 
   p {
     margin: 0;
     font-size: 13px;
-    color: #8e8e93;
+    color: var(--color-text-secondary);
   }
 }
 
@@ -470,25 +512,26 @@ let timer: any = null;
 /* iOS Style Select */
 :deep(.ios-select) {
   .el-input__wrapper {
-    background: #f2f2f7;
+    background: var(--surface-subtle);
     border-radius: 10px;
     box-shadow: none !important;
+    border: 1px solid var(--color-border-input);
     padding: 4px 12px;
     transition: all 0.2s ease;
 
     &:hover {
-      background: #e5e5ea;
+      background: var(--surface-card-muted);
     }
 
     &.is-focus {
-      background: #ffffff;
-      box-shadow: 0 0 0 2px rgba(88, 86, 214, 0.2) !important;
+      background: var(--surface-card);
+      box-shadow: 0 0 0 2px var(--color-primary-light) !important;
     }
   }
 
   .el-input__inner {
     font-weight: 500;
-    color: #1c1c1e;
+    color: var(--color-text-base);
   }
 }
 
@@ -510,9 +553,9 @@ let timer: any = null;
   align-items: center;
   justify-content: center;
   gap: 16px;
-  color: #8e8e93;
+  color: var(--color-text-secondary);
   min-height: 300px;
-  background: #f9f9f9;
+  background: var(--surface-subtle);
   border-radius: 18px;
 
   .empty-icon {
@@ -530,7 +573,7 @@ let timer: any = null;
 .chart-placeholder {
   padding: 48px 16px;
   text-align: center;
-  color: #8e8e93;
+  color: var(--color-text-secondary);
   font-size: 13px;
 }
 

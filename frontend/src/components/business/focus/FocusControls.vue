@@ -152,20 +152,38 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
 
 :deep(.primary-btn),
 :deep(.resume-btn) {
-  /* Purple Gradient */
-  background: linear-gradient(135deg, #7c73ff 0%, #5856d6 100%);
+  /* Dynamic gradient based on theme */
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: #ffffff;
-  box-shadow: 0 8px 20px rgba(88, 86, 214, 0.3);
+  /* Soft shadow matching primary color */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); 
+  
+  [data-theme='cyberpunk'] & {
+      background: linear-gradient(135deg, #00f0ff 0%, #0077ff 100%);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+      color: #000;
+  }
+  
+  [data-theme='light'] &, [data-theme='forest'] &, [data-theme='ocean'] &, [data-theme='sakura'] & {
+      /* Ensure white text is visible on light themes' primary buttons */
+      color: #ffffff;
+  }
 
   &:hover {
-    background: linear-gradient(135deg, #8e86ff 0%, #6a67e6 100%);
-    box-shadow: 0 12px 24px rgba(88, 86, 214, 0.4);
+    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+    /* Adjust shadow on hover */
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+    
+    [data-theme='cyberpunk'] & {
+      background: linear-gradient(135deg, #22f2ff 0%, #3388ff 100%);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.6);
+    }
   }
 }
 
 :deep(.pause-btn) {
   background: linear-gradient(135deg, #ffd60a 0%, #ff9f0a 100%);
-  color: #ffffff;
+  color: #000000;
   box-shadow: 0 8px 20px rgba(255, 159, 10, 0.3);
 
   &:hover {
@@ -188,6 +206,11 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
   background: rgba(118, 118, 128, 0.12);
   color: #000000;
   box-shadow: none;
+  
+  [data-theme='cyberpunk'] & {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+  }
 
   &:hover {
     background: rgba(118, 118, 128, 0.24);
@@ -208,6 +231,7 @@ defineEmits(["start", "pause", "resume", "stop", "cancel", "go-back"]);
 
   &:hover {
     color: #000000;
+    [data-theme='cyberpunk'] & { color: #fff; }
   }
 }
 

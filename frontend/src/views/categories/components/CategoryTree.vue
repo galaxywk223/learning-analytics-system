@@ -142,9 +142,9 @@ defineExpose({
 
 <style scoped>
 .tree-container-flat {
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--stroke-soft);
   overflow: hidden;
 }
 
@@ -153,15 +153,15 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--surface-card-muted);
+  border-bottom: 1px solid var(--stroke-soft);
 }
 
 .tree-header h4 {
   margin: 0;
   font-size: 16px;
   font-weight: 700;
-  color: #111827;
+  color: var(--color-text-heading);
 }
 
 .header-actions {
@@ -174,27 +174,27 @@ defineExpose({
   height: 28px;
   border-radius: 6px;
   border: 1px solid transparent;
-  background: #ffffff;
-  color: #6b7280;
+  background: var(--surface-card);
+  color: var(--color-text-secondary);
   font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--box-shadow);
 }
 
 .action-btn:hover {
-  background: #f3f4f6;
-  color: #111827;
-  border-color: #d1d5db;
+  background: var(--surface-card-muted);
+  color: var(--color-text-heading);
+  border-color: var(--stroke-soft);
 }
 
 .action-btn.danger:hover {
-  background: #fef2f2;
-  color: #dc2626;
-  border-color: #fecaca;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+  border-color: rgba(239, 68, 68, 0.25);
 }
 
 .tree-content {
@@ -218,7 +218,7 @@ defineExpose({
 }
 
 .tree-node:hover {
-  background: #f9fafb;
+  background: var(--surface-card-muted);
 }
 
 .node-content {
@@ -230,14 +230,14 @@ defineExpose({
 
 .node-icon {
   font-size: 16px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   display: flex;
   align-items: center;
 }
 
 .node-label {
   font-weight: 500;
-  color: #1f2937;
+  color: var(--color-text-heading);
   font-size: 14px;
 }
 
@@ -247,8 +247,8 @@ defineExpose({
 }
 
 .record-count {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-card-muted);
+  color: var(--color-text-secondary);
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 11px;
@@ -258,7 +258,7 @@ defineExpose({
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: #9ca3af;
+  color: var(--color-text-muted);
 }
 
 .empty-icon {
@@ -273,10 +273,15 @@ defineExpose({
 
 .empty-tip {
   font-size: 12px;
-  color: #d1d5db;
+  color: var(--color-text-muted);
 }
 
 /* Element Plus Tree Overrides */
+:deep(.el-tree) {
+  background: transparent;
+  color: var(--color-text-base);
+}
+
 :deep(.el-tree-node__content) {
   height: auto;
   min-height: 40px;
@@ -286,11 +291,11 @@ defineExpose({
 }
 
 :deep(.el-tree-node__content:hover) {
-  background-color: #f9fafb;
+  background-color: var(--surface-card-muted);
 }
 
 :deep(.el-tree-node__expand-icon) {
-  color: #9ca3af;
+  color: var(--color-text-muted);
   font-size: 14px;
   padding: 6px;
 }
@@ -298,11 +303,11 @@ defineExpose({
 :deep(
   .el-tree--highlight-current .el-tree-node.is-current > .el-tree-node__content
 ) {
-  background: #eff6ff; /* Light blue */
+  background: var(--surface-subtle);
 }
 
 :deep(.el-tree--highlight-current .el-tree-node.is-current .node-label) {
-  color: #2563eb; /* Blue */
+  color: var(--color-primary); /* Blue */
   font-weight: 600;
 }
 </style>

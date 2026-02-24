@@ -138,10 +138,10 @@ const emitLeave = () => emit("bar-leave");
 
 <style scoped lang="scss">
 .bar-card {
-  background: #ffffff;
+  background: var(--surface-card);
   border-radius: 24px;
-  border: none;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--color-border-card);
+  box-shadow: var(--box-shadow-card);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -153,7 +153,7 @@ const emitLeave = () => emit("bar-leave");
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+    box-shadow: var(--box-shadow-hover);
   }
 }
 
@@ -167,12 +167,12 @@ const emitLeave = () => emit("bar-leave");
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #1c1c1e;
+  color: var(--color-text-heading);
 
   svg {
     width: 20px;
     height: 20px;
-    color: #5856d6;
+    color: var(--color-primary);
   }
 
   h5 {
@@ -198,7 +198,7 @@ const emitLeave = () => emit("bar-leave");
 }
 
 .bar-card__list::-webkit-scrollbar-thumb {
-  background: rgba(142, 142, 147, 0.3);
+  background: var(--surface-soft);
   border-radius: 999px;
 }
 
@@ -213,7 +213,7 @@ const emitLeave = () => emit("bar-leave");
 }
 
 .bar-item:hover {
-  background: #f2f2f7;
+  background: var(--surface-subtle);
 }
 
 .bar-info {
@@ -225,7 +225,7 @@ const emitLeave = () => emit("bar-leave");
 
 .bar-name {
   font-weight: 600;
-  color: #1c1c1e;
+  color: var(--color-text-base);
   font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -234,7 +234,7 @@ const emitLeave = () => emit("bar-leave");
 
 .bar-value {
   font-weight: 600;
-  color: #8e8e93;
+  color: var(--color-text-secondary);
   font-size: 13px;
   flex-shrink: 0;
 }
@@ -242,7 +242,7 @@ const emitLeave = () => emit("bar-leave");
 .bar-track {
   width: 100%;
   height: 8px;
-  background: #f2f2f7;
+  background: var(--surface-subtle);
   border-radius: 999px;
   overflow: hidden;
 }
