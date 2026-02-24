@@ -106,7 +106,8 @@ watch(
 
 <style scoped lang="scss">
 .ios-form-group {
-  background: #ffffff;
+  background: var(--surface-card);
+  border: 1px solid var(--stroke-soft);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -154,7 +155,7 @@ watch(
 
 .ios-label {
   font-size: 17px;
-  color: #000;
+  color: var(--color-text-heading);
   margin-right: 8px;
   white-space: nowrap;
   font-weight: 400;
@@ -172,7 +173,7 @@ watch(
 
   :deep(.el-input__inner) {
     font-size: 17px;
-    color: #000;
+    color: var(--color-text-heading);
     height: auto;
     line-height: normal;
     text-align: left;
@@ -182,7 +183,7 @@ watch(
 
   &.right-align :deep(.el-input__inner) {
     text-align: right;
-    color: #8e8e93;
+    color: var(--color-text-secondary);
   }
 }
 
@@ -199,7 +200,7 @@ watch(
 
   :deep(.el-input__inner) {
     font-size: 17px;
-    color: #007aff;
+    color: var(--color-primary);
     text-align: right;
     cursor: pointer;
     height: auto;
@@ -226,7 +227,7 @@ watch(
 
   .unit {
     font-size: 15px;
-    color: #8e8e93;
+    color: var(--color-text-secondary);
   }
 }
 
@@ -234,7 +235,8 @@ watch(
   width: 100px; /* 增加宽度以容纳按钮 */
 
   :deep(.el-input__wrapper) {
-    background-color: rgba(118, 118, 128, 0.12) !important;
+    background-color: var(--surface-card-muted) !important;
+    border: 1px solid var(--color-border-input);
     box-shadow: none !important;
     padding: 0 !important;
     border-radius: 8px;
@@ -245,7 +247,7 @@ watch(
     height: 32px;
     line-height: 32px;
     font-size: 16px;
-    color: #000;
+    color: var(--color-text-heading);
     padding: 0 !important;
   }
 
@@ -253,12 +255,12 @@ watch(
   :deep(.el-input-number__increase) {
     background: transparent;
     border: none;
-    color: #007aff;
+    color: var(--color-primary);
     width: 28px;
 
     &:hover {
-      color: #0056b3;
-      background: rgba(0, 0, 0, 0.05);
+      color: var(--color-primary-dark);
+      background: var(--color-bg-hover);
     }
   }
 }

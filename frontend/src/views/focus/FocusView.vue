@@ -84,7 +84,11 @@
               <span class="row-label">心情</span>
               <el-rate
                 v-model="stopForm.mood"
-                :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
+                :colors="[
+                  'var(--color-text-muted)',
+                  'var(--color-warning)',
+                  'var(--color-warning)',
+                ]"
                 size="large"
                 class="ios-rate"
               />
@@ -522,11 +526,10 @@ onActivated(() => {
 /* iOS Dialog Styles */
 :deep(.ios-dialog-modal) {
   .el-dialog {
-    background: rgba(255, 255, 255, 0.98);
+    background: var(--surface-card);
+    border: 1px solid var(--stroke-soft);
     border-radius: 14px;
-    box-shadow:
-      0 0 0 1px rgba(0, 0, 0, 0.05),
-      0 20px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--box-shadow-hover);
     padding: 0;
     overflow: hidden;
 
@@ -553,14 +556,14 @@ onActivated(() => {
   .ios-dialog-title {
     font-size: 17px;
     font-weight: 600;
-    color: #000;
+    color: var(--color-text-heading);
     margin: 0 0 4px;
     line-height: 1.3;
   }
 
   .ios-dialog-subtitle {
     font-size: 13px;
-    color: #8e8e93;
+    color: var(--color-text-secondary);
     margin: 0;
   }
 }
@@ -571,7 +574,7 @@ onActivated(() => {
   margin-bottom: 20px;
 
   .summary-row {
-    background: rgba(118, 118, 128, 0.12);
+    background: var(--surface-card-muted);
     border-radius: 10px;
     padding: 12px;
     display: flex;
@@ -586,7 +589,7 @@ onActivated(() => {
 
     .label {
       font-size: 11px;
-      color: #8e8e93;
+      color: var(--color-text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -594,10 +597,10 @@ onActivated(() => {
     .value {
       font-size: 15px;
       font-weight: 500;
-      color: #000;
+      color: var(--color-text-heading);
 
       &.highlight {
-        color: #007aff;
+        color: var(--color-primary);
         font-weight: 600;
       }
     }
@@ -606,7 +609,7 @@ onActivated(() => {
   .divider-vertical {
     width: 1px;
     height: 24px;
-    background: rgba(60, 60, 67, 0.18);
+    background: var(--stroke-soft);
   }
 }
 
@@ -630,36 +633,37 @@ onActivated(() => {
 
     .row-label {
       font-size: 15px;
-      color: #000;
+      color: var(--color-text-heading);
     }
   }
 }
 
 .ios-textarea {
   width: 100%;
-  background: rgba(118, 118, 128, 0.12);
-  border: none;
+  background: var(--surface-card-muted);
+  border: 1px solid var(--color-border-input);
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 15px;
-  color: #000;
+  color: var(--color-text-heading);
   resize: none;
   outline: none;
   font-family: inherit;
 
   &::placeholder {
-    color: #8e8e93;
+    color: var(--color-text-muted);
   }
 
   &:focus {
-    background: rgba(118, 118, 128, 0.18);
+    background: var(--surface-card);
+    border-color: var(--color-primary);
   }
 }
 
 .form-footer {
   padding: 16px 24px 24px;
-  background: white;
-  border-top: 1px solid #f3f4f6;
+  background: var(--surface-card);
+  border-top: 1px solid var(--stroke-soft);
   margin-top: auto;
 }
 

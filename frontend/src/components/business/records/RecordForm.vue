@@ -182,8 +182,8 @@ defineExpose({
 
 .form-footer {
   padding: 16px 24px 24px;
-  background: white;
-  border-top: 1px solid #f3f4f6;
+  background: var(--surface-card);
+  border-top: 1px solid var(--stroke-soft);
   margin-top: auto;
 }
 </style>

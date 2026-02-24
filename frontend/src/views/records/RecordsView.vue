@@ -340,11 +340,10 @@ watch(
 /* iOS Dialog Styles */
 :deep(.ios-dialog-modal) {
   .el-dialog {
-    background: rgba(255, 255, 255, 0.98);
+    background: var(--surface-card);
+    border: 1px solid var(--stroke-soft);
     border-radius: 14px;
-    box-shadow:
-      0 0 0 1px rgba(0, 0, 0, 0.05),
-      0 20px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--box-shadow-hover);
     padding: 0;
     overflow: hidden;
 

@@ -18,7 +18,11 @@
     <div class="ios-input-row center">
       <el-rate
         v-model="localForm.mood"
-        :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
+        :colors="[
+          'var(--color-text-muted)',
+          'var(--color-warning)',
+          'var(--color-warning)',
+        ]"
         size="large"
         class="ios-rate"
       />
@@ -89,22 +93,22 @@ watch(
   width: 100%;
 
   :deep(.el-textarea__inner) {
-    background: rgba(118, 118, 128, 0.12);
-    border: none;
+    background: var(--surface-card-muted);
+    border: 1px solid var(--color-border-input);
     border-radius: 10px;
     padding: 12px;
     font-size: 15px;
-    color: #000;
+    color: var(--color-text-heading);
     font-family: inherit;
 
     &::placeholder {
-      color: #8e8e93;
+      color: var(--color-text-muted);
     }
   }
 
   :deep(.el-input__count) {
     background: transparent;
-    color: #8e8e93;
+    color: var(--color-text-muted);
     bottom: 8px;
     right: 12px;
   }

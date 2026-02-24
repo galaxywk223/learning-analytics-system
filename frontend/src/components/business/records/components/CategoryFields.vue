@@ -93,7 +93,8 @@ function handleCategoryChange(value) {
 
 <style scoped lang="scss">
 .ios-form-group {
-  background: #ffffff;
+  background: var(--surface-card);
+  border: 1px solid var(--stroke-soft);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -141,7 +142,7 @@ function handleCategoryChange(value) {
 
 .ios-label {
   font-size: 17px;
-  color: #000;
+  color: var(--color-text-heading);
   margin-right: 8px;
   white-space: nowrap;
   font-weight: 400;
@@ -151,21 +152,23 @@ function handleCategoryChange(value) {
   flex: 1;
 
   :deep(.el-input__wrapper) {
-    background-color: transparent !important;
+    background-color: var(--surface-card-muted) !important;
+    border: 1px solid var(--color-border-input);
+    border-radius: 8px;
     box-shadow: none !important;
-    padding: 0 !important;
+    padding: 0 10px !important;
   }
 
   :deep(.el-input__inner) {
     font-size: 17px;
-    color: #007aff;
+    color: var(--color-text-heading);
     text-align: right;
     height: auto;
     line-height: normal;
   }
 
   :deep(.el-select__caret) {
-    color: #c7c7cc;
+    color: var(--color-text-muted);
     margin-left: 4px;
     font-size: 14px;
   }
