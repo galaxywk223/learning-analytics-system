@@ -4,6 +4,7 @@ Flask应用工厂
 
 import os
 import logging
+from urllib.parse import urlsplit, urlunsplit
 from typing import Any
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
@@ -18,6 +19,25 @@ db: Any = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
 cors = CORS()
+
+
+def mask_database_uri(uri: str) -> str:
+    """Mask password in database URI for safe logging."""
+    try:
+        parsed = urlsplit(uri)
+        if "@" not in parsed.netloc:
+            return uri
+        userinfo, hostinfo = parsed.netloc.rsplit("@", 1)
+        if ":" in userinfo:
+            username, _password = userinfo.split(":", 1)
+            userinfo = f"{username}:***"
+        else:
+            userinfo = f"{userinfo}:***"
+        return urlunsplit(
+            (parsed.scheme, f"{userinfo}@{hostinfo}", parsed.path, parsed.query, parsed.fragment)
+        )
+    except Exception:
+        return uri
 
 
 def create_app(config_name=None):
@@ -76,6 +96,10 @@ def create_app(config_name=None):
 
     # 配置日志
     setup_logging(app)
+    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI")
+    if isinstance(db_uri, str):
+        masked = mask_database_uri(db_uri)
+        app.logger.info("Database URI in use: %s", masked)
 
     # 注册蓝图
     register_blueprints(app)

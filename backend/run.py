@@ -4,10 +4,11 @@ API服务器启动脚本
 
 import os
 from dotenv import load_dotenv
-from app import create_app, db
 
 # 加载环境变量
-load_dotenv()
+load_dotenv(override=True)
+
+from app import create_app, db
 
 # 创建应用
 config_name = os.getenv("FLASK_ENV", "development")

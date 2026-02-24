@@ -3,9 +3,99 @@
 """
 
 import os
+import re
+from typing import Final
 from datetime import timedelta
+from urllib.parse import quote, unquote_to_bytes, urlsplit, urlunsplit
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+PERCENT_ENCODED_RUN_RE = re.compile(r"(?:%[0-9A-Fa-f]{2})+")
+
+
+def normalize_postgres_url(raw_url: str | None) -> str | None:
+    """
+    Normalize PostgreSQL URL userinfo to avoid decode failures in psycopg2.
+
+    This primarily handles credentials that were percent-encoded with a
+    non-UTF-8 charset (common on Windows shells), e.g. `%D6%D0`.
+    """
+    if not raw_url:
+        return raw_url
+
+    scheme = urlsplit(raw_url).scheme.lower()
+    if not (scheme.startswith("postgresql") or scheme == "postgres"):
+        return raw_url
+
+    fallback_encodings: Final[tuple[str, ...]] = ("utf-8", "gb18030", "gbk", "latin-1")
+
+    def _repair_percent_encoded_runs(text: str) -> str:
+        def _replace(match: re.Match[str]) -> str:
+            chunk = match.group(0)
+            raw_bytes = unquote_to_bytes(chunk)
+            try:
+                raw_bytes.decode("utf-8")
+                return chunk
+            except UnicodeDecodeError:
+                for encoding in fallback_encodings:
+                    try:
+                        decoded = raw_bytes.decode(encoding)
+                        return quote(decoded, safe="")
+                    except UnicodeDecodeError:
+                        continue
+                return chunk
+
+        return PERCENT_ENCODED_RUN_RE.sub(_replace, text)
+
+    # First pass: repair broken percent-encoded bytes globally.
+    raw_url = _repair_percent_encoded_runs(raw_url)
+
+    parsed = urlsplit(raw_url)
+
+    def _normalize_component(component: str, safe: str = "") -> str:
+        if not component:
+            return component
+        if "%" in component:
+            raw_bytes = unquote_to_bytes(component)
+            try:
+                raw_bytes.decode("utf-8")
+                return component
+            except UnicodeDecodeError:
+                for encoding in fallback_encodings:
+                    try:
+                        decoded = raw_bytes.decode(encoding)
+                        return quote(decoded, safe=safe)
+                    except UnicodeDecodeError:
+                        continue
+                return component
+        return quote(component, safe=safe)
+
+    normalized_netloc = parsed.netloc
+    if "@" in parsed.netloc:
+        userinfo, hostinfo = parsed.netloc.rsplit("@", 1)
+        if ":" in userinfo:
+            username, password = userinfo.split(":", 1)
+        else:
+            username, password = userinfo, None
+
+        normalized_username = _normalize_component(username)
+        normalized_userinfo = normalized_username
+        if password is not None:
+            normalized_password = _normalize_component(password)
+            normalized_userinfo = f"{normalized_username}:{normalized_password}"
+        normalized_netloc = f"{normalized_userinfo}@{hostinfo}"
+
+    normalized_path = _normalize_component(parsed.path, safe="/")
+    normalized_query = _normalize_component(parsed.query, safe="=&")
+    normalized_fragment = _normalize_component(parsed.fragment)
+    return urlunsplit(
+        (
+            parsed.scheme,
+            normalized_netloc,
+            normalized_path,
+            normalized_query,
+            normalized_fragment,
+        )
+    )
 
 
 def resolve_upload_folder(default_path: str) -> str:
@@ -106,8 +196,8 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_ECHO = True
     # PostgreSQL 配置
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DEV_DATABASE_URL"
+    SQLALCHEMY_DATABASE_URI = normalize_postgres_url(
+        os.environ.get("DEV_DATABASE_URL")
     ) or "postgresql://kai:123456@localhost:5432/learning_analytics_system"
 
     @staticmethod
@@ -121,8 +211,8 @@ class ProductionConfig(Config):
     """生产环境配置"""
 
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL"
+    SQLALCHEMY_DATABASE_URI = normalize_postgres_url(
+        os.environ.get("DATABASE_URL")
     ) or "sqlite:///" + os.path.join(basedir, "instance", "prod.db")
 
     # 生产环境上传目录

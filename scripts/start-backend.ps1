@@ -1,14 +1,22 @@
+param(
+  [switch]$RecreateVenv,
+  [switch]$ReinstallDeps
+)
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 # start-backend.ps1
 # 用途：为本地开发启动后端（不应提交到 git）
-# 主要步骤：进入 backend，重建 .venv，激活，校验 Python 3.12，安装依赖并运行 flask
+# 主要步骤：进入 backend，按需创建 .venv，校验 Python 3.12，按需安装依赖并运行 flask
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = Resolve-Path (Join-Path $ScriptDir "..")
 $BackendDir = Join-Path $RepoRoot "backend"
 $VenvDir = Join-Path $BackendDir ".venv"
+$RequirementsFile = Join-Path $BackendDir "requirements.txt"
+$RequirementsHashFile = Join-Path $VenvDir ".requirements.sha256"
+$RequiredPythonMinor = "3.12"
 $PythonBin = "python3.12"
 $PythonExeCmd = $null
 $PythonExeArgs = @()
@@ -29,48 +37,65 @@ if (Get-Command "py" -ErrorAction SilentlyContinue) {
   exit 1
 }
 
-# 删除并重建虚拟环境
-if (Test-Path $VenvDir) {
-  Write-Host "移除已有虚拟环境: $VenvDir"
-  Remove-Item -Recurse -Force $VenvDir
+function Get-VenvPythonPath {
+  param([string]$Dir)
+  $candidates = @(
+    (Join-Path $Dir "Scripts\\python.exe"),
+    (Join-Path $Dir "Scripts\\python"),
+    (Join-Path $Dir "bin\\python"),
+    (Join-Path $Dir "bin\\python3.12")
+  )
+  foreach ($candidate in $candidates) {
+    if (Test-Path $candidate) {
+      return $candidate
+    }
+  }
+  return $null
 }
 
-Write-Host "使用 $PythonExeCmd $($PythonExeArgs -join ' ') 创建虚拟环境..."
-& $PythonExeCmd @PythonExeArgs -m venv $VenvDir
-if ($LASTEXITCODE -ne 0) {
-  Write-Error "错误: 创建虚拟环境失败 (exit code $LASTEXITCODE)。"
-  exit $LASTEXITCODE
-}
-if (-not (Test-Path $VenvDir)) {
-  Write-Error "错误: 虚拟环境目录未创建: $VenvDir"
-  exit 1
+function New-Venv {
+  param([string]$Dir)
+  if (Test-Path $Dir) {
+    Write-Host "移除已有虚拟环境: $Dir"
+    Remove-Item -Recurse -Force $Dir
+  }
+  Write-Host "使用 $PythonExeCmd $($PythonExeArgs -join ' ') 创建虚拟环境..."
+  & $PythonExeCmd @PythonExeArgs -m venv $Dir
+  if ($LASTEXITCODE -ne 0) {
+    Write-Error "错误: 创建虚拟环境失败 (exit code $LASTEXITCODE)。"
+    exit $LASTEXITCODE
+  }
+  if (-not (Test-Path $Dir)) {
+    Write-Error "错误: 虚拟环境目录未创建: $Dir"
+    exit 1
+  }
 }
 
-# 尝试激活虚拟环境；若不可用则直接使用 venv 的 python 路径
-$ActivateDir = Join-Path $VenvDir "Scripts"
-$ActivateScript = Join-Path $ActivateDir "Activate.ps1"
-$VenvPythonWin = Join-Path $ActivateDir "python.exe"
-$VenvPythonPosix = Join-Path $VenvDir "bin\\python"
-$VenvPythonPosixAlt = Join-Path $VenvDir "bin\\python3.12"
-$VenvPythonWinAlt = Join-Path $ActivateDir "python"
-$PythonExe = $null
+$NeedCreateVenv = $RecreateVenv -or -not (Test-Path $VenvDir)
+if (-not $NeedCreateVenv) {
+  $existingVenvPython = Get-VenvPythonPath -Dir $VenvDir
+  if (-not $existingVenvPython) {
+    Write-Host "现有虚拟环境不完整，重新创建: $VenvDir"
+    $NeedCreateVenv = $true
+  } else {
+    $existingVersion = & $existingVenvPython -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+    if ($existingVersion -ne $RequiredPythonMinor) {
+      Write-Host "现有虚拟环境 Python 版本为 $existingVersion，要求 $RequiredPythonMinor，重新创建。"
+      $NeedCreateVenv = $true
+    }
+  }
+}
 
-if (Test-Path $ActivateScript) {
-  . $ActivateScript
-  $PythonExe = "python"
-} elseif (Test-Path $VenvPythonWin) {
-  Write-Host "未找到 Activate.ps1，改用 venv 的 python: $VenvPythonWin"
-  $PythonExe = $VenvPythonWin
-} elseif (Test-Path $VenvPythonWinAlt) {
-  Write-Host "未找到 Activate.ps1，改用 venv 的 python: $VenvPythonWinAlt"
-  $PythonExe = $VenvPythonWinAlt
-} elseif (Test-Path $VenvPythonPosix) {
-  Write-Host "未找到 Activate.ps1，改用 venv 的 python: $VenvPythonPosix"
-  $PythonExe = $VenvPythonPosix
-} elseif (Test-Path $VenvPythonPosixAlt) {
-  Write-Host "未找到 Activate.ps1，改用 venv 的 python: $VenvPythonPosixAlt"
-  $PythonExe = $VenvPythonPosixAlt
+if ($NeedCreateVenv) {
+  New-Venv -Dir $VenvDir
 } else {
+  Write-Host "复用已有虚拟环境: $VenvDir"
+}
+
+# 直接使用 venv 的 python 路径，避免依赖激活脚本
+$PythonExe = Get-VenvPythonPath -Dir $VenvDir
+if (-not $PythonExe) {
+  $ActivateDir = Join-Path $VenvDir "Scripts"
   Write-Error "错误: 未找到虚拟环境的 python，可执行文件不存在。请确认 venv 是否创建成功。"
   Write-Host "诊断: $VenvDir 内容如下："
   Get-ChildItem -Force -Path $VenvDir | Format-Table -AutoSize
@@ -86,18 +111,29 @@ if (Test-Path $ActivateScript) {
   exit 1
 }
 
-Write-Host "使用的 Python: $(& $PythonExe -c \"import sys;print(sys.executable)\")"
+$PythonPath = & $PythonExe -c "import sys;print(sys.executable)"
+Write-Host "使用的 Python: $PythonPath"
 & $PythonExe --version
 & $PythonExe -c "import sys,site,platform;print(sys.executable);print(site.getsitepackages());print(platform.python_version())"
 
-# 更新 pip 工具并安装依赖
-Write-Host "升级 pip/setuptools/wheel..."
-& $PythonExe -m pip install -U pip setuptools wheel
-
-$RequirementsFile = Join-Path $BackendDir "requirements.txt"
+# 按需安装依赖：首次创建、requirements 变化或显式要求
 if (Test-Path $RequirementsFile) {
-  Write-Host "安装 requirements.txt 中的依赖..."
-  & $PythonExe -m pip install -r $RequirementsFile
+  $currentReqHash = (Get-FileHash -Algorithm SHA256 -Path $RequirementsFile).Hash
+  $previousReqHash = $null
+  if (Test-Path $RequirementsHashFile) {
+    $previousReqHash = (Get-Content $RequirementsHashFile -Raw).Trim()
+  }
+
+  $needInstallDeps = $ReinstallDeps -or $NeedCreateVenv -or ($currentReqHash -ne $previousReqHash)
+
+  if ($needInstallDeps) {
+    Write-Host "安装/更新后端依赖..."
+    & $PythonExe -m pip install -U pip setuptools wheel
+    & $PythonExe -m pip install -r $RequirementsFile
+    Set-Content -Path $RequirementsHashFile -Value $currentReqHash -Encoding ascii -NoNewline
+  } else {
+    Write-Host "requirements.txt 未变化，跳过依赖安装。需要强制重装可加参数 -ReinstallDeps。"
+  }
 } else {
   Write-Host "警告: 在 $BackendDir 中未找到 requirements.txt，跳过依赖安装。"
 }
