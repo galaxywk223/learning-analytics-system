@@ -224,6 +224,17 @@ export const useCategoryStore = defineStore("category", () => {
     await fetchAll(true);
   }
 
+  async function mergeSubcategory(
+    sourceSubcategoryId: number | string,
+    targetSubcategoryId: number | string,
+  ) {
+    if (!sourceSubcategoryId || !targetSubcategoryId) return;
+    await categoryAPI.mergeSubcategory(sourceSubcategoryId, {
+      target_subcategory_id: targetSubcategoryId,
+    });
+    await fetchAll(true);
+  }
+
   const categoryTree = computed(() => tree.value);
   const categories = computed(() => flat.value);
   const createCategory = createRoot;
@@ -247,6 +258,7 @@ export const useCategoryStore = defineStore("category", () => {
     createChild,
     rename,
     remove,
+    mergeSubcategory,
     categoryTree,
     categories,
     createCategory,

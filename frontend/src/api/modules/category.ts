@@ -72,4 +72,13 @@ export const categoryAPI = {
       method: "delete",
     });
   },
+
+  // 合并子分类（将 source 合并到 target，保留 target）
+  mergeSubcategory(subcategoryId, data) {
+    return request({
+      url: `/api/categories/subcategories/${subcategoryId}/merge`,
+      method: "post",
+      data,
+    });
+  },
 };

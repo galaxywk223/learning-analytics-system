@@ -20,6 +20,14 @@
           ✏️
         </button>
         <button
+          v-if="selectedNode && canMerge"
+          class="action-btn"
+          title="合并到其他子分类"
+          @click="$emit('merge', selectedNode)"
+        >
+          🔀
+        </button>
+        <button
           v-if="selectedNode && canDelete"
           class="action-btn danger"
           title="删除"
@@ -95,6 +103,7 @@ const emit = defineEmits([
   "node-collapse",
   "add-child",
   "edit",
+  "merge",
   "delete",
 ]);
 
@@ -116,6 +125,10 @@ const canAddChild = computed(() => {
 
 const canDelete = computed(() => {
   return props.selectedNode && props.selectedNode.id;
+});
+
+const canMerge = computed(() => {
+  return props.selectedNode && props.selectedNode.id && !!props.selectedNode.category_id;
 });
 
 // 事件处理

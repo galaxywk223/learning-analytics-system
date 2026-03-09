@@ -5,7 +5,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
-from app.models import Category, SubCategory
+from app.models import Category, SubCategory, LogEntry
 
 bp = Blueprint("categories", __name__)
 
@@ -245,3 +245,67 @@ def delete_subcategory(subcategory_id):
         db.session.rollback()
         current_app.logger.error(f"Subcategory deletion error: {e}")
         return jsonify({"success": False, "message": "删除失败"}), 500
+
+
+@bp.route("/subcategories/<int:subcategory_id>/merge", methods=["POST"])
+@jwt_required()
+def merge_subcategory(subcategory_id):
+    """将一个子分类合并到另一个子分类（保留目标子分类）"""
+    current_user_id = get_jwt_identity()
+    source_subcategory = (
+        SubCategory.query.join(Category)
+        .filter(SubCategory.id == subcategory_id, Category.user_id == current_user_id)
+        .first()
+    )
+
+    if not source_subcategory:
+        return jsonify({"success": False, "message": "待合并子分类不存在"}), 404
+
+    data = request.get_json() or {}
+    target_subcategory_id = data.get("target_subcategory_id")
+    if target_subcategory_id is None:
+        return jsonify({"success": False, "message": "目标子分类为必填项"}), 400
+
+    try:
+        target_subcategory_id = int(target_subcategory_id)
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "message": "目标子分类ID无效"}), 400
+
+    if target_subcategory_id == subcategory_id:
+        return jsonify({"success": False, "message": "不能合并到自身"}), 400
+
+    target_subcategory = (
+        SubCategory.query.join(Category)
+        .filter(
+            SubCategory.id == target_subcategory_id, Category.user_id == current_user_id
+        )
+        .first()
+    )
+    if not target_subcategory:
+        return jsonify({"success": False, "message": "目标子分类不存在"}), 404
+
+    source_name = source_subcategory.name
+    target_name = target_subcategory.name
+
+    try:
+        moved_records = LogEntry.query.filter_by(subcategory_id=subcategory_id).update(
+            {"subcategory_id": target_subcategory_id},
+            synchronize_session=False,
+        )
+        db.session.delete(source_subcategory)
+        db.session.commit()
+
+        return jsonify(
+            {
+                "success": True,
+                "message": f'已将标签 "{source_name}" 合并到 "{target_name}"',
+                "moved_records": moved_records,
+                "target_subcategory": target_subcategory.to_dict(
+                    include_category=True
+                ),
+            }
+        ), 200
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Subcategory merge error: {e}")
+        return jsonify({"success": False, "message": "合并失败"}), 500
