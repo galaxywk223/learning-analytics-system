@@ -2,11 +2,83 @@
   <div class="dashboard-view">
     <!-- Header Section -->
     <header class="dashboard-header">
+      <div class="header-glow header-glow--a"></div>
+      <div class="header-glow header-glow--b"></div>
       <div class="header-content">
-        <h1 class="cheer-title">加油</h1>
-        <p class="cheer-intro">
-          仿佛一场长跑，已行至后半。远方的目标已然在望，步履的沉重也同样真切。心中交织着复杂的感慨：既热切地憧憬着抵达，也清醒地敬畏着这段路程。这并非不知前路何方，而是比以往任何时刻，都更笃定了路在脚下的意义。
-        </p>
+        <div class="header-copy">
+          <p class="header-kicker">
+            <span class="header-kicker__dot"></span>
+            {{ dashboardGreeting }}，欢迎回来
+          </p>
+          <h1 class="cheer-title">加油</h1>
+          <h2 class="hero-title">把今天再往前推一点</h2>
+          <div class="hero-motto">
+            <div class="hero-motto__header">
+              <span class="hero-motto__label">今日格言</span>
+              <button
+                type="button"
+                class="hero-motto__refresh"
+                :disabled="mottoRefreshing || mottoStore.loading"
+                title="换一句"
+                @click="refreshHeroMotto()"
+              >
+                <Icon
+                  icon="lucide:refresh-cw"
+                  :class="{ 'is-spinning': mottoRefreshing || mottoStore.loading }"
+                />
+              </button>
+            </div>
+            <p class="hero-motto__content">
+              “{{ activeMotto?.content || FALLBACK_MOTTO }}”
+            </p>
+            <p class="hero-motto__meta">
+              {{
+                mottoStore.items.length
+                  ? `来自你的 ${mottoStore.items.length} 条自定义格言`
+                  : "当前还没有自定义格言"
+              }}
+            </p>
+          </div>
+        </div>
+
+        <aside class="header-summary">
+          <div class="summary-hero">
+            <span class="summary-label">今日学习时长</span>
+            <div class="summary-hero__value">{{ todayFocusDuration }}</div>
+            <div class="summary-hero__meta">
+              <span>共 {{ totalRecordsLabel }} 条记录</span>
+              <span>{{ latestRecordStatus }}</span>
+            </div>
+          </div>
+
+          <div class="summary-mini-grid">
+            <div class="summary-card">
+              <span class="summary-label">下个倒计时</span>
+              <strong class="summary-value-sm">{{ countdownDays }}</strong>
+              <span class="summary-meta">{{ countdownTitle }}</span>
+            </div>
+            <div class="summary-card">
+              <span class="summary-label">里程碑</span>
+              <strong class="summary-value-sm">{{ milestoneCount }}</strong>
+              <span class="summary-meta">已记录的重要节点</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="header-status-row">
+        <div class="status-pill">
+          <Icon icon="lucide:calendar-days" />
+          <span>{{ latestRecordStatus }}</span>
+        </div>
+        <div class="status-pill">
+          <Icon icon="lucide:flag" />
+          <span>{{ countdownStatus }}</span>
+        </div>
+        <div class="status-pill status-pill--quote">
+          <Icon icon="lucide:sparkles" />
+          <span>{{ heroMotto }}</span>
+        </div>
       </div>
     </header>
 
@@ -78,63 +150,6 @@
         </router-link>
       </div>
 
-      <!-- Row 2: Function Matrix (Square Cards) -->
-      <div class="grid-row-2">
-        <!-- Card 3: Start Focus -->
-        <router-link to="/focus" class="bento-card square-card focus-card">
-          <p class="card-title">专注计时</p>
-          <div class="card-content centered">
-            <span class="big-number cyan-glow">{{ todayFocusDuration }}</span>
-            <span class="card-label">今日专注</span>
-          </div>
-        </router-link>
-
-        <!-- Card 4: Countdown -->
-        <router-link
-          to="/countdown"
-          class="bento-card square-card countdown-card"
-        >
-          <p class="card-title">倒计时</p>
-          <div class="card-content centered">
-            <span class="big-number yellow-glow">{{ countdownDays }}</span>
-            <span class="card-label">{{ countdownTitle }}</span>
-          </div>
-        </router-link>
-
-        <!-- Card 5: Achievements -->
-        <router-link
-          to="/milestones"
-          class="bento-card square-card achievement-card"
-        >
-          <p class="card-title">成就时刻</p>
-          <div class="card-content centered">
-            <Icon icon="lucide:trophy" class="big-icon yellow-glow" />
-            <span class="big-number-sm cyan-glow">{{ milestoneCount }}</span>
-            <span class="card-label">成就时刻</span>
-          </div>
-        </router-link>
-
-        <!-- Card 6: Ranking -->
-        <router-link
-          to="/leaderboard"
-          class="bento-card square-card ranking-card"
-        >
-          <p class="card-title">社区排行</p>
-          <div class="card-content centered">
-            <span class="rank-icon">👑</span>
-            <span class="status-text gradient-text">{{ rankingLabel }}</span>
-          </div>
-        </router-link>
-
-        <!-- Card 7: AI Plan -->
-        <router-link to="/ai" class="bento-card square-card ai-card">
-          <p class="card-title">智能规划</p>
-          <div class="card-content centered">
-            <Icon icon="lucide:sparkles" class="big-icon cyan-glow" />
-            <span class="status-text">{{ aiPlanStatus }}</span>
-          </div>
-        </router-link>
-      </div>
     </div>
 
     <!-- Floating Action Button -->
@@ -158,6 +173,9 @@ import { recordApi } from "@/api/modules/records";
 const dashboardStore = useDashboardStore();
 const mottoStore = useMottoStore();
 const allRecords = ref<any[]>([]);
+const activeMotto = ref<any>(null);
+const mottoRefreshing = ref(false);
+const FALLBACK_MOTTO = "去设置里添加几条格言，这里会随机展示。";
 
 const formatDuration = (minutes) => {
   if (!minutes) return "0 分钟";
@@ -180,14 +198,48 @@ async function fetchRecentRecords() {
   }
 }
 
+function selectRandomMotto(excludeCurrent = false) {
+  const items = Array.isArray(mottoStore.items) ? mottoStore.items : [];
+  if (!items.length) {
+    activeMotto.value = { id: null, content: FALLBACK_MOTTO };
+    return;
+  }
+
+  const pool =
+    excludeCurrent && items.length > 1 && activeMotto.value?.id
+      ? items.filter((item: any) => item.id !== activeMotto.value.id)
+      : items;
+
+  const next = pool[Math.floor(Math.random() * pool.length)];
+  activeMotto.value = next || { id: null, content: FALLBACK_MOTTO };
+}
+
+async function refreshHeroMotto(forceFetch = false) {
+  if (mottoRefreshing.value) return;
+  mottoRefreshing.value = true;
+  try {
+    if (forceFetch || !mottoStore.items.length) {
+      await mottoStore.fetch();
+    }
+    selectRandomMotto(true);
+  } catch (error) {
+    console.error("Failed to refresh motto", error);
+    activeMotto.value = { id: null, content: FALLBACK_MOTTO };
+  } finally {
+    mottoRefreshing.value = false;
+  }
+}
+
 onMounted(async () => {
   await dashboardStore.fetchSummary();
   await fetchRecentRecords();
+  await refreshHeroMotto(true);
 });
 
 onActivated(async () => {
   await dashboardStore.fetchSummary();
   await fetchRecentRecords();
+  await refreshHeroMotto(true);
 });
 
 const sortedRecords = computed(() => {
@@ -228,6 +280,14 @@ const todayFocusDuration = computed(() => {
     .padStart(2, "0")}`;
 });
 
+const dashboardGreeting = computed(
+  () => dashboardStore.summary?.greeting || "欢迎回来",
+);
+
+const totalRecordsLabel = computed(
+  () => dashboardStore.summary?.total_records ?? 0,
+);
+
 const countdownDays = computed(() => {
   const next = dashboardStore.summary?.next_countdown;
   return Math.max(next?.remaining_days ?? 0, 9); // Default to 9 to match screenshot if 0
@@ -240,12 +300,23 @@ const milestoneCount = computed(
   () => dashboardStore.summary?.milestones_count ?? 19, // Default to 19 to match screenshot if 0
 );
 
-const rankingLabel = computed(
-  () => (dashboardStore.summary as any)?.ranking_label || "Top 5% 前 5%",
-);
+const latestRecordStatus = computed(() => {
+  const latest = dashboardStore.summary?.latest_record_date;
+  return latest
+    ? `最近记录于 ${dayjs(latest).format("MM/DD")}`
+    : "最近还没有记录";
+});
 
-const aiPlanStatus = computed(() => {
-  return "已生成今日计划";
+const countdownStatus = computed(() => {
+  const next = dashboardStore.summary?.next_countdown;
+  if (!next) return "暂时没有倒计时";
+  return `${next.title} 还剩 ${Math.max(next.remaining_days ?? 0, 0)} 天`;
+});
+
+const heroMotto = computed(() => {
+  const content = activeMotto.value?.content;
+  if (!content) return "稳定推进，比偶尔爆发更可靠";
+  return content.length > 24 ? `${content.slice(0, 24)}...` : content;
 });
 
 const last7Days = computed(() => {

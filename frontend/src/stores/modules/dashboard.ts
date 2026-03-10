@@ -5,6 +5,7 @@ export const useDashboardStore = defineStore("dashboard", {
   state: () => ({
     loading: false,
     summary: {
+      greeting: "",
       today_duration_minutes: 0,
       today_duration_formatted: "0m",
       total_records: 0,
