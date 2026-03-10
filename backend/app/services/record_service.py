@@ -11,7 +11,7 @@ from sqlalchemy.orm import joinedload
 
 from app import db
 from app.models import Stage, LogEntry, WeeklyData, DailyData, Category, SubCategory
-from .helpers import get_custom_week_info
+from .helpers import get_custom_week_info, get_custom_week_window
 
 
 def get_stage_for_date(user_id, log_date):
@@ -206,16 +206,33 @@ def update_efficiency_for_date(log_date, stage):
         daily_score = _calculate_daily_efficiency_score(log_date, stage.id)
         _get_or_create_daily_data(log_date, stage.id, daily_score)
 
-        year, week_num = get_custom_week_info(log_date, stage.start_date)
+        week_start_date, week_end_date, year, week_num = get_custom_week_window(
+            log_date, stage.start_date
+        )
 
-        week_start_date = stage.start_date + timedelta(weeks=week_num - 1)
-        week_end_date = week_start_date + timedelta(days=6)
+        next_stage = (
+            Stage.query.filter(
+                Stage.user_id == stage.user_id, Stage.start_date > stage.start_date
+            )
+            .order_by(Stage.start_date.asc())
+            .first()
+        )
+        stage_end_date = (
+            (next_stage.start_date - timedelta(days=1)) if next_stage else date.today()
+        )
+        effective_start = max(week_start_date, stage.start_date)
+        effective_end = min(week_end_date, stage_end_date, date.today())
+        days_in_week = (
+            (effective_end - effective_start).days + 1
+            if effective_end >= effective_start
+            else 0
+        )
 
         daily_scores_for_week = (
             db.session.query(DailyData.efficiency)
             .filter(
                 DailyData.stage_id == stage.id,
-                DailyData.log_date.between(week_start_date, week_end_date),
+                DailyData.log_date.between(effective_start, effective_end),
             )
             .all()
         )
@@ -223,8 +240,7 @@ def update_efficiency_for_date(log_date, stage):
         total_score = sum(
             item[0] for item in daily_scores_for_week if item[0] is not None
         )
-        count = len(daily_scores_for_week)
-        average_score = total_score / count if count > 0 else 0.0
+        average_score = total_score / days_in_week if days_in_week > 0 else 0.0
 
         _get_or_create_weekly_data(year, week_num, stage.id, average_score)
 
@@ -271,16 +287,16 @@ def recalculate_efficiency_for_stage(stage):
             (next_stage.start_date - timedelta(days=1)) if next_stage else date.today()
         )
 
-        unique_weeks = sorted(
-            list(
-                set(get_custom_week_info(d, stage.start_date) for d in unique_log_dates)
+        week_windows = {}
+        for log_date in unique_log_dates:
+            week_start, week_end, year, week_num = get_custom_week_window(
+                log_date, stage.start_date
             )
-        )
-        for year, week_num in unique_weeks:
-            theoretical_week_start = stage.start_date + timedelta(weeks=week_num - 1)
-            theoretical_week_end = theoretical_week_start + timedelta(days=6)
-            effective_start = max(theoretical_week_start, stage.start_date)
-            effective_end = min(theoretical_week_end, stage_end_date, date.today())
+            week_windows[(year, week_num)] = (week_start, week_end)
+
+        for (year, week_num), (week_start, week_end) in sorted(week_windows.items()):
+            effective_start = max(week_start, stage.start_date)
+            effective_end = min(week_end, stage_end_date, date.today())
             days_in_week = (
                 (effective_end - effective_start).days + 1
                 if effective_end >= effective_start
@@ -363,24 +379,41 @@ def get_structured_logs_for_stage(stage, sort_order="desc"):
         get_custom_week_info(log.log_date, stage.start_date) for log in all_logs
     }
 
-    day_data_map = {}
-    if log_dates:
-        daily_rows = (
-            DailyData.query.filter(
-                DailyData.stage_id == stage.id, DailyData.log_date.in_(log_dates)
-            ).all()
-        )
-        day_data_map = {row.log_date: row for row in daily_rows}
+    def _load_efficiency_maps():
+        daily_rows = []
+        weekly_rows = []
 
-    week_data_map = {}
-    if week_keys:
-        weekly_rows = (
-            WeeklyData.query.filter(
-                WeeklyData.stage_id == stage.id,
-                tuple_(WeeklyData.year, WeeklyData.week_num).in_(list(week_keys)),
-            ).all()
+        if log_dates:
+            daily_rows = (
+                DailyData.query.filter(
+                    DailyData.stage_id == stage.id, DailyData.log_date.in_(log_dates)
+                ).all()
+            )
+
+        if week_keys:
+            weekly_rows = (
+                WeeklyData.query.filter(
+                    WeeklyData.stage_id == stage.id,
+                    tuple_(WeeklyData.year, WeeklyData.week_num).in_(list(week_keys)),
+                ).all()
+            )
+
+        return (
+            {row.log_date: row for row in daily_rows},
+            {(row.year, row.week_num): row for row in weekly_rows},
+            len(daily_rows),
+            len(weekly_rows),
         )
-        week_data_map = {(row.year, row.week_num): row for row in weekly_rows}
+
+    day_data_map, week_data_map, daily_row_count, weekly_row_count = (
+        _load_efficiency_maps()
+    )
+
+    if (log_dates and daily_row_count != len(log_dates)) or (
+        week_keys and weekly_row_count != len(week_keys)
+    ):
+        recalculate_efficiency_for_stage(stage)
+        day_data_map, week_data_map, _, _ = _load_efficiency_maps()
 
     logs_by_week_iter = groupby(
         all_logs, key=lambda log: get_custom_week_info(log.log_date, stage.start_date)

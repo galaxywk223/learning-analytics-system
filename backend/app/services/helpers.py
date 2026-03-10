@@ -7,6 +7,50 @@ import numpy as np
 from datetime import date, datetime, timedelta
 
 
+def _coerce_to_date(value):
+    if isinstance(value, date):
+        return value
+    return date.fromisoformat(value)
+
+
+def get_custom_week_window(log_date, start_date):
+    """
+    根据阶段起始日期计算所属周窗口。
+
+    规则:
+    - 若阶段从周一开始，则按完整自然周(周一到周日)划分。
+    - 若阶段从周中开始，则第一周为 start_date 到当周周日。
+    - 第二周起固定按周一到周日划分。
+
+    返回:
+        tuple[date, date, int, int]: (week_start, week_end, year, week_num)
+    """
+    log_date = _coerce_to_date(log_date)
+    start_date = _coerce_to_date(start_date)
+
+    if log_date < start_date:
+        first_week_end = start_date + timedelta(days=(6 - start_date.weekday()) % 7)
+        return start_date, first_week_end, start_date.year, 1
+
+    if start_date.weekday() == 0:
+        days_diff = (log_date - start_date).days
+        week_num = (days_diff // 7) + 1
+        week_start = start_date + timedelta(weeks=week_num - 1)
+        week_end = week_start + timedelta(days=6)
+        return week_start, week_end, week_start.year, week_num
+
+    first_week_end = start_date + timedelta(days=6 - start_date.weekday())
+    if log_date <= first_week_end:
+        return start_date, first_week_end, start_date.year, 1
+
+    first_full_week_start = first_week_end + timedelta(days=1)
+    weeks_after_first = (log_date - first_full_week_start).days // 7
+    week_num = weeks_after_first + 2
+    week_start = first_full_week_start + timedelta(weeks=weeks_after_first)
+    week_end = week_start + timedelta(days=6)
+    return week_start, week_end, week_start.year, week_num
+
+
 def get_custom_week_info(log_date, start_date):
     """
     根据自定义起始日期计算周信息
@@ -18,14 +62,8 @@ def get_custom_week_info(log_date, start_date):
     返回:
         tuple: (年份, 周数)
     """
-    if not isinstance(log_date, date):
-        log_date = date.fromisoformat(log_date)
-    days_diff = (log_date - start_date).days
-    if days_diff < 0:
-        return start_date.year, 1
-    week_num = (days_diff // 7) + 1
-    week_start_date = start_date + timedelta(weeks=week_num - 1)
-    return week_start_date.year, week_num
+    _, _, year, week_num = get_custom_week_window(log_date, start_date)
+    return year, week_num
 
 
 def parse_csv_duration(duration_str):

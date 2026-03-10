@@ -10,7 +10,7 @@ from sqlalchemy import func, desc
 import numpy as np
 
 from app import db
-from app.models import Stage, LogEntry, WeeklyData, DailyData, Category, SubCategory
+from app.models import Stage, LogEntry, DailyData, Category, SubCategory
 from .helpers import get_custom_week_info
 
 
@@ -134,7 +134,7 @@ class _CategoryAgg(TypedDict):
 def _prepare_trend_data(user_id, all_stages, all_logs):
     """准备每日和每周趋势的数据结构"""
     first_log_date = min(log.log_date for log in all_logs)
-    last_log_date = date.today()
+    last_log_date = max(log.log_date for log in all_logs)
     global_start_date = all_stages[0].start_date
     stage_ids = [s.id for s in all_stages]
 
@@ -168,29 +168,25 @@ def _prepare_trend_data(user_id, all_stages, all_logs):
             daily_duration_map.get(d) or 0
         )
         weekly_data[(year, week_num)]["days"] += 1
-
-    weekly_efficiency_from_db = (
-        WeeklyData.query.join(Stage).filter(Stage.user_id == user_id).all()
-    )
-    for w_eff in weekly_efficiency_from_db:
-        week_start_in_stage = w_eff.stage.start_date + timedelta(
-            weeks=w_eff.week_num - 1
+        day_efficiency = daily_efficiency_map.get(d)
+        if day_efficiency is None:
+            day_efficiency = 0.0
+        current_efficiency = weekly_data[(year, week_num)]["efficiency"] or 0.0
+        weekly_data[(year, week_num)]["efficiency"] = current_efficiency + float(
+            day_efficiency
         )
-        global_year, global_week_num = get_custom_week_info(
-            week_start_in_stage, global_start_date
-        )
-        if (global_year, global_week_num) in weekly_data:
-            weekly_data[(global_year, global_week_num)]["efficiency"] = w_eff.efficiency
 
     sorted_week_keys = sorted(weekly_data.keys())
     weekly_labels = [f"{k[0]}-W{k[1]:02}" for k in sorted_week_keys]
     # 计算周平均时长：总时长除以该周包含的天数
     weekly_durations = []
+    weekly_efficiencies = []
     for k in sorted_week_keys:
         duration = weekly_data[k]["duration"]
         days = weekly_data[k]["days"] or 0
         weekly_durations.append(round(duration / 60 / max(days, 1), 2))
-    weekly_efficiencies = [weekly_data[k]["efficiency"] for k in sorted_week_keys]
+        efficiency_total = weekly_data[k]["efficiency"] or 0.0
+        weekly_efficiencies.append(round(efficiency_total / max(days, 1), 2))
 
     return {
         "weekly_duration_data": {
@@ -283,7 +279,7 @@ def get_chart_data_for_user(user_id):
     trend_data = _prepare_trend_data(user_id, all_stages, all_logs)
 
     global_start_date = all_stages[0].start_date
-    last_log_date = date.today()
+    last_log_date = max(log.log_date for log in all_logs)
     stage_annotations = _prepare_stage_annotations(
         user_id, all_stages, global_start_date, last_log_date
     )
