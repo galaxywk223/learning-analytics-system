@@ -31,6 +31,7 @@
           :key="day.date"
           :day="day"
           :expanded-notes="expandedNotes"
+          :color-seed="colorSeed"
           @add-record="$emit('add-record', $event)"
           @toggle-notes="$emit('toggle-notes', $event)"
           @edit-record="$emit('edit-record', $event)"
@@ -57,6 +58,10 @@ defineProps({
   expandedNotes: {
     type: Array,
     default: () => [],
+  },
+  colorSeed: {
+    type: String,
+    default: "",
   },
 });
 

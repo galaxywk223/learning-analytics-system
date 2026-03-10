@@ -49,6 +49,7 @@
     <LogTable
       :logs="day.logs"
       :expanded-notes="expandedNotes"
+      :color-seed="colorSeed"
       @toggle-notes="$emit('toggle-notes', $event)"
       @edit-record="$emit('edit-record', $event)"
       @delete-record="$emit('delete-record', $event)"
@@ -69,6 +70,10 @@ defineProps({
   expandedNotes: {
     type: Array,
     default: () => [],
+  },
+  colorSeed: {
+    type: String,
+    default: "",
   },
 });
 

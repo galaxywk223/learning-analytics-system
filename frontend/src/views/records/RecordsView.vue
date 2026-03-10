@@ -16,6 +16,7 @@
       :weeks="structuredLogs"
       :active-weeks="activeWeeks"
       :expanded-notes="expandedNotes"
+      :color-seed="colorSeed"
       @add-record="openAddDialog"
       @toggle-notes="toggleNotes"
       @edit-record="openEditDialog"
@@ -52,6 +53,14 @@
     </el-dialog>
 
     <div class="floating-actions">
+      <button
+        class="fab fab-shuffle"
+        type="button"
+        title="打乱分类色系"
+        @click="shuffleCategoryColors"
+      >
+        <Icon icon="lucide:shuffle" />
+      </button>
       <button
         class="fab fab-sort"
         type="button"
@@ -96,6 +105,22 @@ const currentSort = ref("desc");
 const activeWeeks = ref([]);
 const expandedNotes = ref([]); // 记录展开的笔记ID
 const recordFormRef = ref(null);
+const categoryColorSeedStorageKey = "records-category-color-seed";
+
+const createCategoryColorSeed = () =>
+  `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+const readCategoryColorSeed = () => {
+  if (typeof window === "undefined") {
+    return createCategoryColorSeed();
+  }
+  return (
+    window.localStorage.getItem(categoryColorSeedStorageKey) ||
+    createCategoryColorSeed()
+  );
+};
+
+const colorSeed = ref(readCategoryColorSeed());
 
 const isEditing = computed(() => !!currentRecord.value?.id);
 // 是否可以添加记录（阶段已加载并选定）
@@ -160,6 +185,14 @@ const changeSort = (sort) => {
 const toggleSort = () => {
   currentSort.value = currentSort.value === "desc" ? "asc" : "desc";
   loadRecords(true);
+};
+
+const shuffleCategoryColors = () => {
+  colorSeed.value = createCategoryColorSeed();
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(categoryColorSeedStorageKey, colorSeed.value);
+  }
+  ElMessage.success("分类色系已重新打乱");
 };
 
 // 归一化日期（过滤事件对象）
@@ -431,6 +464,27 @@ watch(
 }
 
 .fab-sort {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface-card);
+  color: var(--color-text-base);
+  border: 1px solid var(--color-border-card);
+  box-shadow: var(--box-shadow);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow-hover);
+    color: var(--color-primary);
+  }
+
+  :deep(svg) {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.fab-shuffle {
   width: 40px;
   height: 40px;
   border-radius: 50%;

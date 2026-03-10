@@ -84,7 +84,7 @@
 <script setup>
 import { Icon } from "@iconify/vue";
 
-defineProps({
+const props = defineProps({
   logs: {
     type: Array,
     default: () => [],
@@ -92,6 +92,10 @@ defineProps({
   expandedNotes: {
     type: Array,
     default: () => [],
+  },
+  colorSeed: {
+    type: String,
+    default: "",
   },
 });
 
@@ -111,7 +115,7 @@ const getCategoryTheme = (log) => {
     log?.subcategory?.category?.name ||
     log?.subcategory?.name ||
     "未分类";
-  const seedBase = `${log?.subcategory?.category_id || 0}:${categoryName}`;
+  const seedBase = `${props.colorSeed}:${log?.subcategory?.category_id || 0}:${categoryName}`;
   const seed = hashString(seedBase);
 
   const hue = seed % 360;
