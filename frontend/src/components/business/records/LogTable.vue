@@ -5,7 +5,7 @@
         v-for="log in logs"
         :key="log.id"
         class="ios-list-item"
-        :class="`category-bg-${(log.subcategory?.category_id || 0) % 6}`"
+        :style="getCategoryTheme(log)"
       >
         <div class="item-content">
           <!-- 1. Time -->
@@ -13,14 +13,18 @@
 
           <!-- 2. Task & Category -->
           <div class="col-main">
+            <span v-if="log.subcategory" class="category-dot"></span>
+            <span class="task-name" :title="log.task">{{ log.task }}</span>
             <span
               v-if="log.subcategory"
-              class="category-dot"
-              :class="`category-color-${(log.subcategory.category_id || 0) % 6}`"
-            ></span>
-            <span class="task-name" :title="log.task">{{ log.task }}</span>
-            <span v-if="log.subcategory" class="category-tag">
-              {{ log.subcategory.name }}
+              class="category-path"
+              :title="getCategoryPath(log)"
+            >
+              <span class="category-parent">
+                {{ log.subcategory.category?.name || "未分类" }}
+              </span>
+              <span class="category-separator">/</span>
+              <span class="category-child">{{ log.subcategory.name }}</span>
             </span>
             <!-- Notes Icon (Click to toggle) -->
             <span
@@ -93,6 +97,49 @@ defineProps({
 
 defineEmits(["toggle-notes", "edit-record", "delete-record"]);
 
+const hashString = (value) => {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(index);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+};
+
+const getCategoryTheme = (log) => {
+  const categoryName =
+    log?.subcategory?.category?.name ||
+    log?.subcategory?.name ||
+    "未分类";
+  const seedBase = `${log?.subcategory?.category_id || 0}:${categoryName}`;
+  const seed = hashString(seedBase);
+
+  const hue = seed % 360;
+  const accentHue = (hue + 18 + (seed % 37)) % 360;
+  const tagLightness = 46 + (seed % 8);
+  const tagTextColor = hue >= 42 && hue <= 78 ? "#3a2b00" : "#ffffff";
+
+  return {
+    "--record-accent": `hsl(${hue} 74% 46%)`,
+    "--record-accent-soft": `hsla(${hue}, 82%, 52%, 0.18)`,
+    "--record-border": `hsla(${hue}, 58%, 48%, 0.16)`,
+    "--record-bg-start": `hsla(${hue}, 85%, 97%, 0.98)`,
+    "--record-bg-end": `hsla(${accentHue}, 90%, 93%, 0.92)`,
+    "--record-bg-dark-start": `hsla(${hue}, 66%, 22%, 0.46)`,
+    "--record-bg-dark-end": `hsla(${accentHue}, 72%, 27%, 0.34)`,
+    "--record-border-dark": `hsla(${hue}, 78%, 64%, 0.24)`,
+    "--record-tag-start": `hsl(${hue} 76% ${tagLightness}%)`,
+    "--record-tag-end": `hsl(${accentHue} 72% ${Math.max(tagLightness - 6, 38)}%)`,
+    "--record-tag-text": tagTextColor,
+  };
+};
+
+const getCategoryPath = (log) => {
+  const parent = log?.subcategory?.category?.name || "未分类";
+  const child = log?.subcategory?.name || "未分类";
+  return `${parent} / ${child}`;
+};
+
 const moodEmoji = (mood) => {
   const moods = {
     5: "😃",
@@ -122,20 +169,42 @@ const moodTitle = (mood) => {
 }
 
 .ios-list-item {
-  /* background: #ffffff;  Removed to allow category-bg classes to take effect */
+  position: relative;
   border-radius: 10px; /* Slightly smaller radius */
   padding: 8px 12px; /* Compact padding */
+  border: 1px solid var(--record-border, transparent);
+  background:
+    linear-gradient(135deg, var(--record-bg-start, rgba(255, 255, 255, 0.96)) 0%, var(--record-bg-end, rgba(248, 250, 252, 0.96)) 100%);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition:
     transform 0.2s ease,
-    box-shadow 0.2s ease;
-  
-  /* Fallback or base color if needed, but categories handle bg */
-  /* If dark mode needs specific bg override for category colors, handle below */
-  
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 4px;
+    border-radius: 999px;
+    background: linear-gradient(
+      180deg,
+      var(--record-accent, var(--color-primary)) 0%,
+      var(--record-tag-end, var(--color-primary-dark)) 100%
+    );
+    opacity: 0.95;
+  }
+
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: color-mix(
+      in srgb,
+      var(--record-accent, var(--color-primary)) 18%,
+      transparent
+    );
 
     .col-actions {
       opacity: 1;
@@ -148,6 +217,7 @@ const moodTitle = (mood) => {
   align-items: center;
   gap: 12px;
   height: 28px; /* Fixed height for consistency */
+  padding-left: 4px;
 }
 
 /* 1. Time Column */
@@ -163,9 +233,10 @@ const moodTitle = (mood) => {
 /* 2. Main Column (Task & Category) */
 .col-main {
   flex: 1;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.15fr) minmax(150px, 0.95fr) auto;
   align-items: center;
-  gap: 8px;
+  column-gap: 10px;
   min-width: 0; /* Enable truncation */
 
   .category-dot {
@@ -173,25 +244,72 @@ const moodTitle = (mood) => {
     height: 8px; /* Increased from 6px */
     border-radius: 50%;
     flex-shrink: 0;
+    background: var(--record-accent, var(--color-primary));
+    box-shadow: 0 0 0 4px var(--record-accent-soft, rgba(99, 102, 241, 0.16));
   }
 
   .task-name {
     font-size: 17px; /* Increased from 15px */
     font-weight: 600;
     color: var(--color-text-base);
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .category-tag {
+  .category-path {
     font-size: 13px; /* Increased from 11px */
-    color: var(--color-text-secondary);
-    background: var(--surface-section);
-    padding: 2px 8px; /* Slightly more padding */
-    border-radius: 4px;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
     white-space: nowrap;
+    overflow: hidden;
+    background: color-mix(
+      in srgb,
+      var(--record-accent-soft, rgba(99, 102, 241, 0.16)) 72%,
+      white
+    );
+    border: 1px solid
+      color-mix(
+        in srgb,
+        var(--record-accent, var(--color-primary)) 22%,
+        transparent
+      );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+
+  .category-parent,
+  .category-child,
+  .category-separator {
+    display: inline-block;
+    min-width: 0;
+  }
+
+  .category-parent {
+    color: color-mix(
+      in srgb,
+      var(--record-accent, var(--color-primary)) 72%,
+      var(--color-text-base)
+    );
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .category-separator {
+    color: var(--color-text-muted);
     flex-shrink: 0;
+  }
+
+  .category-child {
+    color: var(--color-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .notes-icon-wrapper {
@@ -267,52 +385,16 @@ const moodTitle = (mood) => {
 .expanded-notes {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 0.5px solid var(--color-border-card);
+  border-top: 0.5px solid
+    color-mix(
+      in srgb,
+      var(--record-accent, var(--color-primary)) 14%,
+      var(--color-border-card)
+    );
   font-size: 15px; /* Increased from 13px */
   color: var(--color-text-secondary);
   line-height: 1.5;
   padding-left: 122px; /* Align with task name (Time width + gap) */
-}
-
-/* Category Colors */
-.category-color-0 {
-  background-color: #007aff;
-}
-.category-color-1 {
-  background-color: #ff2d55;
-}
-.category-color-2 {
-  background-color: #34c759;
-}
-.category-color-3 {
-  background-color: #ff9500;
-}
-.category-color-4 {
-  background-color: #5856d6;
-}
-.category-color-5 {
-  background-color: #ff3b30;
-}
-
-/* Category Backgrounds (Subtle/Pastel) */
-/* We might want to make these adaptive to dark mode too, using rgba with white/black or variable opacity */
-.category-bg-0 {
-  background-color: rgba(0, 122, 255, 0.04);
-}
-.category-bg-1 {
-  background-color: rgba(255, 45, 85, 0.04);
-}
-.category-bg-2 {
-  background-color: rgba(52, 199, 89, 0.04);
-}
-.category-bg-3 {
-  background-color: rgba(255, 149, 0, 0.04);
-}
-.category-bg-4 {
-  background-color: rgba(88, 86, 214, 0.04);
-}
-.category-bg-5 {
-  background-color: rgba(255, 59, 48, 0.04);
 }
 
 /* Hover state remains consistent or slightly darkens */
@@ -322,12 +404,22 @@ const moodTitle = (mood) => {
   ); /* Slightly darken on hover instead of generic shadow change only */
 }
 
-/* Dark mode overrides for category backgrounds to ensure visibility */
-[data-theme='dark'] .category-bg-0 { background-color: rgba(0, 122, 255, 0.15); }
-[data-theme='dark'] .category-bg-1 { background-color: rgba(255, 45, 85, 0.15); }
-[data-theme='dark'] .category-bg-2 { background-color: rgba(52, 199, 89, 0.15); }
-[data-theme='dark'] .category-bg-3 { background-color: rgba(255, 149, 0, 0.15); }
-[data-theme='dark'] .category-bg-4 { background-color: rgba(88, 86, 214, 0.15); }
-[data-theme='dark'] .category-bg-5 { background-color: rgba(255, 59, 48, 0.15); }
+[data-theme="dark"] .ios-list-item {
+  background: linear-gradient(
+    135deg,
+    var(--record-bg-dark-start, rgba(51, 65, 85, 0.72)) 0%,
+    var(--record-bg-dark-end, rgba(30, 41, 59, 0.62)) 100%
+  );
+  border-color: var(--record-border-dark, rgba(148, 163, 184, 0.2));
+}
+
+[data-theme="dark"] .col-main .category-path {
+  background: color-mix(
+    in srgb,
+    var(--record-accent-soft, rgba(99, 102, 241, 0.16)) 44%,
+    rgba(15, 23, 42, 0.78)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
 
 </style>
