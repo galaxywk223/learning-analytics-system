@@ -11,17 +11,20 @@
       @add-record="openAddDialog"
     />
 
-    <WeekAccordion
-      v-else
-      :weeks="structuredLogs"
-      :active-weeks="activeWeeks"
-      :expanded-notes="expandedNotes"
-      :color-seed="colorSeed"
-      @add-record="openAddDialog"
-      @toggle-notes="toggleNotes"
-      @edit-record="openEditDialog"
-      @delete-record="handleDelete"
-    />
+    <template v-else>
+      <div class="records-shell">
+        <WeekAccordion
+          :weeks="structuredLogs"
+          :active-weeks="activeWeeks"
+          :expanded-notes="expandedNotes"
+          :color-seed="colorSeed"
+          @add-record="openAddDialog"
+          @toggle-notes="toggleNotes"
+          @edit-record="openEditDialog"
+          @delete-record="handleDelete"
+        />
+      </div>
+    </template>
 
     <el-dialog
       v-model="dialogVisible"
@@ -407,6 +410,10 @@ watch(
   }
 }
 
+.records-shell {
+  position: relative;
+}
+
 .floating-actions {
   position: fixed;
   right: clamp(18px, 3vw, 36px);
@@ -414,7 +421,19 @@ watch(
   display: flex;
   flex-direction: column-reverse;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
+  padding: 12px 10px;
+  border-radius: 26px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border-card));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-card) 92%, rgba(255, 255, 255, 0.04)) 0%,
+    color-mix(in srgb, var(--surface-card-strong) 96%, rgba(15, 23, 42, 0.12)) 100%
+  );
+  box-shadow:
+    0 18px 38px -26px rgba(15, 23, 42, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
   z-index: 1200;
 }
 
@@ -424,6 +443,7 @@ watch(
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(12px);
   transition:
     transform 0.18s ease,
     box-shadow 0.2s ease,
@@ -466,8 +486,8 @@ watch(
 .fab-sort {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: var(--surface-card);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-card) 88%, rgba(255, 255, 255, 0.04));
   color: var(--color-text-base);
   border: 1px solid var(--color-border-card);
   box-shadow: var(--box-shadow);
@@ -487,8 +507,8 @@ watch(
 .fab-shuffle {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: var(--surface-card);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-card) 88%, rgba(255, 255, 255, 0.04));
   color: var(--color-text-base);
   border: 1px solid var(--color-border-card);
   box-shadow: var(--box-shadow);
@@ -502,6 +522,13 @@ watch(
   :deep(svg) {
     width: 18px;
     height: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .floating-actions {
+    right: 16px;
+    bottom: 16px;
   }
 }
 </style>

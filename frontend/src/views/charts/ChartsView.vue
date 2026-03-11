@@ -8,133 +8,151 @@
         <aside class="charts-sidebar">
           <div class="filter-list">
             <button
+              v-for="tab in tabItems"
+              :key="tab.value"
               type="button"
               class="filter-item"
-              :class="{ active: charts.activeTab === 'trends' }"
-              @click="charts.setActiveTab('trends')"
+              :class="{ active: charts.activeTab === tab.value }"
+              @click="charts.setActiveTab(tab.value)"
             >
-              趋势分析
-            </button>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ active: charts.activeTab === 'categories' }"
-              @click="charts.setActiveTab('categories')"
-            >
-              分类占比
-            </button>
-            <button
-              type="button"
-              class="filter-item"
-              :class="{ active: charts.activeTab === 'cattrend' }"
-              @click="charts.setActiveTab('cattrend')"
-            >
-              分类趋势
+              <span class="filter-item__icon">
+                <Icon :icon="tab.icon" />
+              </span>
+              <span class="filter-item__body">
+                <strong>{{ tab.label }}</strong>
+                <small>{{ tab.brief }}</small>
+              </span>
             </button>
           </div>
         </aside>
         <div class="charts-main">
-          <button
-            v-if="charts.activeTab === 'categories' && isDrilldown"
-            class="floating-back"
-            type="button"
-            aria-label="返回上一级分类"
-            @click="handleBackClick"
-          >
-            <Icon icon="lucide:arrow-left" />
-          </button>
-          <div
-            v-if="['categories', 'cattrend'].includes(charts.activeTab)"
-            class="toolbar-container"
-          >
-            <div class="toolbar-left">
-              <div class="segmented metric-switch">
+          <div class="charts-main-surface">
+            <section class="charts-panel-head">
+              <div class="charts-panel-head__copy">
+                <span class="panel-kicker">{{ activeTabMeta.panelKicker }}</span>
+                <h2>{{ activeTabMeta.panelTitle }}</h2>
+                <p>{{ activeTabMeta.panelDescription }}</p>
+              </div>
+              <div class="charts-panel-head__tags">
                 <button
-                  :class="['seg-btn', metricMode === 'duration' && 'active']"
-                  @click="onMetricModeChange('duration')"
+                  v-if="charts.activeTab === 'categories' && isDrilldown"
+                  type="button"
+                  class="panel-tag panel-tag--button"
+                  aria-label="返回上一级分类"
+                  @click="handleBackClick"
                 >
-                  时长
+                  <Icon icon="lucide:arrow-left" />
+                  <span>返回上一级</span>
                 </button>
-                <button
-                  :class="['seg-btn', metricMode === 'efficiency' && 'active']"
-                  @click="onMetricModeChange('efficiency')"
+                <span class="panel-tag">{{ activeStageName }}</span>
+                <span class="panel-tag">{{ analysisWindowLabel }}</span>
+                <span
+                  v-if="['categories', 'cattrend'].includes(charts.activeTab)"
+                  class="panel-tag accent"
                 >
-                  效率
-                </button>
+                  {{ metricMode === "duration" ? "时长口径" : "效率口径" }}
+                </span>
+                <span
+                  v-if="charts.activeTab === 'categories' && isDrilldown"
+                  class="panel-tag accent"
+                >
+                  {{ currentCategoryName }}
+                </span>
+              </div>
+            </section>
+
+            <div
+              v-if="['categories', 'cattrend'].includes(charts.activeTab)"
+              class="toolbar-container"
+            >
+              <div class="toolbar-left">
+                <div class="segmented metric-switch">
+                  <button
+                    :class="['seg-btn', metricMode === 'duration' && 'active']"
+                    @click="onMetricModeChange('duration')"
+                  >
+                    时长
+                  </button>
+                  <button
+                    :class="['seg-btn', metricMode === 'efficiency' && 'active']"
+                    @click="onMetricModeChange('efficiency')"
+                  >
+                    效率
+                  </button>
+                </div>
+              </div>
+              <div class="category-filters">
+                <div class="segmented filter-switch">
+                  <button
+                    v-for="mode in categoryModes"
+                    :key="mode.value"
+                    :class="['seg-btn', rangeMode === mode.value && 'active']"
+                    @click="onRangeModeChange(mode.value)"
+                  >
+                    {{ mode.label }}
+                  </button>
+                </div>
+                <div class="filter-inputs">
+                  <select
+                    v-if="rangeMode === 'stage'"
+                    v-model="stageSelected"
+                    class="stage-select minimal-select"
+                    @change="onStageChange"
+                  >
+                    <option value="all">全部历史</option>
+                    <option v-for="s in charts.stages" :key="s.id" :value="s.id">
+                      {{ s.name }}
+                    </option>
+                  </select>
+                  <el-date-picker
+                    v-else-if="rangeMode === 'daily'"
+                    v-model="datePoint"
+                    type="date"
+                    value-format="YYYY-MM-DD"
+                    placeholder="选择日期"
+                    clearable
+                    :disabled="charts.loading"
+                    @clear="onFilterCleared"
+                  />
+                  <el-date-picker
+                    v-else-if="rangeMode === 'weekly'"
+                    v-model="datePoint"
+                    type="date"
+                    value-format="YYYY-MM-DD"
+                    placeholder="选择一周中的任意一天"
+                    :first-day-of-week="1"
+                    clearable
+                    :disabled="charts.loading"
+                    @clear="onFilterCleared"
+                  />
+                  <el-date-picker
+                    v-else-if="rangeMode === 'monthly'"
+                    v-model="datePoint"
+                    type="month"
+                    value-format="YYYY-MM"
+                    placeholder="选择月份"
+                    clearable
+                    :disabled="charts.loading"
+                    @clear="onFilterCleared"
+                  />
+                  <el-date-picker
+                    v-else-if="rangeMode === 'custom'"
+                    v-model="customRange"
+                    type="daterange"
+                    value-format="YYYY-MM-DD"
+                    range-separator="至"
+                    start-placeholder="开始日期"
+                    end-placeholder="结束日期"
+                    unlink-panels
+                    clearable
+                    :disabled="charts.loading"
+                    @clear="onFilterCleared"
+                  />
+                </div>
               </div>
             </div>
-            <div class="category-filters">
-              <div class="segmented filter-switch">
-                <button
-                  v-for="mode in categoryModes"
-                  :key="mode.value"
-                  :class="['seg-btn', rangeMode === mode.value && 'active']"
-                  @click="onRangeModeChange(mode.value)"
-                >
-                  {{ mode.label }}
-                </button>
-              </div>
-              <div class="filter-inputs">
-                <select
-                  v-if="rangeMode === 'stage'"
-                  v-model="stageSelected"
-                  class="stage-select minimal-select"
-                  @change="onStageChange"
-                >
-                  <option value="all">全部历史</option>
-                  <option v-for="s in charts.stages" :key="s.id" :value="s.id">
-                    {{ s.name }}
-                  </option>
-                </select>
-                <el-date-picker
-                  v-else-if="rangeMode === 'daily'"
-                  v-model="datePoint"
-                  type="date"
-                  value-format="YYYY-MM-DD"
-                  placeholder="选择日期"
-                  clearable
-                  :disabled="charts.loading"
-                  @clear="onFilterCleared"
-                />
-                <el-date-picker
-                  v-else-if="rangeMode === 'weekly'"
-                  v-model="datePoint"
-                  type="date"
-                  value-format="YYYY-MM-DD"
-                  placeholder="选择一周中的任意一天"
-                  :first-day-of-week="1"
-                  clearable
-                  :disabled="charts.loading"
-                  @clear="onFilterCleared"
-                />
-                <el-date-picker
-                  v-else-if="rangeMode === 'monthly'"
-                  v-model="datePoint"
-                  type="month"
-                  value-format="YYYY-MM"
-                  placeholder="选择月份"
-                  clearable
-                  :disabled="charts.loading"
-                  @clear="onFilterCleared"
-                />
-                <el-date-picker
-                  v-else-if="rangeMode === 'custom'"
-                  v-model="customRange"
-                  type="daterange"
-                  value-format="YYYY-MM-DD"
-                  range-separator="至"
-                  start-placeholder="开始日期"
-                  end-placeholder="结束日期"
-                  unlink-panels
-                  clearable
-                  :disabled="charts.loading"
-                  @clear="onFilterCleared"
-                />
-              </div>
-            </div>
-          </div>
-          <div class="tab-panels">
-            <div v-show="charts.activeTab === 'trends'" class="panel">
+            <div class="tab-panels">
+              <div v-show="charts.activeTab === 'trends'" class="panel">
               <!-- KPI 仅在趋势分析面板内部显示，符合旧项目布局 -->
               <div v-loading="charts.loading" class="kpi-grid">
                 <KpiCard label="今天时长" color="amber">
@@ -367,6 +385,7 @@
               <CategoryTrend />
             </div>
           </div>
+          </div>
         </div>
       </div>
     </PageContainer>
@@ -377,7 +396,6 @@
 import { ref, onMounted, onActivated, computed, watch } from "vue";
 import { Icon } from "@iconify/vue";
 import dayjs from "dayjs";
-import { ArrowLeft } from "@element-plus/icons-vue";
 import { useChartsStore } from "@/stores/modules/charts";
 import { useStageStore } from "@/stores/modules/stage";
 import TrendsChart from "@/components/business/charts/TrendsChart.vue";
@@ -389,6 +407,49 @@ import PageContainer from "@/components/layout/PageContainer.vue";
 const charts = useChartsStore();
 const stageStore = useStageStore();
 const stageSelected = ref<string | number>("all");
+
+const tabItems = [
+  {
+    value: "trends",
+    label: "趋势分析",
+    brief: "看时长和效率的整体波动",
+    icon: "lucide:chart-no-axes-combined",
+    kicker: "Trend Focus",
+    title: "把学习节奏和效率变化放到同一张图里看",
+    description: "适合观察阶段切换、临近考试和休息周期对学习投入的影响。",
+    panelKicker: "趋势面板",
+    panelTitle: "时长与效率的双轴变化",
+    panelDescription: "用周视图和日视图切换整体走势，判断当前节奏是否稳定。",
+  },
+  {
+    value: "categories",
+    label: "分类占比",
+    brief: "看时间分布集中在哪些方向",
+    icon: "lucide:pie-chart",
+    kicker: "Category Mix",
+    title: "快速看清时间被哪些分类真正占据",
+    description: "适合判断投入是否过于集中，或者某个重点方向是否已经形成稳定占比。",
+    panelKicker: "分类结构",
+    panelTitle: "按分类拆开你的学习投入",
+    panelDescription: "支持下钻到子分类，观察不同主题在当前筛选范围内的真实分布。",
+  },
+  {
+    value: "cattrend",
+    label: "分类趋势",
+    brief: "看单一分类在不同时间点的强弱",
+    icon: "lucide:route",
+    kicker: "Category Trend",
+    title: "把某一类学习内容单独拉出来看变化",
+    description: "适合追踪刷题、课程、复盘等单个方向是否持续推进，是否出现断档。",
+    panelKicker: "分类趋势",
+    panelTitle: "跟踪单个分类的连续变化",
+    panelDescription: "切换不同分类和子分类，查看它们在一段时间内的投入与效率表现。",
+  },
+] as const;
+
+const activeTabMeta = computed(
+  () => tabItems.find((item) => item.value === charts.activeTab) || tabItems[0],
+);
 
 // 指标模式：时长/效率
 const metricMode = computed({
@@ -429,6 +490,46 @@ const customRange = computed({
 const isDrilldown = computed(() => charts.currentCategoryView === "drilldown");
 
 const compositeDrilldown = ref(false);
+
+const activeStageName = computed(() => {
+  if (rangeMode.value === "stage") {
+    if (`${stageSelected.value}` === "all") return "全部历史";
+    const matchedStage = (charts.stages as any[]).find(
+      (item) => `${item.id}` === `${stageSelected.value}`,
+    );
+    return matchedStage?.name || "当前阶段";
+  }
+  return stageStore.activeStage?.name || "全部阶段";
+});
+
+const analysisFocusLabel = computed(() => {
+  if (charts.activeTab === "categories" && isDrilldown.value) {
+    return `分类下钻 · ${currentCategoryName.value}`;
+  }
+  if (charts.activeTab === "cattrend") {
+    return "分类连续变化";
+  }
+  return activeTabMeta.value.label;
+});
+
+const analysisWindowLabel = computed(() => {
+  if (charts.activeTab === "trends") {
+    return charts.viewType === "daily" ? "按日走势" : "按周走势";
+  }
+
+  if (rangeMode.value === "all") return "全部历史";
+  if (rangeMode.value === "stage") return "按阶段";
+
+  if (rangeMode.value === "custom" && customRange.value) {
+    return `${customRange.value[0]} 至 ${customRange.value[1]}`;
+  }
+
+  if (datePoint.value) {
+    return `${datePoint.value}`;
+  }
+
+  return "当前筛选范围";
+});
 
 const currentCategoryName = computed(() => {
   if (!isDrilldown.value) {
@@ -1049,4 +1150,320 @@ onActivated(async () => {
 
 <style scoped lang="scss">
 @import "@/styles/views/charts/charts-view";
+
+.charts-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.charts-sidebar {
+  position: static;
+  margin-left: 0;
+  padding: 0;
+  width: 100%;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+
+  .filter-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .filter-item {
+    width: auto;
+    min-height: 72px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: center;
+    justify-content: stretch;
+    gap: 12px;
+    background: color-mix(in srgb, var(--surface-card) 78%, rgba(255, 255, 255, 0.02));
+    border: 1px solid color-mix(in srgb, var(--color-primary) 10%, var(--stroke-soft));
+    text-align: left;
+    box-shadow:
+      0 12px 28px -24px rgba(15, 23, 42, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+    &:hover {
+      transform: translateY(-1px);
+      background: color-mix(in srgb, var(--surface-card) 88%, rgba(255, 255, 255, 0.03));
+      border-color: color-mix(in srgb, var(--color-primary) 16%, transparent);
+    }
+
+    &.active {
+      background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--color-primary) 16%, rgba(255, 255, 255, 0.03)) 0%,
+        color-mix(in srgb, var(--surface-card) 92%, rgba(255, 255, 255, 0.02)) 100%
+      );
+      border-color: color-mix(in srgb, var(--color-primary) 22%, transparent);
+      color: var(--color-text-heading);
+    }
+  }
+}
+
+.filter-item__icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-primary) 12%, rgba(255, 255, 255, 0.02));
+  color: var(--color-primary);
+
+  :deep(svg) {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.filter-item__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    color: var(--color-text-heading);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  small {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    line-height: 1.35;
+  }
+}
+
+.charts-main {
+  width: 100%;
+}
+
+.charts-main-surface {
+  position: relative;
+  width: 100%;
+  padding: 22px;
+  border-radius: 30px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 10%, var(--stroke-soft));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 8%, transparent) 0%, transparent 28%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-card) 90%, rgba(255, 255, 255, 0.02)) 0%,
+      color-mix(in srgb, var(--surface-card-strong) 97%, rgba(15, 23, 42, 0.1)) 100%
+    );
+  box-shadow:
+    0 24px 44px -34px rgba(15, 23, 42, 0.54),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.charts-panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.charts-panel-head__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+
+  h2 {
+    margin: 0;
+    font-size: clamp(1.4rem, 2.2vw, 1.8rem);
+    line-height: 1.12;
+    letter-spacing: -0.04em;
+    color: var(--color-text-heading);
+  }
+
+  p {
+    margin: 0;
+    max-width: 42rem;
+    color: var(--color-text-secondary);
+    line-height: 1.65;
+  }
+}
+
+.panel-kicker {
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.charts-panel-head__tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.panel-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-card-strong) 88%, rgba(255, 255, 255, 0.02));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 10%, var(--stroke-soft));
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+
+  &.accent {
+    background: color-mix(in srgb, var(--color-primary) 14%, rgba(255, 255, 255, 0.03));
+    color: var(--color-text-heading);
+  }
+}
+
+.toolbar-container {
+  padding: 16px;
+  margin-bottom: 18px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 10%, var(--stroke-soft));
+  background: color-mix(in srgb, var(--surface-card-strong) 86%, rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.tab-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.panel {
+  min-height: 0;
+}
+
+.kpi-grid {
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.top-sub-grid {
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.panel-tag--button {
+  gap: 6px;
+  cursor: pointer;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, rgba(255, 255, 255, 0.03));
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--color-primary) 24%, var(--stroke-soft));
+    background: color-mix(in srgb, var(--color-primary) 18%, rgba(255, 255, 255, 0.04));
+  }
+
+  :deep(svg) {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.split-kpi {
+  gap: 14px;
+}
+
+.volatility-card {
+  gap: 12px;
+}
+
+.rank-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rank-title {
+  color: var(--color-text-heading);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.rank-percent {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rank-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-card-strong) 84%, rgba(255, 255, 255, 0.02));
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      var(--color-primary) 0%,
+      color-mix(in srgb, var(--color-primary-dark) 76%, #ffffff) 100%
+    );
+  }
+}
+
+@media (max-width: 1200px) {
+  .charts-sidebar .filter-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .charts-sidebar .filter-list {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-sidebar .filter-item {
+    min-height: 68px;
+  }
+
+  .charts-panel-head {
+    flex-direction: column;
+  }
+
+  .charts-panel-head__tags {
+    justify-content: flex-start;
+  }
+
+}
+
+@media (max-width: 768px) {
+  .charts-main-surface {
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .charts-sidebar {
+    padding: 14px;
+    border-radius: 22px;
+  }
+
+  .toolbar-container {
+    padding: 14px;
+  }
+}
 </style>
