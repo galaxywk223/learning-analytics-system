@@ -19,6 +19,23 @@
       <header class="trend-chart-card__header">
         <div class="trend-chart-card__titles">
           <h3>学习趋势</h3>
+          <p>{{ forecastMeta }}</p>
+          <p v-if="forecastWarning" class="trend-chart-card__forecast-warning">
+            {{ forecastWarning }}
+          </p>
+          <div
+            v-if="forecastInsights.length"
+            class="trend-chart-card__forecast-insights"
+          >
+            <div
+              v-for="item in forecastInsights"
+              :key="item.key"
+              class="trend-chart-card__forecast-insight"
+            >
+              <strong>{{ item.title }}</strong>
+              <span>{{ item.summary }}</span>
+            </div>
+          </div>
         </div>
         <div class="trend-chart-card__switch">
           <button
@@ -38,8 +55,10 @@
         </div>
       </header>
       <v-chart
+        :key="chartRenderKey"
         class="trend-chart-card__visual"
         :option="chartOption"
+        :update-options="{ notMerge: true }"
         autoresize
       />
     </div>
@@ -107,6 +126,8 @@ const themeTokens = computed(() => {
     primary: readThemeVar("--color-primary", "#5856D6"),
     primaryDark: readThemeVar("--color-primary-dark", "#AF52DE"),
     warning: readThemeVar("--color-warning", "#FF9500"),
+    success: readThemeVar("--color-success", "#30D158"),
+    info: readThemeVar("--color-info", "#64D2FF"),
     warningSoft: "rgba(255, 149, 0, 0.18)",
     primarySoft: readThemeVar("--color-primary-light", "rgba(88, 86, 214, 0.2)"),
     inverse: readThemeVar("--color-text-inverse", "#ffffff"),
@@ -135,9 +156,99 @@ const sanitizeSeries = (values, { allowZero = true } = {}) => {
   });
 };
 
-const viewBadge = computed(() =>
-  currentView.value === "weekly" ? "周视图" : "日视图",
-);
+const normalizeForecast = (forecast) => ({
+  labels: Array.isArray(forecast?.labels) ? forecast.labels : [],
+  prediction: sanitizeSeries(forecast?.prediction, { allowZero: true }),
+  lower: sanitizeSeries(forecast?.lower, { allowZero: true }),
+  upper: sanitizeSeries(forecast?.upper, { allowZero: true }),
+  modelName: forecast?.model_name || "",
+  historyPoints: Number(forecast?.history_points || 0),
+  horizon: Number(forecast?.horizon || 0),
+  trainedOn: forecast?.trained_on || "all_history",
+  confidenceLevel: Number(forecast?.confidence_level || 0.8),
+  accuracyThreshold: Number(forecast?.accuracy_threshold || 0.4),
+  selectionStrategy: forecast?.selection_strategy || "lowest_wape_then_rmse",
+  validationWape:
+    forecast?.validation_wape == null
+      ? null
+      : Number(forecast.validation_wape),
+  validationRmse:
+    forecast?.validation_rmse == null
+      ? null
+      : Number(forecast.validation_rmse),
+  baselineWape:
+    forecast?.baseline_wape == null ? null : Number(forecast.baseline_wape),
+  baselineRmse:
+    forecast?.baseline_rmse == null ? null : Number(forecast.baseline_rmse),
+  modelCandidates: Array.isArray(forecast?.model_candidates)
+    ? forecast.model_candidates
+    : [],
+  available:
+    Boolean(forecast?.available) &&
+    Array.isArray(forecast?.labels) &&
+    Array.isArray(forecast?.prediction) &&
+    forecast.labels.length > 0 &&
+    forecast.prediction.length > 0,
+  reason: typeof forecast?.reason === "string" ? forecast.reason : "",
+});
+
+const formatPercent = (value, digits = 1) => {
+  if (value == null || Number.isNaN(Number(value))) return "--";
+  return `${(Number(value) * 100).toFixed(digits)}%`;
+};
+
+const formatMetric = (value, digits = 2) => {
+  if (value == null || Number.isNaN(Number(value))) return "--";
+  return Number(value).toFixed(digits);
+};
+
+const formatImprovement = (baseline, current) => {
+  if (
+    baseline == null ||
+    current == null ||
+    Number.isNaN(Number(baseline)) ||
+    Number.isNaN(Number(current)) ||
+    Number(baseline) <= 0
+  ) {
+    return "";
+  }
+  const improvement = (Number(baseline) - Number(current)) / Number(baseline);
+  const prefix = improvement >= 0 ? "+" : "";
+  return `${prefix}${(improvement * 100).toFixed(1)}%`;
+};
+
+const normalizeLabel = (value) => {
+  if (value == null) return "";
+  return String(value).trim();
+};
+
+const findLabelIndex = (labels, label) => {
+  if (!Array.isArray(labels)) return -1;
+  const target = normalizeLabel(label);
+  return labels.findIndex((item) => normalizeLabel(item) === target);
+};
+
+const getSeriesValueByLabel = (labels, values, label) => {
+  if (!Array.isArray(labels) || !Array.isArray(values) || !label) {
+    return null;
+  }
+  const index = findLabelIndex(labels, label);
+  if (index < 0) {
+    return null;
+  }
+  const value = values[index];
+  if (value == null || Number.isNaN(Number(value))) {
+    return null;
+  }
+  return Number(value);
+};
+
+const renderTooltipRow = (color, label, value) =>
+  `<div style="display:flex;align-items:center;gap:8px;margin:4px 0;">
+    <span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block;"></span>
+    <span>${label}</span>
+    <strong style="margin-left:auto;">${Number(value).toFixed(2)}</strong>
+  </div>`;
 
 const switchView = (view) => {
   const normalized = view === "daily" ? "daily" : "weekly";
@@ -146,9 +257,250 @@ const switchView = (view) => {
   emit("view-change", normalized);
 };
 
+const durationLegendLabel = "时长";
+const efficiencyLegendLabel = "效率";
+
 const durationSeriesLabel = computed(() =>
   currentView.value === "weekly" ? "平均学习时长" : "学习时长",
 );
+
+const currentForecasts = computed(() => {
+  const isWeekly = currentView.value === "weekly";
+  return {
+    duration: normalizeForecast(
+      isWeekly
+        ? props.weeklyDurationData?.forecast
+        : props.dailyDurationData?.forecast,
+    ),
+    efficiency: normalizeForecast(
+      isWeekly
+        ? props.weeklyEfficiencyData?.forecast
+        : props.dailyEfficiencyData?.forecast,
+    ),
+  };
+});
+
+const currentDatasets = computed(() => {
+  const isWeekly = currentView.value === "weekly";
+  return {
+    duration: isWeekly ? props.weeklyDurationData : props.dailyDurationData,
+    efficiency: isWeekly ? props.weeklyEfficiencyData : props.dailyEfficiencyData,
+  };
+});
+
+const hasOngoingPeriod = computed(() => {
+  const { duration, efficiency } = currentDatasets.value;
+  return Boolean(duration?.ongoing || efficiency?.ongoing);
+});
+
+const forecastMeta = computed(() => {
+  const { duration, efficiency } = currentForecasts.value;
+  const activeForecast = duration.available ? duration : efficiency;
+  const threshold = formatPercent(activeForecast.accuracyThreshold || 0.4);
+  if (!activeForecast.available) {
+    return `预测基于全部历史训练 · 精度门槛 WAPE <= ${threshold}`;
+  }
+  const unit = currentView.value === "weekly" ? "周" : "天";
+  const ongoingSuffix = hasOngoingPeriod.value ? " · 含当前进行中周期" : "";
+  return `基于全部历史训练 · 未来 ${activeForecast.horizon}${unit}预测${ongoingSuffix} · 精度门槛 WAPE <= ${threshold}`;
+});
+
+const forecastWarning = computed(() => {
+  const { duration, efficiency } = currentForecasts.value;
+  const missing = [];
+  if (!duration.available) missing.push("时长");
+  if (!efficiency.available) missing.push("效率");
+  if (!missing.length) return "";
+  if (missing.length === 2) {
+    return duration.reason || efficiency.reason || "历史数据不足，暂不提供预测";
+  }
+  return `${missing[0]}${duration.reason || efficiency.reason || "历史数据不足，暂不提供预测"}`;
+});
+
+const forecastInsights = computed(() => {
+  const entries = [
+    { key: "duration", label: "时长", forecast: currentForecasts.value.duration },
+    { key: "efficiency", label: "效率", forecast: currentForecasts.value.efficiency },
+  ];
+
+  return entries
+    .filter(
+      ({ forecast }) =>
+        forecast.historyPoints > 0 ||
+        forecast.validationWape != null ||
+        forecast.modelName,
+    )
+    .map(({ key, label, forecast }) => {
+      const status = forecast.available
+        ? "已启用"
+        : forecast.reason?.includes("误差较高")
+          ? "已拦截"
+          : "未启用";
+      const improvement = formatImprovement(
+        forecast.baselineWape,
+        forecast.validationWape,
+      );
+      const segments = [
+        `${status} · ${forecast.modelName || "无模型"}`,
+        `回测WAPE ${formatPercent(forecast.validationWape)}`,
+        `RMSE ${formatMetric(forecast.validationRmse)}`,
+      ];
+      if (forecast.baselineWape != null) {
+        const baselineSegment = `基线 ${formatPercent(forecast.baselineWape)}`;
+        segments.push(
+          improvement ? `${baselineSegment} · 提升 ${improvement}` : baselineSegment,
+        );
+      }
+      return {
+        key,
+        title: `${label}预测`,
+        summary: segments.join(" · "),
+      };
+    });
+});
+
+const buildForecastLayer = (labels, actualSeries, forecast) => {
+  const mergedLabels = [...labels];
+  (forecast.labels || []).forEach((label) => {
+    if (!mergedLabels.includes(label)) {
+      mergedLabels.push(label);
+    }
+  });
+
+  const actualValues = Array.isArray(actualSeries) ? actualSeries : [];
+  const actualMap = new Map(labels.map((label, index) => [label, actualValues[index] ?? null]));
+  const extendedActual = mergedLabels.map((label) => actualMap.get(label) ?? null);
+
+  if (!forecast.available || !forecast.labels?.length) {
+    return {
+      labels: mergedLabels,
+      actual: extendedActual,
+      prediction: Array.from({ length: mergedLabels.length }, () => null),
+      lower: Array.from({ length: mergedLabels.length }, () => null),
+      band: Array.from({ length: mergedLabels.length }, () => null),
+    };
+  }
+
+  const predictionMap = new Map(
+    forecast.labels.map((label, index) => [label, forecast.prediction[index] ?? null]),
+  );
+  const lowerMap = new Map(
+    forecast.labels.map((label, index) => [label, forecast.lower[index] ?? null]),
+  );
+  const upperMap = new Map(
+    forecast.labels.map((label, index) => [label, forecast.upper[index] ?? null]),
+  );
+  const prediction = mergedLabels.map((label) =>
+    predictionMap.has(label) ? predictionMap.get(label) : null,
+  );
+  const lower = mergedLabels.map((label) =>
+    lowerMap.has(label) ? lowerMap.get(label) : null,
+  );
+  const band = mergedLabels.map((label) => {
+    if (!upperMap.has(label) || !lowerMap.has(label)) {
+      return null;
+    }
+    return Math.max(
+      0,
+      Number(upperMap.get(label) ?? 0) - Number(lowerMap.get(label) ?? 0),
+    );
+  });
+
+  const lastHistoricalLabel = labels[labels.length - 1];
+  if (
+    lastHistoricalLabel &&
+    !predictionMap.has(lastHistoricalLabel) &&
+    actualMap.has(lastHistoricalLabel)
+  ) {
+    const tailIndex = mergedLabels.indexOf(lastHistoricalLabel);
+    if (tailIndex >= 0) {
+      prediction[tailIndex] = actualMap.get(lastHistoricalLabel);
+    }
+  }
+
+  return {
+    labels: mergedLabels,
+    actual: extendedActual,
+    prediction,
+    lower,
+    band,
+  };
+};
+
+const buildOngoingLayer = (labels, actualSeries, dataset) => {
+  const ongoingLabel = dataset?.ongoing_label;
+  if (!dataset?.ongoing || !ongoingLabel) {
+    return Array.from({ length: labels.length }, () => null);
+  }
+  const ongoingIndex = labels.indexOf(ongoingLabel);
+  if (ongoingIndex < 0) {
+    return Array.from({ length: labels.length }, () => null);
+  }
+  const series = Array.from({ length: labels.length }, () => null);
+  if (ongoingIndex > 0) {
+    series[ongoingIndex - 1] = actualSeries[ongoingIndex - 1] ?? null;
+  }
+  series[ongoingIndex] = actualSeries[ongoingIndex] ?? dataset?.ongoing_value ?? null;
+  return series;
+};
+
+const buildOngoingPointLayer = (labels, actualSeries, dataset) => {
+  const ongoingLabel = dataset?.ongoing_label;
+  if (!dataset?.ongoing || !ongoingLabel) {
+    return Array.from({ length: labels.length }, () => null);
+  }
+  const ongoingIndex = labels.indexOf(ongoingLabel);
+  if (ongoingIndex < 0) {
+    return Array.from({ length: labels.length }, () => null);
+  }
+  const series = Array.from({ length: labels.length }, () => null);
+  series[ongoingIndex] = actualSeries[ongoingIndex] ?? dataset?.ongoing_value ?? null;
+  return series;
+};
+
+const removeOngoingFromActual = (labels, actualSeries, dataset) => {
+  const normalized = Array.isArray(actualSeries) ? [...actualSeries] : [];
+  const ongoingLabel = dataset?.ongoing_label;
+  if (!dataset?.ongoing || !ongoingLabel) {
+    return normalized;
+  }
+  const ongoingIndex = labels.indexOf(ongoingLabel);
+  if (ongoingIndex >= 0) {
+    normalized[ongoingIndex] = null;
+  }
+  return normalized;
+};
+
+const buildForecastDisplaySeries = (
+  labels,
+  predictionSeries,
+  dataset,
+  actualSeries,
+  fallbackAnchorValue,
+) => {
+  const normalized = Array.isArray(predictionSeries) ? [...predictionSeries] : [];
+  const ongoingLabel = dataset?.ongoing_label;
+  if (!dataset?.ongoing || !ongoingLabel) {
+    return normalized;
+  }
+  const ongoingIndex = labels.indexOf(ongoingLabel);
+  if (ongoingIndex < 0) {
+    return normalized;
+  }
+  if (ongoingIndex > 0) {
+    const historyAnchor = actualSeries?.[ongoingIndex - 1] ?? null;
+    if (historyAnchor != null) {
+      normalized[ongoingIndex - 1] = historyAnchor;
+    }
+  }
+  if (normalized[ongoingIndex] == null) {
+    const anchorValue = dataset?.ongoing_value ?? fallbackAnchorValue ?? null;
+    if (anchorValue != null) {
+      normalized[ongoingIndex] = anchorValue;
+    }
+  }
+  return normalized;
+};
 
 const viewSource = computed(() => {
   const isWeekly = currentView.value === "weekly";
@@ -164,11 +516,83 @@ const viewSource = computed(() => {
   const efficiencyActual = sanitizeSeries(efficiency?.actuals, {
     allowZero: true,
   });
-
-  return {
+  const { duration: durationForecast, efficiency: efficiencyForecast } =
+    currentForecasts.value;
+  const durationLayer = buildForecastLayer(labels, durationActual, durationForecast);
+  const efficiencyLayer = buildForecastLayer(
+    labels,
+    efficiencyActual,
+    efficiencyForecast,
+  );
+  const mergedLabels = [...durationLayer.labels];
+  efficiencyLayer.labels.forEach((label) => {
+    if (!mergedLabels.includes(label)) {
+      mergedLabels.push(label);
+    }
+  });
+  const alignToLabels = (seriesLabels, values) =>
+    mergedLabels.map((label) => {
+      const index = seriesLabels.indexOf(label);
+      return index >= 0 ? values[index] ?? null : null;
+  });
+  const durationOngoing = buildOngoingLayer(labels, durationActual, duration);
+  const efficiencyOngoing = buildOngoingLayer(labels, efficiencyActual, efficiency);
+  const durationOngoingPoint = buildOngoingPointLayer(
     labels,
     durationActual,
+    duration,
+  );
+  const efficiencyOngoingPoint = buildOngoingPointLayer(
+    labels,
     efficiencyActual,
+    efficiency,
+  );
+  const alignedDurationPrediction = alignToLabels(
+    durationLayer.labels,
+    durationLayer.prediction,
+  );
+  const alignedEfficiencyPrediction = alignToLabels(
+    efficiencyLayer.labels,
+    efficiencyLayer.prediction,
+  );
+
+  return {
+    labels: mergedLabels,
+    historicalLabels: labels,
+    durationActual: alignToLabels(
+      durationLayer.labels,
+      removeOngoingFromActual(durationLayer.labels, durationLayer.actual, duration),
+    ),
+    efficiencyActual: alignToLabels(
+      efficiencyLayer.labels,
+      removeOngoingFromActual(efficiencyLayer.labels, efficiencyLayer.actual, efficiency),
+    ),
+    durationPrediction: buildForecastDisplaySeries(
+      mergedLabels,
+      alignedDurationPrediction,
+      duration,
+      alignToLabels(durationLayer.labels, durationLayer.actual),
+      duration?.ongoing_value,
+    ),
+    efficiencyPrediction: buildForecastDisplaySeries(
+      mergedLabels,
+      alignedEfficiencyPrediction,
+      efficiency,
+      alignToLabels(efficiencyLayer.labels, efficiencyLayer.actual),
+      efficiency?.ongoing_value,
+    ),
+    durationLower: alignToLabels(durationLayer.labels, durationLayer.lower),
+    durationBand: alignToLabels(durationLayer.labels, durationLayer.band),
+    efficiencyLower: alignToLabels(efficiencyLayer.labels, efficiencyLayer.lower),
+    efficiencyBand: alignToLabels(efficiencyLayer.labels, efficiencyLayer.band),
+    durationOngoing: alignToLabels(labels, durationOngoing),
+    efficiencyOngoing: alignToLabels(labels, efficiencyOngoing),
+    durationOngoingPoint: alignToLabels(labels, durationOngoingPoint),
+    efficiencyOngoingPoint: alignToLabels(labels, efficiencyOngoingPoint),
+    durationForecast,
+    efficiencyForecast,
+    durationDataset: duration,
+    efficiencyDataset: efficiency,
   };
 });
 
@@ -204,8 +628,39 @@ const showStageHelper = computed(
   () => currentView.value === "weekly" && stageMarkArea.value.length > 0,
 );
 
+const chartRenderKey = computed(() => {
+  const source = viewSource.value;
+  return [
+    currentView.value,
+    source.labels.length,
+    source.durationDataset?.ongoing_label || "",
+    source.efficiencyDataset?.ongoing_label || "",
+    source.durationForecast.labels?.[0] || "",
+    source.efficiencyForecast.labels?.[0] || "",
+    source.durationForecast.prediction?.[0] ?? "",
+    source.efficiencyForecast.prediction?.[0] ?? "",
+    themeVersion.value,
+  ].join("|");
+});
+
 const chartOption = computed(() => {
-  const { labels, durationActual, efficiencyActual } = viewSource.value;
+  const {
+    labels,
+    durationActual,
+    efficiencyActual,
+    durationPrediction,
+    efficiencyPrediction,
+    durationLower,
+    durationBand,
+    efficiencyLower,
+    efficiencyBand,
+    durationOngoing,
+    efficiencyOngoing,
+    durationOngoingPoint,
+    efficiencyOngoingPoint,
+    durationForecast,
+    efficiencyForecast,
+  } = viewSource.value;
   const windowSize = currentView.value === "weekly" ? 26 : 90;
   const enableZoom = labels.length > windowSize;
   const startIndex = Math.max(0, labels.length - windowSize);
@@ -220,11 +675,13 @@ const chartOption = computed(() => {
       line: token.primary,
       areaStart: token.primarySoft,
       areaEnd: "rgba(88, 86, 214, 0.02)",
+      ongoing: token.success,
     },
     efficiency: {
       line: token.warning,
       areaStart: token.warningSoft,
       areaEnd: "rgba(255, 149, 0, 0.02)",
+      ongoing: token.info,
     },
   };
 
@@ -244,6 +701,95 @@ const chartOption = computed(() => {
       },
       extraCssText:
         "box-shadow: 0 4px 12px rgba(0,0,0,0.12); border-radius: 12px;",
+      formatter: (params) => {
+        const rows = Array.isArray(params) ? params : [params];
+        const axisValue = rows[0]?.axisValue ?? rows[0]?.name ?? rows[0]?.axisValueLabel ?? "";
+        const axisLabel = normalizeLabel(axisValue);
+        const axisTitle = rows[0]?.axisValueLabel || axisLabel;
+        let content = `<div style="font-weight:600;margin-bottom:6px;">${axisTitle}</div>`;
+        const durationActualValue = getSeriesValueByLabel(
+          labels,
+          durationActual,
+          axisLabel,
+        );
+        const efficiencyActualValue = getSeriesValueByLabel(
+          labels,
+          efficiencyActual,
+          axisLabel,
+        );
+        const durationLiveValue = getSeriesValueByLabel(
+          labels,
+          durationOngoingPoint,
+          axisLabel,
+        );
+        const efficiencyLiveValue = getSeriesValueByLabel(
+          labels,
+          efficiencyOngoingPoint,
+          axisLabel,
+        );
+        const durationForecastIndex = findLabelIndex(durationForecast.labels, axisLabel);
+        const efficiencyForecastIndex = findLabelIndex(efficiencyForecast.labels, axisLabel);
+        const durationPredictionValue =
+          durationForecastIndex >= 0
+            ? durationForecast.prediction[durationForecastIndex] ?? null
+            : null;
+        const efficiencyPredictionValue =
+          efficiencyForecastIndex >= 0
+            ? efficiencyForecast.prediction[efficiencyForecastIndex] ?? null
+            : null;
+
+        const resolvedDurationActual =
+          durationLiveValue ?? durationActualValue;
+        const resolvedEfficiencyActual =
+          efficiencyLiveValue ?? efficiencyActualValue;
+
+        if (resolvedDurationActual != null) {
+          const label =
+            durationLiveValue != null
+              ? `当前${durationSeriesLabel.value}`
+              : durationSeriesLabel.value;
+          content += renderTooltipRow(colors.duration.line, label, resolvedDurationActual);
+        }
+        if (resolvedEfficiencyActual != null) {
+          const label =
+            efficiencyLiveValue != null ? "当前学习效率" : "学习效率";
+          content += renderTooltipRow(
+            colors.efficiency.line,
+            label,
+            resolvedEfficiencyActual,
+          );
+        }
+        if (durationPredictionValue != null) {
+          content += renderTooltipRow(
+            colors.duration.line,
+            "时长预测",
+            durationPredictionValue,
+          );
+        }
+        if (efficiencyPredictionValue != null) {
+          content += renderTooltipRow(
+            colors.efficiency.line,
+            "效率预测",
+            efficiencyPredictionValue,
+          );
+        }
+
+        if (durationForecast.available && durationForecastIndex >= 0) {
+          const idx = durationForecastIndex;
+          content += `<div style="margin-top:6px;color:${token.textSecondary};">时长区间：${durationForecast.lower[idx].toFixed(2)} - ${durationForecast.upper[idx].toFixed(2)}</div>`;
+          content += `<div style="color:${token.textSecondary};">时长模型：${durationForecast.modelName}</div>`;
+          content += `<div style="color:${token.textSecondary};">时长WAPE：${formatPercent(durationForecast.validationWape)}</div>`;
+          content += `<div style="color:${token.textSecondary};">时长RMSE：${formatMetric(durationForecast.validationRmse)}</div>`;
+        }
+        if (efficiencyForecast.available && efficiencyForecastIndex >= 0) {
+          const idx = efficiencyForecastIndex;
+          content += `<div style="margin-top:6px;color:${token.textSecondary};">效率区间：${efficiencyForecast.lower[idx].toFixed(2)} - ${efficiencyForecast.upper[idx].toFixed(2)}</div>`;
+          content += `<div style="color:${token.textSecondary};">效率模型：${efficiencyForecast.modelName}</div>`;
+          content += `<div style="color:${token.textSecondary};">效率WAPE：${formatPercent(efficiencyForecast.validationWape)}</div>`;
+          content += `<div style="color:${token.textSecondary};">效率RMSE：${formatMetric(efficiencyForecast.validationRmse)}</div>`;
+        }
+        return content;
+      },
     },
     legend: {
       top: 12,
@@ -253,7 +799,10 @@ const chartOption = computed(() => {
         color: token.textSecondary,
         fontSize: 13,
       },
-      data: [durationSeriesLabel.value, "学习效率"],
+      data: [
+        durationLegendLabel,
+        efficiencyLegendLabel,
+      ],
     },
     grid: {
       left: 20,
@@ -328,7 +877,7 @@ const chartOption = computed(() => {
     ],
     series: [
       {
-        name: durationSeriesLabel.value,
+        name: durationLegendLabel,
         type: "line",
         smooth: 0.4,
         showSymbol: false,
@@ -357,7 +906,85 @@ const chartOption = computed(() => {
           : undefined,
       },
       {
-        name: "学习效率",
+        name: durationLegendLabel,
+        type: "line",
+        smooth: 0.25,
+        showSymbol: false,
+        yAxisIndex: 0,
+        data: durationOngoing,
+        tooltip: { show: false },
+        lineStyle: {
+          width: 3,
+          opacity: 0.95,
+          color: colors.duration.line,
+        },
+      },
+      {
+        name: durationLegendLabel,
+        type: "line",
+        smooth: 0,
+        showSymbol: true,
+        symbol: "circle",
+        symbolSize: 9,
+        yAxisIndex: 0,
+        data: durationOngoingPoint,
+        tooltip: { show: false },
+        itemStyle: {
+          color: colors.duration.ongoing,
+          borderWidth: 2,
+          borderColor: token.card,
+        },
+        lineStyle: {
+          width: 0,
+          opacity: 0,
+        },
+      },
+      {
+        name: durationLegendLabel,
+        type: "line",
+        yAxisIndex: 0,
+        showSymbol: false,
+        silent: true,
+        data: durationLower,
+        stack: "duration-forecast-band",
+        lineStyle: { opacity: 0 },
+        areaStyle: { opacity: 0 },
+        tooltip: { show: false },
+      },
+      {
+        name: durationLegendLabel,
+        type: "line",
+        yAxisIndex: 0,
+        showSymbol: false,
+        silent: true,
+        data: durationBand,
+        stack: "duration-forecast-band",
+        lineStyle: { opacity: 0 },
+        areaStyle: {
+          color: "rgba(88, 86, 214, 0.12)",
+        },
+        tooltip: { show: false },
+      },
+      {
+        name: durationLegendLabel,
+        type: "line",
+        smooth: 0.25,
+        showSymbol: false,
+        symbol: "circle",
+        symbolSize: 6,
+        yAxisIndex: 0,
+        data: durationPrediction,
+        itemStyle: {
+          color: colors.duration.line,
+        },
+        lineStyle: {
+          width: 2.5,
+          type: "dashed",
+          color: colors.duration.line,
+        },
+      },
+      {
+        name: efficiencyLegendLabel,
         type: "line",
         smooth: 0.4,
         showSymbol: false,
@@ -382,6 +1009,84 @@ const chartOption = computed(() => {
             { offset: 0, color: colors.efficiency.areaStart },
             { offset: 1, color: colors.efficiency.areaEnd },
           ]),
+        },
+      },
+      {
+        name: efficiencyLegendLabel,
+        type: "line",
+        smooth: 0.25,
+        showSymbol: false,
+        yAxisIndex: 1,
+        data: efficiencyOngoing,
+        tooltip: { show: false },
+        lineStyle: {
+          width: 3,
+          opacity: 0.95,
+          color: colors.efficiency.line,
+        },
+      },
+      {
+        name: efficiencyLegendLabel,
+        type: "line",
+        smooth: 0,
+        showSymbol: true,
+        symbol: "circle",
+        symbolSize: 9,
+        yAxisIndex: 1,
+        data: efficiencyOngoingPoint,
+        tooltip: { show: false },
+        itemStyle: {
+          color: colors.efficiency.ongoing,
+          borderWidth: 2,
+          borderColor: token.card,
+        },
+        lineStyle: {
+          width: 0,
+          opacity: 0,
+        },
+      },
+      {
+        name: efficiencyLegendLabel,
+        type: "line",
+        yAxisIndex: 1,
+        showSymbol: false,
+        silent: true,
+        data: efficiencyLower,
+        stack: "efficiency-forecast-band",
+        lineStyle: { opacity: 0 },
+        areaStyle: { opacity: 0 },
+        tooltip: { show: false },
+      },
+      {
+        name: efficiencyLegendLabel,
+        type: "line",
+        yAxisIndex: 1,
+        showSymbol: false,
+        silent: true,
+        data: efficiencyBand,
+        stack: "efficiency-forecast-band",
+        lineStyle: { opacity: 0 },
+        areaStyle: {
+          color: "rgba(255, 149, 0, 0.12)",
+        },
+        tooltip: { show: false },
+      },
+      {
+        name: efficiencyLegendLabel,
+        type: "line",
+        smooth: 0.25,
+        showSymbol: false,
+        symbol: "circle",
+        symbolSize: 6,
+        yAxisIndex: 1,
+        data: efficiencyPrediction,
+        itemStyle: {
+          color: colors.efficiency.line,
+        },
+        lineStyle: {
+          width: 2.5,
+          type: "dashed",
+          color: colors.efficiency.line,
         },
       },
     ],

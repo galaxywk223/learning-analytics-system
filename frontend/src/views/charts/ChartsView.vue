@@ -317,7 +317,13 @@
                   class="alert-box"
                 >
                   <div
-                    v-if="rawChartData?.setup_needed"
+                    v-if="charts.trendsError"
+                    class="alert alert-info"
+                  >
+                    趋势图表加载失败：{{ charts.trendsError }}
+                  </div>
+                  <div
+                    v-else-if="rawChartData?.setup_needed"
                     class="alert alert-info"
                   >
                     尚未创建阶段或学习记录，暂时无法生成总体概览。请先添加学习日志。
@@ -333,7 +339,13 @@
                   class="alert-box"
                 >
                   <div
-                    v-if="rawChartData?.setup_needed"
+                    v-if="charts.trendsError"
+                    class="alert alert-info"
+                  >
+                    趋势图表加载失败：{{ charts.trendsError }}
+                  </div>
+                  <div
+                    v-else-if="rawChartData?.setup_needed"
                     class="alert alert-info"
                   >
                     尚未创建阶段或学习记录，暂时无法生成趋势图表。请先添加学习日志。
@@ -401,6 +413,8 @@ import PageContainer from "@/components/layout/PageContainer.vue";
 const charts = useChartsStore();
 const stageStore = useStageStore();
 const stageSelected = ref<string | number>("all");
+const hasChartsInitialized = ref(false);
+const skipNextActivationRefresh = ref(true);
 
 const tabItems = [
   {
@@ -1151,9 +1165,17 @@ onMounted(async () => {
     }
   }
   await charts.refreshAll();
+  hasChartsInitialized.value = true;
 });
 
 onActivated(async () => {
+  if (!hasChartsInitialized.value) {
+    return;
+  }
+  if (skipNextActivationRefresh.value) {
+    skipNextActivationRefresh.value = false;
+    return;
+  }
   await charts.refreshAll();
 });
 </script>

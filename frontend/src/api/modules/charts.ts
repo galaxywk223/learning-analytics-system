@@ -6,7 +6,12 @@ import request from "@/utils/request";
 export const chartsAPI = {
   // view: 'weekly' | 'daily', stage_id: number | 'all'
   getOverview(params) {
-    return request({ url: "/api/charts/overview", method: "get", params });
+    return request({
+      url: "/api/charts/overview",
+      method: "get",
+      params,
+      timeout: 180000,
+    });
   },
   getCategories(params) {
     return request({ url: "/api/charts/categories", method: "get", params });

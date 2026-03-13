@@ -3,15 +3,25 @@
 """
 
 import collections
+import copy
 import math
+import threading
+import time
 from datetime import date, timedelta
 from typing import Sequence, TypedDict
 from sqlalchemy import func, desc
 import numpy as np
+from flask import current_app
 
 from app import db
 from app.models import Stage, LogEntry, DailyData, Category, SubCategory
+from .forecast_service import DAILY_CONFIG, WEEKLY_CONFIG, build_trend_forecasts
 from .helpers import get_custom_week_info
+
+_OVERVIEW_CACHE_TTL_SECONDS = 20.0
+_overview_cache_lock = threading.Lock()
+_overview_cache: dict[int, tuple[float, dict]] = {}
+_overview_inflight: dict[int, threading.Event] = {}
 
 
 def _calculate_sma(
@@ -131,10 +141,54 @@ class _CategoryAgg(TypedDict):
     subs: list[_CategorySub]
 
 
+def _week_start(d: date) -> date:
+    return d - timedelta(days=d.weekday())
+
+
+def _is_incomplete_daily_bucket(bucket_date: date, today: date) -> bool:
+    return bucket_date == today
+
+
+def _is_incomplete_weekly_bucket(
+    bucket_start: date,
+    bucket_end: date,
+    *,
+    today: date,
+) -> bool:
+    return bucket_start <= today <= bucket_end and today < bucket_end
+
+
+def _build_stage_snapshot_resolver(all_stages):
+    sorted_stages = sorted(all_stages, key=lambda stage: stage.start_date)
+    total_stages = len(sorted_stages)
+
+    def _resolve(target_date: date) -> list[float]:
+        current_index = 0
+        for idx, stage in enumerate(sorted_stages):
+            if stage.start_date <= target_date:
+                current_index = idx
+            else:
+                break
+        current_stage = sorted_stages[current_index]
+        stage_age_days = max((target_date - current_stage.start_date).days, 0)
+        stage_index_norm = (
+            current_index / max(total_stages - 1, 1) if total_stages > 1 else 0.0
+        )
+        stage_start_flag = 1.0 if target_date == current_stage.start_date else 0.0
+        return [
+            round(float(stage_age_days), 2),
+            round(float(stage_index_norm), 4),
+            stage_start_flag,
+        ]
+
+    return _resolve
+
+
 def _prepare_trend_data(user_id, all_stages, all_logs):
     """准备每日和每周趋势的数据结构"""
     first_log_date = min(log.log_date for log in all_logs)
     last_log_date = max(log.log_date for log in all_logs)
+    today = date.today()
     global_start_date = all_stages[0].start_date
     stage_ids = [s.id for s in all_stages]
 
@@ -142,6 +196,7 @@ def _prepare_trend_data(user_id, all_stages, all_logs):
         first_log_date + timedelta(days=x)
         for x in range((last_log_date - first_log_date).days + 1)
     ]
+    resolve_stage_snapshot = _build_stage_snapshot_resolver(all_stages)
     daily_labels = [d.isoformat() for d in date_range]
     daily_duration_map = {
         d[0]: d[1]
@@ -157,10 +212,34 @@ def _prepare_trend_data(user_id, all_stages, all_logs):
         d.log_date: d.efficiency
         for d in DailyData.query.join(Stage).filter(Stage.user_id == user_id).all()
     }
+    daily_stage_feature_map = {
+        current_date: resolve_stage_snapshot(current_date) for current_date in date_range
+    }
     daily_efficiencies = [daily_efficiency_map.get(d) for d in date_range]
+    daily_incomplete = bool(date_range) and _is_incomplete_daily_bucket(
+        date_range[-1], today
+    )
+    daily_training_labels = (
+        daily_labels[:-1] if daily_incomplete else list(daily_labels)
+    )
+    daily_training_dates = date_range[:-1] if daily_incomplete else list(date_range)
+    daily_training_durations = (
+        daily_durations[:-1] if daily_incomplete else list(daily_durations)
+    )
+    daily_training_efficiencies = (
+        daily_efficiencies[:-1] if daily_incomplete else list(daily_efficiencies)
+    )
+    daily_training_stage_features = [
+        daily_stage_feature_map[current_date] for current_date in daily_training_dates
+    ]
+    daily_live_duration = daily_durations[-1] if daily_incomplete else None
+    daily_live_efficiency = daily_efficiencies[-1] if daily_incomplete else None
 
     weekly_data: dict[tuple[int, int], _WeekBucket] = collections.defaultdict(
         lambda: {"duration": 0.0, "efficiency": None, "days": 0}
+    )
+    weekly_stage_feature_accumulator: dict[tuple[int, int], list[list[float]]] = (
+        collections.defaultdict(list)
     )
     for d in date_range:
         year, week_num = get_custom_week_info(d, global_start_date)
@@ -175,39 +254,164 @@ def _prepare_trend_data(user_id, all_stages, all_logs):
         weekly_data[(year, week_num)]["efficiency"] = current_efficiency + float(
             day_efficiency
         )
+        weekly_stage_feature_accumulator[(year, week_num)].append(
+            daily_stage_feature_map[d]
+        )
 
     sorted_week_keys = sorted(weekly_data.keys())
     weekly_labels = [f"{k[0]}-W{k[1]:02}" for k in sorted_week_keys]
-    # 计算周平均时长：总时长除以该周包含的天数
     weekly_durations = []
     weekly_efficiencies = []
-    for k in sorted_week_keys:
-        duration = weekly_data[k]["duration"]
-        days = weekly_data[k]["days"] or 0
-        weekly_durations.append(round(duration / 60 / max(days, 1), 2))
-        efficiency_total = weekly_data[k]["efficiency"] or 0.0
-        weekly_efficiencies.append(round(efficiency_total / max(days, 1), 2))
+    weekly_duration_totals = []
+    weekly_elapsed_days = []
+    weekly_stage_features = []
+    for year, week_num in sorted_week_keys:
+        duration = weekly_data[(year, week_num)]["duration"]
+        days = weekly_data[(year, week_num)]["days"] or 0
+        week_anchor = next(
+            d
+            for d in date_range
+            if get_custom_week_info(d, global_start_date) == (year, week_num)
+        )
+        bucket_start = _week_start(week_anchor)
+        bucket_end = bucket_start + timedelta(days=6)
+        elapsed_days = (
+            (today - bucket_start).days + 1
+            if _is_incomplete_weekly_bucket(bucket_start, bucket_end, today=today)
+            else days
+        )
+        elapsed_days = max(1, min(elapsed_days, 7))
+        weekly_elapsed_days.append(elapsed_days)
+        weekly_duration_totals.append(round(duration / 60, 2))
+        weekly_durations.append(round(duration / 60 / elapsed_days, 2))
+        efficiency_total = weekly_data[(year, week_num)]["efficiency"] or 0.0
+        weekly_efficiencies.append(round(efficiency_total / elapsed_days, 2))
+        stage_rows = weekly_stage_feature_accumulator[(year, week_num)]
+        avg_stage_age_days = (
+            sum(row[0] for row in stage_rows) / len(stage_rows) if stage_rows else 0.0
+        )
+        avg_stage_index = (
+            sum(row[1] for row in stage_rows) / len(stage_rows) if stage_rows else 0.0
+        )
+        stage_reset_flag = max((row[2] for row in stage_rows), default=0.0)
+        weekly_stage_features.append(
+            [
+                round(avg_stage_age_days / 7.0, 2),
+                round(avg_stage_index, 4),
+                stage_reset_flag,
+            ]
+        )
+
+    weekly_incomplete = False
+    weekly_live_duration = None
+    weekly_live_efficiency = None
+    weekly_training_labels = list(weekly_labels)
+    weekly_training_duration_totals = list(weekly_duration_totals)
+    weekly_training_efficiencies = list(weekly_efficiencies)
+    if sorted_week_keys:
+        last_year, last_week = sorted_week_keys[-1]
+        last_anchor = next(
+            d
+            for d in reversed(date_range)
+            if get_custom_week_info(d, global_start_date) == (last_year, last_week)
+        )
+        last_bucket_start = _week_start(last_anchor)
+        last_bucket_end = last_bucket_start + timedelta(days=6)
+        weekly_incomplete = _is_incomplete_weekly_bucket(
+            last_bucket_start,
+            last_bucket_end,
+            today=today,
+        )
+        if weekly_incomplete:
+            weekly_live_duration = weekly_durations[-1]
+            weekly_live_efficiency = weekly_efficiencies[-1]
+            weekly_training_labels = weekly_labels[:-1]
+            weekly_training_duration_totals = weekly_duration_totals[:-1]
+            weekly_training_efficiencies = weekly_efficiencies[:-1]
+
+    weekly_training_stage_features = (
+        weekly_stage_features[:-1] if weekly_incomplete else list(weekly_stage_features)
+    )
+
+    daily_future_start = date_range[-1] if daily_incomplete else (date_range[-1] + timedelta(days=1))
+    daily_future_stage_features = [
+        resolve_stage_snapshot(daily_future_start + timedelta(days=offset))
+        for offset in range(DAILY_CONFIG.horizon)
+    ]
+
+    weekly_reference_date = today if weekly_incomplete else (last_log_date + timedelta(days=7))
+    weekly_future_stage_features = []
+    for offset in range(WEEKLY_CONFIG.horizon):
+        target_date = weekly_reference_date + timedelta(days=offset * 7)
+        stage_snapshot = resolve_stage_snapshot(target_date)
+        weekly_future_stage_features.append(
+            [
+                round(stage_snapshot[0] / 7.0, 2),
+                stage_snapshot[1],
+                stage_snapshot[2],
+            ]
+        )
 
     return {
         "weekly_duration_data": {
             "labels": weekly_labels,
             "actuals": weekly_durations,
             "trends": _calculate_sma(weekly_durations, 3),
+            "training_labels": weekly_training_labels,
+            "training_actuals": weekly_training_duration_totals,
+            "training_stage_features": weekly_training_stage_features,
+            "future_stage_features": weekly_future_stage_features,
+            "ongoing_label": weekly_labels[-1] if weekly_incomplete else None,
+            "ongoing_value": weekly_live_duration,
+            "ongoing": weekly_incomplete,
+            "debug_today": today.isoformat(),
+            "debug_last_log_date": last_log_date.isoformat(),
+            "debug_training_last_label": weekly_training_labels[-1] if weekly_training_labels else None,
         },
         "weekly_efficiency_data": {
             "labels": weekly_labels,
             "actuals": weekly_efficiencies,
             "trends": _calculate_sma(weekly_efficiencies, 3),
+            "training_labels": weekly_training_labels,
+            "training_actuals": weekly_training_efficiencies,
+            "training_stage_features": weekly_training_stage_features,
+            "future_stage_features": weekly_future_stage_features,
+            "ongoing_label": weekly_labels[-1] if weekly_incomplete else None,
+            "ongoing_value": weekly_live_efficiency,
+            "ongoing": weekly_incomplete,
+            "debug_today": today.isoformat(),
+            "debug_last_log_date": last_log_date.isoformat(),
+            "debug_training_last_label": weekly_training_labels[-1] if weekly_training_labels else None,
         },
         "daily_duration_data": {
             "labels": daily_labels,
             "actuals": daily_durations,
             "trends": _calculate_sma(daily_durations, 7),
+            "training_labels": daily_training_labels,
+            "training_actuals": daily_training_durations,
+            "training_stage_features": daily_training_stage_features,
+            "future_stage_features": daily_future_stage_features,
+            "ongoing_label": daily_labels[-1] if daily_incomplete else None,
+            "ongoing_value": daily_live_duration,
+            "ongoing": daily_incomplete,
+            "debug_today": today.isoformat(),
+            "debug_last_log_date": last_log_date.isoformat(),
+            "debug_training_last_label": daily_training_labels[-1] if daily_training_labels else None,
         },
         "daily_efficiency_data": {
             "labels": daily_labels,
             "actuals": daily_efficiencies,
             "trends": _calculate_sma(daily_efficiencies, 7),
+            "training_labels": daily_training_labels,
+            "training_actuals": daily_training_efficiencies,
+            "training_stage_features": daily_training_stage_features,
+            "future_stage_features": daily_future_stage_features,
+            "ongoing_label": daily_labels[-1] if daily_incomplete else None,
+            "ongoing_value": daily_live_efficiency,
+            "ongoing": daily_incomplete,
+            "debug_today": today.isoformat(),
+            "debug_last_log_date": last_log_date.isoformat(),
+            "debug_training_last_label": daily_training_labels[-1] if daily_training_labels else None,
         },
     }
 
@@ -245,7 +449,7 @@ def _prepare_stage_annotations(user_id, all_stages, global_start_date, last_log_
     return annotations
 
 
-def get_chart_data_for_user(user_id):
+def _build_chart_data_for_user(user_id):
     """
     为前端渲染图表准备所有必要的数据
 
@@ -280,6 +484,26 @@ def get_chart_data_for_user(user_id):
 
     global_start_date = all_stages[0].start_date
     last_log_date = max(log.log_date for log in all_logs)
+    forecast_data = build_trend_forecasts(
+        daily_labels=trend_data["daily_duration_data"]["training_labels"],
+        daily_duration_values=trend_data["daily_duration_data"]["training_actuals"],
+        daily_efficiency_values=trend_data["daily_efficiency_data"]["training_actuals"],
+        daily_stage_features=trend_data["daily_duration_data"]["training_stage_features"],
+        daily_future_stage_features=trend_data["daily_duration_data"]["future_stage_features"],
+        weekly_labels=trend_data["weekly_duration_data"]["training_labels"],
+        weekly_duration_values=trend_data["weekly_duration_data"]["training_actuals"],
+        weekly_efficiency_values=trend_data["weekly_efficiency_data"]["training_actuals"],
+        weekly_stage_features=trend_data["weekly_duration_data"]["training_stage_features"],
+        weekly_future_stage_features=trend_data["weekly_duration_data"]["future_stage_features"],
+        global_start_date=global_start_date,
+        last_log_date=last_log_date,
+        daily_current_label=trend_data["daily_duration_data"]["ongoing_label"],
+        weekly_current_label=trend_data["weekly_duration_data"]["ongoing_label"],
+        weekly_duration_display_divisor=7.0,
+    )
+    for dataset_key, forecast in forecast_data.items():
+        trend_data[dataset_key]["forecast"] = forecast
+
     stage_annotations = _prepare_stage_annotations(
         user_id, all_stages, global_start_date, last_log_date
     )
@@ -292,6 +516,56 @@ def get_chart_data_for_user(user_id):
     }
 
     return final_data
+
+
+def get_chart_data_for_user(user_id):
+    """
+    为图表总览提供一个短 TTL 缓存，并对并发请求做去重。
+
+    统计分析页会在短时间内重复请求 overview，且预测计算较重。
+    这里让同一用户在 20 秒内复用上一份结果，避免重复训练把请求拖到超时。
+    """
+
+    if current_app and current_app.config.get("TESTING"):
+        return _build_chart_data_for_user(user_id)
+
+    now = time.monotonic()
+    wait_event: threading.Event | None = None
+
+    with _overview_cache_lock:
+        cached = _overview_cache.get(user_id)
+        if cached and cached[0] > now:
+            return copy.deepcopy(cached[1])
+
+        wait_event = _overview_inflight.get(user_id)
+        if wait_event is None:
+            wait_event = threading.Event()
+            _overview_inflight[user_id] = wait_event
+            is_leader = True
+        else:
+            is_leader = False
+
+    if not is_leader:
+        wait_event.wait(timeout=185)
+        with _overview_cache_lock:
+            cached = _overview_cache.get(user_id)
+            if cached and cached[0] > time.monotonic():
+                return copy.deepcopy(cached[1])
+
+    try:
+        data = _build_chart_data_for_user(user_id)
+        cache_payload = copy.deepcopy(data)
+        with _overview_cache_lock:
+            _overview_cache[user_id] = (
+                time.monotonic() + _OVERVIEW_CACHE_TTL_SECONDS,
+                cache_payload,
+            )
+        return data
+    finally:
+        with _overview_cache_lock:
+            event = _overview_inflight.pop(user_id, None)
+            if event is not None:
+                event.set()
 
 
 def get_category_chart_data(user_id, stage_id=None, start_date=None, end_date=None):

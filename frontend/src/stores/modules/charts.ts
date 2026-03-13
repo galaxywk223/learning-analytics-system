@@ -11,6 +11,39 @@ import { ElMessage } from "element-plus";
  */
 
 export const useChartsStore = defineStore("charts", () => {
+  let refreshAllPromise: Promise<void> | null = null;
+
+  const defaultForecast = () => ({
+    labels: [],
+    prediction: [],
+    lower: [],
+    upper: [],
+    model_name: null,
+    history_points: 0,
+    horizon: 0,
+    trained_on: "all_history",
+    confidence_level: 0.8,
+    accuracy_threshold: 0.4,
+    selection_strategy: "lowest_wape_then_rmse",
+    validation_wape: null,
+    validation_rmse: null,
+    baseline_wape: null,
+    baseline_rmse: null,
+    model_candidates: [],
+    available: false,
+    reason: "",
+  });
+
+  const defaultTrendDataset = () => ({
+    labels: [],
+    actuals: [],
+    trends: [],
+    ongoing: false,
+    ongoing_label: null,
+    ongoing_value: null,
+    forecast: defaultForecast(),
+  });
+
   // ========== 状态 ==========
   // 过滤器
   const viewType = ref("weekly"); // 'weekly' | 'daily'
@@ -20,6 +53,7 @@ export const useChartsStore = defineStore("charts", () => {
 
   // 数据状态
   const loading = ref(false);
+  const trendsError = ref("");
 
   // 存储完整的后端返回数据（与旧项目一致）
   const rawChartData = ref({});
@@ -44,10 +78,10 @@ export const useChartsStore = defineStore("charts", () => {
 
   // 趋势图表数据（从rawChartData中提取）
   const trends = ref({
-    weekly_duration_data: { labels: [], actuals: [], trends: [] },
-    weekly_efficiency_data: { labels: [], actuals: [], trends: [] },
-    daily_duration_data: { labels: [], actuals: [], trends: [] },
-    daily_efficiency_data: { labels: [], actuals: [], trends: [] },
+    weekly_duration_data: defaultTrendDataset(),
+    weekly_efficiency_data: defaultTrendDataset(),
+    daily_duration_data: defaultTrendDataset(),
+    daily_efficiency_data: defaultTrendDataset(),
   });
 
   // 阶段注释
@@ -117,6 +151,7 @@ export const useChartsStore = defineStore("charts", () => {
    */
   async function fetchTrends() {
     loading.value = true;
+    trendsError.value = "";
     try {
       const data: any = await chartsAPI.getOverview({
         view: viewType.value,
@@ -149,25 +184,37 @@ export const useChartsStore = defineStore("charts", () => {
 
       // 更新趋势数据
       trends.value = {
-        weekly_duration_data: data.weekly_duration_data || {
-          labels: [],
-          actuals: [],
-          trends: [],
+        weekly_duration_data: {
+          ...defaultTrendDataset(),
+          ...(data.weekly_duration_data || {}),
+          forecast: {
+            ...defaultForecast(),
+            ...(data.weekly_duration_data?.forecast || {}),
+          },
         },
-        weekly_efficiency_data: data.weekly_efficiency_data || {
-          labels: [],
-          actuals: [],
-          trends: [],
+        weekly_efficiency_data: {
+          ...defaultTrendDataset(),
+          ...(data.weekly_efficiency_data || {}),
+          forecast: {
+            ...defaultForecast(),
+            ...(data.weekly_efficiency_data?.forecast || {}),
+          },
         },
-        daily_duration_data: data.daily_duration_data || {
-          labels: [],
-          actuals: [],
-          trends: [],
+        daily_duration_data: {
+          ...defaultTrendDataset(),
+          ...(data.daily_duration_data || {}),
+          forecast: {
+            ...defaultForecast(),
+            ...(data.daily_duration_data?.forecast || {}),
+          },
         },
-        daily_efficiency_data: data.daily_efficiency_data || {
-          labels: [],
-          actuals: [],
-          trends: [],
+        daily_efficiency_data: {
+          ...defaultTrendDataset(),
+          ...(data.daily_efficiency_data || {}),
+          forecast: {
+            ...defaultForecast(),
+            ...(data.daily_efficiency_data?.forecast || {}),
+          },
         },
       };
 
@@ -175,6 +222,12 @@ export const useChartsStore = defineStore("charts", () => {
       stageAnnotations.value = data.stage_annotations || [];
     } catch (error) {
       console.error("Error fetching trend data:", error);
+      const errorMessage =
+        (error as any)?.response?.data?.message ||
+        (error as any)?.message ||
+        (error as any)?.code ||
+        "加载趋势图表数据失败";
+      trendsError.value = errorMessage;
       ElMessage.error("加载趋势图表数据失败");
       rawChartData.value = { has_data: false };
     } finally {
@@ -513,27 +566,39 @@ export const useChartsStore = defineStore("charts", () => {
    * 刷新所有数据
    */
   async function refreshAll() {
+    if (refreshAllPromise) {
+      return refreshAllPromise;
+    }
+
     console.log(
       "[Charts Store] refreshAll called, activeTab:",
       activeTab.value,
     );
-    await fetchTrends();
-    if (activeTab.value === "categories") {
-      console.log(
-        "[Charts Store] Active tab is categories, fetching category data...",
-      );
-      await fetchCategories();
-    } else if (activeTab.value === "cattrend") {
-      await fetchCategoryTrend();
-    } else {
-      console.log(
-        "[Charts Store] Active tab is not categories, skipping category fetch",
-      );
+    refreshAllPromise = (async () => {
+      await fetchTrends();
+      if (activeTab.value === "categories") {
+        console.log(
+          "[Charts Store] Active tab is categories, fetching category data...",
+        );
+        await fetchCategories();
+      } else if (activeTab.value === "cattrend") {
+        await fetchCategoryTrend();
+      } else {
+        console.log(
+          "[Charts Store] Active tab is not categories, skipping category fetch",
+        );
+      }
+      // 计算 Top3 子分类（近30天）
+      await fetchTopSubsLast30d();
+      // 计算效率 Top3 子分类（近30天）
+      await fetchTopSubsEfficiencyLast30d();
+    })();
+
+    try {
+      await refreshAllPromise;
+    } finally {
+      refreshAllPromise = null;
     }
-    // 计算 Top3 子分类（近30天）
-    await fetchTopSubsLast30d();
-    // 计算效率 Top3 子分类（近30天）
-    await fetchTopSubsEfficiencyLast30d();
   }
 
   function setCategoryRangeMode(mode: typeof categoryRangeMode.value) {
@@ -661,6 +726,7 @@ export const useChartsStore = defineStore("charts", () => {
     activeTab,
     metricMode,
     loading,
+    trendsError,
     rawChartData,
     kpis,
     kpiTopSubs30d,
