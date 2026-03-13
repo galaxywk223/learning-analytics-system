@@ -152,214 +152,208 @@
               </div>
             </div>
             <div class="tab-panels">
+              <div v-show="charts.activeTab === 'overview'" class="panel">
+                <div v-loading="charts.loading" class="kpi-grid">
+                  <KpiCard label="今天时长" color="amber">
+                    <template #icon>
+                      <span class="emoji-icon" aria-hidden="true">⏳</span>
+                    </template>
+                    <template #value>
+                      <div class="split-kpi">
+                        <div class="split-col today">
+                          <div class="split-title today-title">今天</div>
+                          <div class="split-value large">
+                            {{ todayHoursOnly }}
+                          </div>
+                          <div class="split-meta">
+                            <span class="meta-text">{{
+                              todayHoursRankText
+                            }}</span>
+                            <span class="pill muted">{{ todayExceedText }}</span>
+                          </div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="split-col yesterday">
+                          <div class="split-title">昨日</div>
+                          <div class="split-value medium">
+                            {{ yesterdayHoursOnly }}
+                            <span class="trend">{{ yesterdayHoursTrend }}</span>
+                          </div>
+                          <div class="split-meta">
+                            <span class="meta-text">{{
+                              yesterdayHoursRankText
+                            }}</span>
+                            <span class="pill accent">{{
+                              yesterdayExceedText
+                            }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </KpiCard>
+                  <KpiCard label="今天效率" color="green">
+                    <template #icon>
+                      <span class="emoji-icon" aria-hidden="true">⚡️</span>
+                    </template>
+                    <template #value>
+                      <div class="split-kpi">
+                        <div class="split-col today">
+                          <div class="split-title today-title">今天</div>
+                          <div class="split-value large">
+                            {{ todayEfficiencyOnly }}
+                          </div>
+                          <div class="split-meta">
+                            <span class="meta-text">{{
+                              todayEfficiencyRankText
+                            }}</span>
+                            <span class="pill muted">{{
+                              todayEfficiencyExceedText
+                            }}</span>
+                          </div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="split-col yesterday">
+                          <div class="split-title">昨日</div>
+                          <div class="split-value medium">
+                            {{ yesterdayEfficiencyOnly }}
+                            <span class="trend">{{
+                              yesterdayEfficiencyTrend
+                            }}</span>
+                          </div>
+                          <div class="split-meta">
+                            <span class="meta-text">
+                              {{ yesterdayEfficiencyRankText }}
+                            </span>
+                            <span class="pill accent">
+                              {{ yesterdayEfficiencyExceedText }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </KpiCard>
+                  <KpiCard label="近30天波动" color="purple">
+                    <template #icon>
+                      <span class="emoji-icon" aria-hidden="true">🛡️</span>
+                    </template>
+                    <template #value>
+                      <div class="volatility-card">
+                        <div class="vol-main">
+                          <span class="vol-state">{{ stabilityTitle }}</span>
+                          <span class="vol-score">{{ stabilityScore }}</span>
+                        </div>
+                        <div class="vol-grid">
+                          <div class="vol-cell">
+                            <span class="vol-label">Avg</span>
+                            <span class="vol-value">{{
+                              stabilityAverageText
+                            }}</span>
+                          </div>
+                          <div class="vol-cell">
+                            <span class="vol-label">Max</span>
+                            <span class="vol-value">
+                              {{ durationExtremeDisplay.max.valueText }}
+                            </span>
+                          </div>
+                          <div class="vol-cell">
+                            <span class="vol-label">Min</span>
+                            <span class="vol-value">
+                              {{ durationExtremeDisplay.min.valueText }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </KpiCard>
+                </div>
+                <div v-loading="charts.loading" class="kpi-grid top-summary-grid">
+                  <KpiCard label="时长 TOP3（近30天）" color="indigo">
+                    <template #value>
+                      <div class="rank-stack">
+                        <div
+                          v-for="card in topSubCards"
+                          :key="card.key"
+                          class="rank-stack__item"
+                        >
+                          <div class="rank-stack__name">{{ card.name }}</div>
+                          <div class="rank-stack__value">{{ card.percentText }}</div>
+                          <div class="rank-bar">
+                            <span
+                              :style="{
+                                width: card.barWidth,
+                                opacity: card.opacity,
+                              }"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </KpiCard>
+                  <KpiCard label="效率 TOP3（近30天）" color="green">
+                    <template #value>
+                      <div class="rank-stack">
+                        <div
+                          v-for="card in topSubEfficiencyCards"
+                          :key="card.key"
+                          class="rank-stack__item"
+                        >
+                          <div class="rank-stack__name">{{ card.name }}</div>
+                          <div class="rank-stack__value">{{ card.valueText }}</div>
+                          <div class="rank-bar">
+                            <span
+                              :style="{
+                                width: card.barWidth,
+                                opacity: card.opacity,
+                              }"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </KpiCard>
+                </div>
+                <div
+                  v-if="!charts.loading && !charts.hasTrendsData"
+                  class="alert-box"
+                >
+                  <div
+                    v-if="rawChartData?.setup_needed"
+                    class="alert alert-info"
+                  >
+                    尚未创建阶段或学习记录，暂时无法生成总体概览。请先添加学习日志。
+                  </div>
+                  <div v-else class="alert alert-info">
+                    暂无学习数据，无法生成总体概览。
+                  </div>
+                </div>
+              </div>
               <div v-show="charts.activeTab === 'trends'" class="panel">
-              <!-- KPI 仅在趋势分析面板内部显示，符合旧项目布局 -->
-              <div v-loading="charts.loading" class="kpi-grid">
-                <KpiCard label="今天时长" color="amber">
-                  <template #icon>
-                    <span class="emoji-icon" aria-hidden="true">⏳</span>
-                  </template>
-                  <template #value>
-                    <div class="split-kpi">
-                      <div class="split-col today">
-                        <div class="split-title today-title">今天</div>
-                        <div class="split-value large">
-                          {{ todayHoursOnly }}
-                        </div>
-                        <div class="split-meta">
-                          <span class="meta-text">{{
-                            todayHoursRankText
-                          }}</span>
-                          <span class="pill muted">{{ todayExceedText }}</span>
-                        </div>
-                      </div>
-                      <div class="divider"></div>
-                      <div class="split-col yesterday">
-                        <div class="split-title">昨日</div>
-                        <div class="split-value medium">
-                          {{ yesterdayHoursOnly }}
-                          <span class="trend">{{ yesterdayHoursTrend }}</span>
-                        </div>
-                        <div class="split-meta">
-                          <span class="meta-text">{{
-                            yesterdayHoursRankText
-                          }}</span>
-                          <span class="pill accent">{{
-                            yesterdayExceedText
-                          }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-                </KpiCard>
-                <KpiCard label="今天效率" color="green">
-                  <template #icon>
-                    <span class="emoji-icon" aria-hidden="true">⚡️</span>
-                  </template>
-                  <template #value>
-                    <div class="split-kpi">
-                      <div class="split-col today">
-                        <div class="split-title today-title">今天</div>
-                        <div class="split-value large">
-                          {{ todayEfficiencyOnly }}
-                        </div>
-                        <div class="split-meta">
-                          <span class="meta-text">{{
-                            todayEfficiencyRankText
-                          }}</span>
-                          <span class="pill muted">{{
-                            todayEfficiencyExceedText
-                          }}</span>
-                        </div>
-                      </div>
-                      <div class="divider"></div>
-                      <div class="split-col yesterday">
-                        <div class="split-title">昨日</div>
-                        <div class="split-value medium">
-                          {{ yesterdayEfficiencyOnly }}
-                          <span class="trend">{{
-                            yesterdayEfficiencyTrend
-                          }}</span>
-                        </div>
-                        <div class="split-meta">
-                          <span class="meta-text">
-                            {{ yesterdayEfficiencyRankText }}
-                          </span>
-                          <span class="pill accent">
-                            {{ yesterdayEfficiencyExceedText }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-                </KpiCard>
-                <KpiCard label="近30天波动" color="purple">
-                  <template #icon>
-                    <span class="emoji-icon" aria-hidden="true">🛡️</span>
-                  </template>
-                  <template #value>
-                    <div class="volatility-card">
-                      <div class="vol-main">
-                        <span class="vol-state">{{ stabilityTitle }}</span>
-                        <span class="vol-score">{{ stabilityScore }}</span>
-                      </div>
-                      <!-- Removed redundant subtitle -->
-                      <div class="vol-grid">
-                        <div class="vol-cell">
-                          <span class="vol-label">Avg</span>
-                          <span class="vol-value">{{
-                            stabilityAverageText
-                          }}</span>
-                        </div>
-                        <div class="vol-cell">
-                          <span class="vol-label">Max</span>
-                          <span class="vol-value">
-                            {{ durationExtremeDisplay.max.valueText }}
-                          </span>
-                        </div>
-                        <div class="vol-cell">
-                          <span class="vol-label">Min</span>
-                          <span class="vol-value">
-                            {{ durationExtremeDisplay.min.valueText }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-                </KpiCard>
-              </div>
-              <!-- 时长 TOP3 -->
-              <div
-                v-if="topSubCards.length"
-                v-loading="charts.loading"
-                class="kpi-grid top-sub-grid"
-              >
-                <KpiCard
-                  v-for="card in topSubCards"
-                  :key="card.key"
-                  :label="card.label"
-                  color="indigo"
-                  dense
+                <div
+                  v-if="!charts.loading && !charts.hasTrendsData"
+                  class="alert-box"
                 >
-                  <template #icon>
-                    <span class="emoji-icon" aria-hidden="true">{{
-                      card.medal
-                    }}</span>
-                  </template>
-                  <template #value>
-                    <div class="rank-card">
-                      <div class="rank-title">{{ card.name }}</div>
-                      <div class="rank-percent">{{ card.percentText }}</div>
-                      <div class="rank-bar">
-                        <span
-                          :style="{
-                            width: card.barWidth,
-                            opacity: card.opacity,
-                          }"
-                        />
-                      </div>
-                    </div>
-                  </template>
-                </KpiCard>
-              </div>
-              <!-- 效率 TOP3 -->
-              <div
-                v-if="topSubEfficiencyCards.length"
-                v-loading="charts.loading"
-                class="kpi-grid top-sub-grid"
-              >
-                <KpiCard
-                  v-for="card in topSubEfficiencyCards"
-                  :key="card.key"
-                  :label="card.label"
-                  color="green"
-                  dense
-                >
-                  <template #icon>
-                    <span class="emoji-icon" aria-hidden="true">{{
-                      card.medal
-                    }}</span>
-                  </template>
-                  <template #value>
-                    <div class="rank-card">
-                      <div class="rank-title">{{ card.name }}</div>
-                      <div class="rank-percent">{{ card.valueText }}</div>
-                      <div class="rank-bar">
-                        <span
-                          :style="{
-                            width: card.barWidth,
-                            opacity: card.opacity,
-                          }"
-                        />
-                      </div>
-                    </div>
-                  </template>
-                </KpiCard>
-              </div>
-              <!-- 无数据/初始化提示 -->
-              <div
-                v-if="!charts.loading && !charts.hasTrendsData"
-                class="alert-box"
-              >
-                <div v-if="rawChartData?.setup_needed" class="alert alert-info">
-                  尚未创建阶段或学习记录，暂时无法生成趋势图表。请先添加学习日志。
+                  <div
+                    v-if="rawChartData?.setup_needed"
+                    class="alert alert-info"
+                  >
+                    尚未创建阶段或学习记录，暂时无法生成趋势图表。请先添加学习日志。
+                  </div>
+                  <div v-else class="alert alert-info">
+                    暂无学习数据，无法生成趋势图表。
+                  </div>
                 </div>
-                <div v-else class="alert alert-info">
-                  暂无学习数据，无法生成趋势图表。
-                </div>
+                <TrendsChart
+                  :weekly-duration-data="charts.trends.weekly_duration_data"
+                  :weekly-efficiency-data="charts.trends.weekly_efficiency_data"
+                  :daily-duration-data="charts.trends.daily_duration_data"
+                  :daily-efficiency-data="charts.trends.daily_efficiency_data"
+                  :stage-annotations="charts.stageAnnotations"
+                  :has-data="charts.hasTrendsData"
+                  :loading="charts.loading"
+                  :initial-view="charts.viewType"
+                  @view-change="charts.setViewType"
+                />
               </div>
-              <TrendsChart
-                :weekly-duration-data="charts.trends.weekly_duration_data"
-                :weekly-efficiency-data="charts.trends.weekly_efficiency_data"
-                :daily-duration-data="charts.trends.daily_duration_data"
-                :daily-efficiency-data="charts.trends.daily_efficiency_data"
-                :stage-annotations="charts.stageAnnotations"
-                :has-data="charts.hasTrendsData"
-                :loading="charts.loading"
-                :initial-view="charts.viewType"
-                @view-change="charts.setViewType"
-              />
-            </div>
             <div
               v-show="charts.activeTab === 'categories'"
               class="panel categories-panel"
@@ -410,16 +404,28 @@ const stageSelected = ref<string | number>("all");
 
 const tabItems = [
   {
+    value: "overview",
+    label: "总体概览",
+    brief: "先看今天表现和近30天关键指标",
+    icon: "lucide:layout-dashboard",
+    kicker: "Overview Snapshot",
+    title: "把今天、昨天和近30天的核心状态先看明白",
+    description: "适合快速扫一眼当前节奏、波动水平，以及最近最占时间和最高效率的方向。",
+    panelKicker: "总体概览",
+    panelTitle: "关键指标与近期表现",
+    panelDescription: "把原先趋势分析顶部的信息单独收拢成一个概览面板，先看结论，再决定往下钻。",
+  },
+  {
     value: "trends",
     label: "趋势分析",
-    brief: "看时长和效率的整体波动",
+    brief: "专注看时长和效率的连续走势",
     icon: "lucide:chart-no-axes-combined",
     kicker: "Trend Focus",
     title: "把学习节奏和效率变化放到同一张图里看",
     description: "适合观察阶段切换、临近考试和休息周期对学习投入的影响。",
-    panelKicker: "趋势面板",
+    panelKicker: "趋势分析",
     panelTitle: "时长与效率的双轴变化",
-    panelDescription: "用周视图和日视图切换整体走势，判断当前节奏是否稳定。",
+    panelDescription: "现在这里只保留趋势图本身，用周视图和日视图切换整体走势，阅读会更轻一些。",
   },
   {
     value: "categories",
@@ -513,6 +519,10 @@ const analysisFocusLabel = computed(() => {
 });
 
 const analysisWindowLabel = computed(() => {
+  if (charts.activeTab === "overview") {
+    return "关键指标";
+  }
+
   if (charts.activeTab === "trends") {
     return charts.viewType === "daily" ? "按日走势" : "按周走势";
   }
@@ -1169,7 +1179,7 @@ onActivated(async () => {
 
   .filter-list {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
   }
 
@@ -1353,9 +1363,14 @@ onActivated(async () => {
   margin-bottom: 14px;
 }
 
-.top-sub-grid {
+.top-summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 14px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .panel-tag--button {
@@ -1394,6 +1409,39 @@ onActivated(async () => {
   gap: 10px;
 }
 
+.rank-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rank-stack__item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--color-primary) 10%, var(--stroke-soft));
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+}
+
+.rank-stack__name {
+  color: var(--color-text-heading);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.rank-stack__value {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .rank-title {
   color: var(--color-text-heading);
   font-size: 15px;
@@ -1428,7 +1476,7 @@ onActivated(async () => {
 
 @media (max-width: 1200px) {
   .charts-sidebar .filter-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

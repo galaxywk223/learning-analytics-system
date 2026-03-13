@@ -15,7 +15,7 @@ export const useChartsStore = defineStore("charts", () => {
   // 过滤器
   const viewType = ref("weekly"); // 'weekly' | 'daily'
   const stageId = ref("all");
-  const activeTab = ref("trends"); // 'trends' | 'categories' | 'cattrend'
+  const activeTab = ref("overview"); // 'overview' | 'trends' | 'categories' | 'cattrend'
   const metricMode = ref<"duration" | "efficiency">("duration"); // 新增：指标模式
 
   // 数据状态

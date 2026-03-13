@@ -1,6 +1,6 @@
 <template>
   <div class="kpi-card" :class="[color, dense ? 'dense' : '']">
-    <div class="icon-wrapper">
+    <div v-if="hasIcon" class="icon-wrapper">
       <slot name="icon">
         <span v-if="icon" class="emoji-icon" aria-hidden="true">{{
           icon
@@ -18,7 +18,7 @@
   </div>
 </template>
 <script setup>
-import { computed } from "vue";
+import { computed, useSlots } from "vue";
 
 const props = defineProps({
   label: { type: String, required: true },
@@ -27,6 +27,10 @@ const props = defineProps({
   icon: { type: String, default: "" },
   dense: { type: Boolean, default: false },
 });
+
+const slots = useSlots();
+
+const hasIcon = computed(() => Boolean(props.icon || slots.icon));
 
 const displayValue = computed(() => {
   if (props.value === null || props.value === undefined || props.value === "") {
