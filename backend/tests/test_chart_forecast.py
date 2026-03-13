@@ -1,11 +1,13 @@
+import threading
+import time
 from datetime import date, timedelta
 
 import numpy as np
 
 from app import db
 from app.models import DailyData, LogEntry, Stage
+from app.services import chart_service, forecast_service
 from app.services.chart_service import get_chart_data_for_user
-from app.services import forecast_service
 
 
 def _create_history(
@@ -225,3 +227,163 @@ def test_chart_forecast_skips_candidates_with_nan_metrics(monkeypatch):
     assert forecast["validation_wape"] is not None
     assert forecast["validation_rmse"] is not None
     assert all(candidate["model_name"] != "Broken Nan" for candidate in forecast["model_candidates"])
+
+
+def test_chart_overview_forecast_status_can_be_polled_async(
+    app,
+    client,
+    db_session,
+    register_and_login,
+    auth_headers,
+    monkeypatch,
+):
+    with app.app_context():
+        app.config["CHART_FORECAST_SYNC_MODE"] = False
+        chart_service._overview_cache.clear()
+        chart_service._overview_inflight.clear()
+        chart_service._forecast_cache.clear()
+        chart_service._forecast_inflight.clear()
+
+        token, user_id = register_and_login("forecast-async", "forecast-async@test.com")
+        _create_history(
+            user_id,
+            start_date=date.today() - timedelta(days=119),
+            days=100,
+        )
+
+        started = threading.Event()
+        release = threading.Event()
+
+        def slow_builder(**kwargs):
+            started.set()
+            release.wait(timeout=2)
+            return {
+                "daily_duration_data": {
+                    "labels": ["2099-01-01"],
+                    "prediction": [1.23],
+                    "lower": [1.0],
+                    "upper": [1.4],
+                    "model_name": "Test Async Model",
+                    "history_points": 60,
+                    "horizon": 14,
+                    "trained_on": "all_history",
+                    "confidence_level": 0.8,
+                    "accuracy_threshold": 0.4,
+                    "selection_strategy": "lowest_wape_then_rmse_with_weighted_blend",
+                    "validation_wape": 0.2,
+                    "validation_rmse": 1.0,
+                    "baseline_wape": 0.3,
+                    "baseline_rmse": 1.4,
+                    "model_candidates": [],
+                    "available": True,
+                    "reason": "",
+                },
+                "daily_efficiency_data": {
+                    "labels": ["2099-01-01"],
+                    "prediction": [2.34],
+                    "lower": [2.0],
+                    "upper": [2.6],
+                    "model_name": "Test Async Model",
+                    "history_points": 60,
+                    "horizon": 14,
+                    "trained_on": "all_history",
+                    "confidence_level": 0.8,
+                    "accuracy_threshold": 0.4,
+                    "selection_strategy": "lowest_wape_then_rmse_with_weighted_blend",
+                    "validation_wape": 0.18,
+                    "validation_rmse": 0.8,
+                    "baseline_wape": 0.29,
+                    "baseline_rmse": 1.1,
+                    "model_candidates": [],
+                    "available": True,
+                    "reason": "",
+                },
+                "weekly_duration_data": {
+                    "labels": ["2099-W01"],
+                    "prediction": [3.45],
+                    "lower": [3.0],
+                    "upper": [4.0],
+                    "model_name": "Test Async Model",
+                    "history_points": 20,
+                    "horizon": 8,
+                    "trained_on": "all_history",
+                    "confidence_level": 0.8,
+                    "accuracy_threshold": 0.4,
+                    "selection_strategy": "lowest_wape_then_rmse_with_weighted_blend",
+                    "validation_wape": 0.21,
+                    "validation_rmse": 1.2,
+                    "baseline_wape": 0.32,
+                    "baseline_rmse": 1.5,
+                    "model_candidates": [],
+                    "available": True,
+                    "reason": "",
+                },
+                "weekly_efficiency_data": {
+                    "labels": ["2099-W01"],
+                    "prediction": [4.56],
+                    "lower": [4.2],
+                    "upper": [4.8],
+                    "model_name": "Test Async Model",
+                    "history_points": 20,
+                    "horizon": 8,
+                    "trained_on": "all_history",
+                    "confidence_level": 0.8,
+                    "accuracy_threshold": 0.4,
+                    "selection_strategy": "lowest_wape_then_rmse_with_weighted_blend",
+                    "validation_wape": 0.16,
+                    "validation_rmse": 0.9,
+                    "baseline_wape": 0.28,
+                    "baseline_rmse": 1.3,
+                    "model_candidates": [],
+                    "available": True,
+                    "reason": "",
+                },
+            }
+
+        monkeypatch.setattr(chart_service, "build_trend_forecasts", slow_builder)
+
+        response = client.get("/api/charts/overview", headers=auth_headers(token))
+        assert response.status_code == 200
+        payload = response.get_json()
+        assert payload["forecast_status"]["state"] == "pending"
+        assert payload["forecast_status"]["trained_for_date"] == date.today().isoformat()
+        assert (
+            payload["daily_duration_data"]["forecast"]["status"] == "pending"
+        )
+        assert payload["daily_duration_data"]["forecast"]["reason"] == "预测计算中，请稍后刷新"
+
+        assert started.wait(timeout=1)
+        status_response = client.get(
+            "/api/charts/overview_forecast",
+            headers=auth_headers(token),
+        )
+        assert status_response.status_code == 200
+        status_payload = status_response.get_json()["data"]
+        assert status_payload["status"] == "pending"
+        assert status_payload["trained_for_date"] == date.today().isoformat()
+
+        retrain_response = client.post(
+            "/api/charts/overview_forecast/retrain",
+            headers=auth_headers(token),
+        )
+        assert retrain_response.status_code == 200
+
+        release.set()
+
+        ready_payload = None
+        for _ in range(40):
+            status_response = client.get(
+                "/api/charts/overview_forecast",
+                headers=auth_headers(token),
+            )
+            ready_payload = status_response.get_json()["data"]
+            if ready_payload["status"] == "ready":
+                break
+            time.sleep(0.05)
+
+        assert ready_payload is not None
+        assert ready_payload["status"] == "ready"
+        assert ready_payload["forecasts"]["daily_duration_data"]["status"] == "ready"
+        assert ready_payload["forecasts"]["daily_duration_data"]["available"] is True
+
+        app.config["CHART_FORECAST_SYNC_MODE"] = True

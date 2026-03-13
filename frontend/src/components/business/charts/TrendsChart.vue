@@ -18,42 +18,83 @@
     <div v-else v-loading="loading" class="trend-chart-card__panel">
       <header class="trend-chart-card__header">
         <div class="trend-chart-card__titles">
+          <span class="trend-chart-card__eyebrow">Trend Forecast</span>
           <h3>学习趋势</h3>
           <p>{{ forecastMeta }}</p>
-          <p v-if="forecastWarning" class="trend-chart-card__forecast-warning">
-            {{ forecastWarning }}
-          </p>
-          <div
-            v-if="forecastInsights.length"
-            class="trend-chart-card__forecast-insights"
-          >
-            <div
-              v-for="item in forecastInsights"
-              :key="item.key"
-              class="trend-chart-card__forecast-insight"
-            >
-              <strong>{{ item.title }}</strong>
-              <span>{{ item.summary }}</span>
-            </div>
-          </div>
         </div>
         <div class="trend-chart-card__switch">
           <button
-            :class="['seg-btn', currentView === 'weekly' && 'active']"
-            @click="switchView('weekly')"
+            class="trend-chart-card__retrain-btn"
+            :disabled="loading || forecastRetraining || forecastStatus?.state === 'pending'"
+            @click="emit('retrain-forecast')"
           >
-            <span class="emoji-icon" aria-hidden="true">📅</span>
-            <span>周视图</span>
+            <span class="trend-chart-card__retrain-icon">
+              {{ forecastRetraining ? "•••" : "↻" }}
+            </span>
+            <span>{{ forecastRetraining ? "重训练中" : "手动重训练" }}</span>
           </button>
-          <button
-            :class="['seg-btn', currentView === 'daily' && 'active']"
-            @click="switchView('daily')"
-          >
-            <span class="emoji-icon" aria-hidden="true">📆</span>
-            <span>日视图</span>
-          </button>
+          <div class="trend-chart-card__view-toggle">
+            <button
+              :class="['seg-btn', currentView === 'weekly' && 'active']"
+              @click="switchView('weekly')"
+            >
+              <span class="emoji-icon" aria-hidden="true">📅</span>
+              <span>周视图</span>
+            </button>
+            <button
+              :class="['seg-btn', currentView === 'daily' && 'active']"
+              @click="switchView('daily')"
+            >
+              <span class="emoji-icon" aria-hidden="true">📆</span>
+              <span>日视图</span>
+            </button>
+          </div>
         </div>
       </header>
+      <div class="trend-chart-card__meta-strip">
+        <span
+          v-for="item in forecastBadgeItems"
+          :key="item.label"
+          class="trend-chart-card__meta-pill"
+          :class="item.emphasis ? 'trend-chart-card__meta-pill--emphasis' : ''"
+        >
+          <strong>{{ item.label }}</strong>
+          <span>{{ item.value }}</span>
+        </span>
+      </div>
+      <div
+        v-if="forecastWarning"
+        class="trend-chart-card__forecast-warning"
+      >
+        {{ forecastWarning }}
+      </div>
+      <div class="trend-chart-card__forecast-grid">
+        <article
+          v-for="item in forecastCards"
+          :key="item.key"
+          class="trend-chart-card__forecast-card"
+          :class="`trend-chart-card__forecast-card--${item.tone}`"
+        >
+          <div class="trend-chart-card__forecast-card-head">
+            <div>
+              <span class="trend-chart-card__forecast-card-label">
+                {{ item.title }}
+              </span>
+              <strong>{{ item.status }}</strong>
+            </div>
+            <span class="trend-chart-card__forecast-chip">
+              {{ item.model }}
+            </span>
+          </div>
+          <p class="trend-chart-card__forecast-card-summary">
+            {{ item.summary }}
+          </p>
+          <div class="trend-chart-card__forecast-card-metrics">
+            <span>{{ item.metricA }}</span>
+            <span>{{ item.metricB }}</span>
+          </div>
+        </article>
+      </div>
       <v-chart
         :key="chartRenderKey"
         class="trend-chart-card__visual"
@@ -94,13 +135,15 @@ const props = defineProps({
   weeklyEfficiencyData: { type: Object, required: true },
   dailyDurationData: { type: Object, required: true },
   dailyEfficiencyData: { type: Object, required: true },
+  forecastStatus: { type: Object, default: () => ({}) },
+  forecastRetraining: { type: Boolean, default: false },
   stageAnnotations: { type: Array, default: () => [] },
   hasData: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
   initialView: { type: String, default: "weekly" },
 });
 
-const emit = defineEmits(["view-change"]);
+const emit = defineEmits(["view-change", "retrain-forecast"]);
 
 const currentView = ref(props.initialView === "daily" ? "daily" : "weekly");
 const themeVersion = ref(0);
@@ -183,6 +226,12 @@ const normalizeForecast = (forecast) => ({
   modelCandidates: Array.isArray(forecast?.model_candidates)
     ? forecast.model_candidates
     : [],
+  status:
+    typeof forecast?.status === "string"
+      ? forecast.status
+      : forecast?.available
+        ? "ready"
+        : "unavailable",
   available:
     Boolean(forecast?.available) &&
     Array.isArray(forecast?.labels) &&
@@ -295,8 +344,13 @@ const hasOngoingPeriod = computed(() => {
 
 const forecastMeta = computed(() => {
   const { duration, efficiency } = currentForecasts.value;
+  const hasPending =
+    duration.status === "pending" || efficiency.status === "pending";
   const activeForecast = duration.available ? duration : efficiency;
   const threshold = formatPercent(activeForecast.accuracyThreshold || 0.4);
+  if (hasPending) {
+    return `基于全部历史训练 · 预测后台生成中 · 精度门槛 WAPE <= ${threshold}`;
+  }
   if (!activeForecast.available) {
     return `预测基于全部历史训练 · 精度门槛 WAPE <= ${threshold}`;
   }
@@ -305,8 +359,22 @@ const forecastMeta = computed(() => {
   return `基于全部历史训练 · 未来 ${activeForecast.horizon}${unit}预测${ongoingSuffix} · 精度门槛 WAPE <= ${threshold}`;
 });
 
+const lastTrainingLabel = computed(() => {
+  const trainedForDate = props.forecastStatus?.trained_for_date;
+  if (!trainedForDate) {
+    return "尚未完成今日训练";
+  }
+  return `最近训练 ${trainedForDate}`;
+});
+
 const forecastWarning = computed(() => {
   const { duration, efficiency } = currentForecasts.value;
+  const pending = [duration, efficiency].some(
+    (forecast) => forecast.status === "pending",
+  );
+  if (pending) {
+    return "预测正在后台生成，历史趋势已先展示，结果完成后会自动补齐。";
+  }
   const missing = [];
   if (!duration.available) missing.push("时长");
   if (!efficiency.available) missing.push("效率");
@@ -317,46 +385,96 @@ const forecastWarning = computed(() => {
   return `${missing[0]}${duration.reason || efficiency.reason || "历史数据不足，暂不提供预测"}`;
 });
 
-const forecastInsights = computed(() => {
-  const entries = [
-    { key: "duration", label: "时长", forecast: currentForecasts.value.duration },
-    { key: "efficiency", label: "效率", forecast: currentForecasts.value.efficiency },
+const forecastBadgeItems = computed(() => {
+  const { duration, efficiency } = currentForecasts.value;
+  const activeForecast = duration.available ? duration : efficiency;
+  const unit = currentView.value === "weekly" ? "周" : "天";
+  const items = [
+    {
+      label: "训练范围",
+      value: "全部历史",
+      emphasis: false,
+    },
+    {
+      label: "预测长度",
+      value: activeForecast.horizon ? `${activeForecast.horizon}${unit}` : "--",
+      emphasis: true,
+    },
+    {
+      label: "当前周期",
+      value: hasOngoingPeriod.value ? "含进行中" : "仅完整周期",
+      emphasis: false,
+    },
+    {
+      label: "训练状态",
+      value:
+        props.forecastStatus?.state === "pending"
+          ? "后台重算中"
+          : lastTrainingLabel.value,
+      emphasis: props.forecastStatus?.state === "ready",
+    },
+    {
+      label: "拦截门槛",
+      value: `WAPE <= ${formatPercent(activeForecast.accuracyThreshold || 0.4)}`,
+      emphasis: false,
+    },
+  ];
+  return items;
+});
+
+const forecastCards = computed(() => {
+  const items = [
+    {
+      key: "duration",
+      title: "时长预测",
+      forecast: currentForecasts.value.duration,
+    },
+    {
+      key: "efficiency",
+      title: "效率预测",
+      forecast: currentForecasts.value.efficiency,
+    },
   ];
 
-  return entries
-    .filter(
-      ({ forecast }) =>
-        forecast.historyPoints > 0 ||
-        forecast.validationWape != null ||
-        forecast.modelName,
-    )
-    .map(({ key, label, forecast }) => {
-      const status = forecast.available
-        ? "已启用"
-        : forecast.reason?.includes("误差较高")
-          ? "已拦截"
-          : "未启用";
-      const improvement = formatImprovement(
-        forecast.baselineWape,
-        forecast.validationWape,
-      );
-      const segments = [
-        `${status} · ${forecast.modelName || "无模型"}`,
-        `回测WAPE ${formatPercent(forecast.validationWape)}`,
-        `RMSE ${formatMetric(forecast.validationRmse)}`,
-      ];
-      if (forecast.baselineWape != null) {
-        const baselineSegment = `基线 ${formatPercent(forecast.baselineWape)}`;
-        segments.push(
-          improvement ? `${baselineSegment} · 提升 ${improvement}` : baselineSegment,
-        );
-      }
-      return {
-        key,
-        title: `${label}预测`,
-        summary: segments.join(" · "),
-      };
-    });
+  return items.map(({ key, title, forecast }) => {
+    const pending = forecast.status === "pending";
+    const blocked =
+      !pending && !forecast.available && forecast.reason?.includes("误差较高");
+    const tone = pending ? "pending" : forecast.available ? "ready" : blocked ? "blocked" : "idle";
+    const status = pending
+      ? "后台生成中"
+      : forecast.available
+        ? "预测已启用"
+        : blocked
+          ? "已因误差拦截"
+          : "暂未启用";
+    const model = pending ? "等待结果" : forecast.modelName || "无模型";
+    const summary = pending
+      ? "先展示历史与进行中数据，预测完成后自动补齐。"
+      : blocked
+        ? forecast.reason || "历史回测误差较高，暂不显示预测。"
+        : forecast.reason || "已按当前最优模型输出预测。";
+    const improvement = formatImprovement(
+      forecast.baselineWape,
+      forecast.validationWape,
+    );
+
+    return {
+      key,
+      title,
+      tone,
+      status,
+      model,
+      summary,
+      metricA: `WAPE ${formatPercent(forecast.validationWape)}`,
+      metricB:
+        forecast.baselineWape != null
+          ? improvement
+            ? `相对基线 ${improvement}`
+            : `基线 ${formatPercent(forecast.baselineWape)}`
+          : `RMSE ${formatMetric(forecast.validationRmse)}`,
+    };
+  });
 });
 
 const buildForecastLayer = (labels, actualSeries, forecast) => {

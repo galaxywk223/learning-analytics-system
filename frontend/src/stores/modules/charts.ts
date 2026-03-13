@@ -12,6 +12,10 @@ import { ElMessage } from "element-plus";
 
 export const useChartsStore = defineStore("charts", () => {
   let refreshAllPromise: Promise<void> | null = null;
+  let forecastPollingTimer: ReturnType<typeof setTimeout> | null = null;
+  let forecastPollingToken = 0;
+  const OVERVIEW_CACHE_PREFIX = "charts:overview:";
+  const UI_STATE_STORAGE_KEY = "charts:ui-state";
 
   const defaultForecast = () => ({
     labels: [],
@@ -32,6 +36,7 @@ export const useChartsStore = defineStore("charts", () => {
     model_candidates: [],
     available: false,
     reason: "",
+    status: "unavailable",
   });
 
   const defaultTrendDataset = () => ({
@@ -53,6 +58,7 @@ export const useChartsStore = defineStore("charts", () => {
 
   // 数据状态
   const loading = ref(false);
+  const trendsLoading = ref(false);
   const trendsError = ref("");
 
   // 存储完整的后端返回数据（与旧项目一致）
@@ -83,6 +89,14 @@ export const useChartsStore = defineStore("charts", () => {
     daily_duration_data: defaultTrendDataset(),
     daily_efficiency_data: defaultTrendDataset(),
   });
+  const forecastStatus = ref({
+    state: "idle",
+    signature: null as string | null,
+    message: "",
+    updated_at: null as string | null,
+    trained_for_date: null as string | null,
+  });
+  const forecastRetraining = ref(false);
 
   // 阶段注释
   const stageAnnotations = ref([]);
@@ -126,6 +140,150 @@ export const useChartsStore = defineStore("charts", () => {
     );
   });
 
+  function getOverviewCacheKey() {
+    return `${OVERVIEW_CACHE_PREFIX}${stageId.value}`;
+  }
+
+  function persistUiState() {
+    if (typeof window === "undefined") {
+      return;
+    }
+    try {
+      sessionStorage.setItem(
+        UI_STATE_STORAGE_KEY,
+        JSON.stringify({
+          activeTab: activeTab.value,
+          viewType: viewType.value,
+          stageId: stageId.value,
+          metricMode: metricMode.value,
+        }),
+      );
+    } catch (error) {
+      console.warn("持久化图表 UI 状态失败", error);
+    }
+  }
+
+  function hydrateUiState() {
+    if (typeof window === "undefined") {
+      return;
+    }
+    try {
+      const raw = sessionStorage.getItem(UI_STATE_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed?.activeTab) {
+        activeTab.value = parsed.activeTab;
+      }
+      if (parsed?.viewType === "daily" || parsed?.viewType === "weekly") {
+        viewType.value = parsed.viewType;
+      }
+      if (parsed?.stageId != null) {
+        stageId.value = parsed.stageId;
+      }
+      if (
+        parsed?.metricMode === "duration" ||
+        parsed?.metricMode === "efficiency"
+      ) {
+        metricMode.value = parsed.metricMode;
+      }
+    } catch (error) {
+      console.warn("恢复图表 UI 状态失败", error);
+    }
+  }
+
+  function persistOverviewCache(payload: any) {
+    if (typeof window === "undefined" || !payload?.has_data) {
+      return;
+    }
+    try {
+      sessionStorage.setItem(
+        getOverviewCacheKey(),
+        JSON.stringify({
+          cached_at: dayjs().toISOString(),
+          payload,
+        }),
+      );
+    } catch (error) {
+      console.warn("持久化趋势缓存失败", error);
+    }
+  }
+
+  function readOverviewCache() {
+    if (typeof window === "undefined") {
+      return null;
+    }
+    try {
+      const raw = sessionStorage.getItem(getOverviewCacheKey());
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const payload = parsed?.payload;
+      if (!payload?.has_data) return null;
+      return payload;
+    } catch (error) {
+      console.warn("读取趋势缓存失败", error);
+      return null;
+    }
+  }
+
+  function applyTrendPayload(data: any) {
+    rawChartData.value = data;
+
+    if (data.kpis) {
+      kpis.value = {
+        avg_daily_minutes: data.kpis.avg_daily_minutes || 0,
+        avg_daily_formatted: data.kpis.avg_daily_formatted || "--",
+        efficiency_star: data.kpis.efficiency_star || "--",
+        weekly_trend: data.kpis.weekly_trend || "--",
+      };
+    }
+
+    trends.value = {
+      weekly_duration_data: {
+        ...defaultTrendDataset(),
+        ...(data.weekly_duration_data || {}),
+        forecast: {
+          ...defaultForecast(),
+          ...(data.weekly_duration_data?.forecast || {}),
+        },
+      },
+      weekly_efficiency_data: {
+        ...defaultTrendDataset(),
+        ...(data.weekly_efficiency_data || {}),
+        forecast: {
+          ...defaultForecast(),
+          ...(data.weekly_efficiency_data?.forecast || {}),
+        },
+      },
+      daily_duration_data: {
+        ...defaultTrendDataset(),
+        ...(data.daily_duration_data || {}),
+        forecast: {
+          ...defaultForecast(),
+          ...(data.daily_duration_data?.forecast || {}),
+        },
+      },
+      daily_efficiency_data: {
+        ...defaultTrendDataset(),
+        ...(data.daily_efficiency_data || {}),
+        forecast: {
+          ...defaultForecast(),
+          ...(data.daily_efficiency_data?.forecast || {}),
+        },
+      },
+    };
+
+    stageAnnotations.value = data.stage_annotations || [];
+    forecastStatus.value = {
+      state: data.forecast_status?.state || "idle",
+      signature: data.forecast_status?.signature || null,
+      message: data.forecast_status?.message || "",
+      updated_at: data.forecast_status?.updated_at || null,
+      trained_for_date: data.forecast_status?.trained_for_date || null,
+    };
+  }
+
+  hydrateUiState();
+
   // ========== 方法 ==========
 
   /**
@@ -150,8 +308,15 @@ export const useChartsStore = defineStore("charts", () => {
    * 获取趋势数据（与旧项目 fetchDataAndRender 对应）
    */
   async function fetchTrends() {
-    loading.value = true;
     trendsError.value = "";
+    stopForecastPolling();
+    const cachedPayload = readOverviewCache();
+    if (cachedPayload) {
+      applyTrendPayload(cachedPayload);
+      trendsLoading.value = false;
+    } else {
+      trendsLoading.value = true;
+    }
     try {
       const data: any = await chartsAPI.getOverview({
         view: viewType.value,
@@ -166,60 +331,22 @@ export const useChartsStore = defineStore("charts", () => {
           efficiency_star: "--",
           weekly_trend: "--",
         };
+        forecastStatus.value = {
+          state: "unavailable",
+          signature: null,
+          message: "",
+          updated_at: null,
+          trained_for_date: null,
+        };
         return;
       }
 
-      // 保存原始数据
-      rawChartData.value = data;
+      applyTrendPayload(data);
+      persistOverviewCache(data);
 
-      // 更新KPIs
-      if (data.kpis) {
-        kpis.value = {
-          avg_daily_minutes: data.kpis.avg_daily_minutes || 0,
-          avg_daily_formatted: data.kpis.avg_daily_formatted || "--",
-          efficiency_star: data.kpis.efficiency_star || "--",
-          weekly_trend: data.kpis.weekly_trend || "--",
-        };
+      if (forecastStatus.value.state === "pending") {
+        startForecastPolling();
       }
-
-      // 更新趋势数据
-      trends.value = {
-        weekly_duration_data: {
-          ...defaultTrendDataset(),
-          ...(data.weekly_duration_data || {}),
-          forecast: {
-            ...defaultForecast(),
-            ...(data.weekly_duration_data?.forecast || {}),
-          },
-        },
-        weekly_efficiency_data: {
-          ...defaultTrendDataset(),
-          ...(data.weekly_efficiency_data || {}),
-          forecast: {
-            ...defaultForecast(),
-            ...(data.weekly_efficiency_data?.forecast || {}),
-          },
-        },
-        daily_duration_data: {
-          ...defaultTrendDataset(),
-          ...(data.daily_duration_data || {}),
-          forecast: {
-            ...defaultForecast(),
-            ...(data.daily_duration_data?.forecast || {}),
-          },
-        },
-        daily_efficiency_data: {
-          ...defaultTrendDataset(),
-          ...(data.daily_efficiency_data || {}),
-          forecast: {
-            ...defaultForecast(),
-            ...(data.daily_efficiency_data?.forecast || {}),
-          },
-        },
-      };
-
-      // 更新阶段注释
-      stageAnnotations.value = data.stage_annotations || [];
     } catch (error) {
       console.error("Error fetching trend data:", error);
       const errorMessage =
@@ -230,8 +357,179 @@ export const useChartsStore = defineStore("charts", () => {
       trendsError.value = errorMessage;
       ElMessage.error("加载趋势图表数据失败");
       rawChartData.value = { has_data: false };
+      forecastStatus.value = {
+        state: "error",
+        signature: null,
+        message: errorMessage,
+        updated_at: null,
+        trained_for_date: null,
+      };
     } finally {
-      loading.value = false;
+      trendsLoading.value = false;
+    }
+  }
+
+  function mergeForecastBundle(forecasts: Record<string, any> | null | undefined) {
+    if (!forecasts) return;
+    if ((rawChartData.value as any)?.has_data) {
+      rawChartData.value = {
+        ...(rawChartData.value as any),
+        weekly_duration_data: {
+          ...(rawChartData.value as any).weekly_duration_data,
+          forecast: {
+            ...defaultForecast(),
+            ...(forecasts.weekly_duration_data || {}),
+          },
+        },
+        weekly_efficiency_data: {
+          ...(rawChartData.value as any).weekly_efficiency_data,
+          forecast: {
+            ...defaultForecast(),
+            ...(forecasts.weekly_efficiency_data || {}),
+          },
+        },
+        daily_duration_data: {
+          ...(rawChartData.value as any).daily_duration_data,
+          forecast: {
+            ...defaultForecast(),
+            ...(forecasts.daily_duration_data || {}),
+          },
+        },
+        daily_efficiency_data: {
+          ...(rawChartData.value as any).daily_efficiency_data,
+          forecast: {
+            ...defaultForecast(),
+            ...(forecasts.daily_efficiency_data || {}),
+          },
+        },
+      };
+    }
+    trends.value = {
+      weekly_duration_data: {
+        ...trends.value.weekly_duration_data,
+        forecast: {
+          ...defaultForecast(),
+          ...(forecasts.weekly_duration_data || {}),
+        },
+      },
+      weekly_efficiency_data: {
+        ...trends.value.weekly_efficiency_data,
+        forecast: {
+          ...defaultForecast(),
+          ...(forecasts.weekly_efficiency_data || {}),
+        },
+      },
+      daily_duration_data: {
+        ...trends.value.daily_duration_data,
+        forecast: {
+          ...defaultForecast(),
+          ...(forecasts.daily_duration_data || {}),
+        },
+      },
+      daily_efficiency_data: {
+        ...trends.value.daily_efficiency_data,
+        forecast: {
+          ...defaultForecast(),
+          ...(forecasts.daily_efficiency_data || {}),
+        },
+      },
+    };
+    if ((rawChartData.value as any)?.has_data) {
+      rawChartData.value = {
+        ...(rawChartData.value as any),
+        forecast_status: {
+          ...(rawChartData.value as any).forecast_status,
+          ...forecastStatus.value,
+        },
+      };
+      persistOverviewCache({
+        ...(rawChartData.value as any),
+      });
+    }
+  }
+
+  function stopForecastPolling() {
+    forecastPollingToken += 1;
+    if (forecastPollingTimer) {
+      clearTimeout(forecastPollingTimer);
+      forecastPollingTimer = null;
+    }
+  }
+
+  function scheduleForecastPolling(runToken: number, attempt: number) {
+    forecastPollingTimer = setTimeout(() => {
+      pollForecastStatus(runToken, attempt).catch((error) => {
+        console.warn("轮询预测状态失败", error);
+      });
+    }, 2500);
+  }
+
+  async function pollForecastStatus(runToken: number, attempt = 0) {
+    if (runToken !== forecastPollingToken) {
+      return;
+    }
+    const response: any = await chartsAPI.getOverviewForecast();
+    const payload = response?.data || response;
+    forecastStatus.value = {
+      state: payload?.status || "idle",
+      signature: payload?.signature || forecastStatus.value.signature,
+      message: payload?.message || "",
+      updated_at: payload?.updated_at || null,
+      trained_for_date: payload?.trained_for_date || null,
+    };
+    mergeForecastBundle(payload?.forecasts);
+
+    if (payload?.status === "ready" || payload?.status === "error") {
+      forecastPollingTimer = null;
+      return;
+    }
+
+    if (attempt >= 60) {
+      forecastPollingTimer = null;
+      forecastStatus.value = {
+        ...forecastStatus.value,
+        state: "error",
+        message: "预测生成耗时过长，请稍后手动刷新",
+      };
+      return;
+    }
+
+    scheduleForecastPolling(runToken, attempt + 1);
+  }
+
+  function startForecastPolling() {
+    stopForecastPolling();
+    const runToken = forecastPollingToken;
+    scheduleForecastPolling(runToken, 0);
+  }
+
+  async function retrainForecasts() {
+    if (forecastRetraining.value) return;
+    forecastRetraining.value = true;
+    stopForecastPolling();
+    try {
+      const response: any = await chartsAPI.retrainOverviewForecast();
+      const payload = response?.data || response;
+      forecastStatus.value = {
+        state: payload?.status || "pending",
+        signature: payload?.signature || forecastStatus.value.signature,
+        message: payload?.message || "已开始重新训练预测模型",
+        updated_at: payload?.updated_at || null,
+        trained_for_date: payload?.trained_for_date || null,
+      };
+      mergeForecastBundle({
+        weekly_duration_data: { ...defaultForecast(), status: "pending", reason: "预测计算中，请稍后刷新" },
+        weekly_efficiency_data: { ...defaultForecast(), status: "pending", reason: "预测计算中，请稍后刷新" },
+        daily_duration_data: { ...defaultForecast(), status: "pending", reason: "预测计算中，请稍后刷新" },
+        daily_efficiency_data: { ...defaultForecast(), status: "pending", reason: "预测计算中，请稍后刷新" },
+      });
+      startForecastPolling();
+      ElMessage.success("已开始重新训练预测模型");
+    } catch (error) {
+      console.error("Error retraining forecasts:", error);
+      ElMessage.error("重新训练预测失败");
+    } finally {
+      forecastRetraining.value = false;
     }
   }
 
@@ -606,6 +904,7 @@ export const useChartsStore = defineStore("charts", () => {
       return;
     }
     categoryRangeMode.value = mode;
+    persistUiState();
 
     if (mode !== "custom") {
       categoryCustomRange.value = null;
@@ -620,6 +919,7 @@ export const useChartsStore = defineStore("charts", () => {
 
   function setCategoryDatePoint(value: string | null) {
     categoryDatePoint.value = value;
+    persistUiState();
     if (
       value &&
       ["daily", "weekly", "monthly"].includes(categoryRangeMode.value)
@@ -631,6 +931,7 @@ export const useChartsStore = defineStore("charts", () => {
 
   function setCategoryCustomRange(range: [string, string] | null) {
     categoryCustomRange.value = range;
+    persistUiState();
     if (categoryRangeMode.value === "custom" && range && range[0] && range[1]) {
       fetchCategories();
       fetchCategoryTrend();
@@ -643,6 +944,7 @@ export const useChartsStore = defineStore("charts", () => {
   function setViewType(type) {
     if (viewType.value !== type) {
       viewType.value = type;
+      persistUiState();
       // 视图切换不需要重新获取数据，只需要在组件中切换显示的数据
     }
   }
@@ -653,6 +955,7 @@ export const useChartsStore = defineStore("charts", () => {
   function setStage(id) {
     if (stageId.value !== id) {
       stageId.value = id;
+      persistUiState();
       refreshAll();
       fetchCategoryTrend();
     }
@@ -664,6 +967,7 @@ export const useChartsStore = defineStore("charts", () => {
   function setActiveTab(tab) {
     console.log("[Charts Store] setActiveTab called with:", tab);
     activeTab.value = tab;
+    persistUiState();
     if (tab === "categories" && categoryData.value.main.labels.length === 0) {
       console.log(
         "[Charts Store] Switching to categories tab with no data, fetching...",
@@ -685,6 +989,7 @@ export const useChartsStore = defineStore("charts", () => {
   function setMetricMode(mode: "duration" | "efficiency") {
     if (metricMode.value !== mode) {
       metricMode.value = mode;
+      persistUiState();
       // 切换模式时重新加载数据
       if (activeTab.value === "categories") {
         fetchCategories();
@@ -726,12 +1031,15 @@ export const useChartsStore = defineStore("charts", () => {
     activeTab,
     metricMode,
     loading,
+    trendsLoading,
     trendsError,
     rawChartData,
     kpis,
     kpiTopSubs30d,
     kpiTopSubsEfficiency30d,
     trends,
+    forecastStatus,
+    forecastRetraining,
     stageAnnotations,
     categoryData,
     categoryTrend,
@@ -750,6 +1058,7 @@ export const useChartsStore = defineStore("charts", () => {
     // 方法
     initStages,
     fetchTrends,
+    retrainForecasts,
     fetchTopSubsLast30d,
     fetchTopSubsEfficiencyLast30d,
     fetchCategories,

@@ -153,7 +153,7 @@
             </div>
             <div class="tab-panels">
               <div v-show="charts.activeTab === 'overview'" class="panel">
-                <div v-loading="charts.loading" class="kpi-grid">
+                <div v-loading="charts.trendsLoading" class="kpi-grid">
                   <KpiCard label="今天时长" color="amber">
                     <template #icon>
                       <span class="emoji-icon" aria-hidden="true">⏳</span>
@@ -266,7 +266,7 @@
                     </template>
                   </KpiCard>
                 </div>
-                <div v-loading="charts.loading" class="kpi-grid top-summary-grid">
+                <div v-loading="charts.trendsLoading" class="kpi-grid top-summary-grid">
                   <KpiCard label="时长 TOP3（近30天）" color="indigo">
                     <template #value>
                       <div class="rank-stack">
@@ -313,7 +313,7 @@
                   </KpiCard>
                 </div>
                 <div
-                  v-if="!charts.loading && !charts.hasTrendsData"
+                  v-if="!charts.trendsLoading && !charts.hasTrendsData"
                   class="alert-box"
                 >
                   <div
@@ -335,7 +335,7 @@
               </div>
               <div v-show="charts.activeTab === 'trends'" class="panel">
                 <div
-                  v-if="!charts.loading && !charts.hasTrendsData"
+                  v-if="!charts.trendsLoading && !charts.hasTrendsData"
                   class="alert-box"
                 >
                   <div
@@ -359,11 +359,14 @@
                   :weekly-efficiency-data="charts.trends.weekly_efficiency_data"
                   :daily-duration-data="charts.trends.daily_duration_data"
                   :daily-efficiency-data="charts.trends.daily_efficiency_data"
+                  :forecast-status="charts.forecastStatus"
+                  :forecast-retraining="charts.forecastRetraining"
                   :stage-annotations="charts.stageAnnotations"
                   :has-data="charts.hasTrendsData"
-                  :loading="charts.loading"
+                  :loading="charts.trendsLoading"
                   :initial-view="charts.viewType"
                   @view-change="charts.setViewType"
+                  @retrain-forecast="charts.retrainForecasts"
                 />
               </div>
             <div

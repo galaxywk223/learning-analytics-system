@@ -13,6 +13,20 @@ export const chartsAPI = {
       timeout: 180000,
     });
   },
+  getOverviewForecast() {
+    return request({
+      url: "/api/charts/overview_forecast",
+      method: "get",
+      timeout: 30000,
+    });
+  },
+  retrainOverviewForecast() {
+    return request({
+      url: "/api/charts/overview_forecast/retrain",
+      method: "post",
+      timeout: 30000,
+    });
+  },
   getCategories(params) {
     return request({ url: "/api/charts/categories", method: "get", params });
   },

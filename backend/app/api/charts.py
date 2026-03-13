@@ -8,6 +8,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import Stage
 from app.services.chart_service import (
     get_chart_data_for_user,
+    get_chart_forecast_status_for_user,
+    retrain_chart_forecasts_for_user,
     get_category_chart_data,
     get_category_trend_series,
     get_category_efficiency_chart_data,
@@ -46,6 +48,40 @@ def get_overview():
     except Exception as e:
         current_app.logger.error(f"Error getting chart overview: {e}", exc_info=True)
         return jsonify({"success": False, "message": "获取图表数据失败"}), 500
+
+
+@bp.route("/overview_forecast", methods=["GET"])
+@jwt_required()
+def get_overview_forecast():
+    """获取趋势预测状态与结果，供前端轮询补齐预测数据。"""
+    current_user_id = get_jwt_identity()
+
+    try:
+        forecast_status = get_chart_forecast_status_for_user(current_user_id)
+        return jsonify({"success": True, "data": forecast_status}), 200
+    except Exception as e:
+        current_app.logger.error(
+            f"Error getting chart forecast status: {e}",
+            exc_info=True,
+        )
+        return jsonify({"success": False, "message": "获取预测状态失败"}), 500
+
+
+@bp.route("/overview_forecast/retrain", methods=["POST"])
+@jwt_required()
+def retrain_overview_forecast():
+    """手动触发趋势预测重训练。"""
+    current_user_id = get_jwt_identity()
+
+    try:
+        retrain_status = retrain_chart_forecasts_for_user(current_user_id)
+        return jsonify({"success": True, "data": retrain_status}), 200
+    except Exception as e:
+        current_app.logger.error(
+            f"Error retraining chart forecasts: {e}",
+            exc_info=True,
+        )
+        return jsonify({"success": False, "message": "重新训练预测失败"}), 500
 
 
 @bp.route("/categories", methods=["GET"])
@@ -161,7 +197,10 @@ def export_charts():
             return jsonify({"success": False, "message": "用户不存在"}), 404
 
         # 获取图表数据
-        trend_data = get_chart_data_for_user(current_user_id)
+        trend_data = get_chart_data_for_user(
+            current_user_id,
+            force_sync_forecasts=True,
+        )
         category_data = get_category_chart_data(current_user_id, stage_id=None)
 
         # 生成图表图片

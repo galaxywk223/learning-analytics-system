@@ -4,14 +4,17 @@
 
 import collections
 import copy
+import hashlib
+import json
 import math
+import os
 import threading
 import time
-from datetime import date, timedelta
-from typing import Sequence, TypedDict
+from datetime import date, datetime, timedelta
+from typing import Any, Sequence, TypedDict
 from sqlalchemy import func, desc
 import numpy as np
-from flask import current_app
+from flask import current_app, has_app_context
 
 from app import db
 from app.models import Stage, LogEntry, DailyData, Category, SubCategory
@@ -19,9 +22,23 @@ from .forecast_service import DAILY_CONFIG, WEEKLY_CONFIG, build_trend_forecasts
 from .helpers import get_custom_week_info
 
 _OVERVIEW_CACHE_TTL_SECONDS = 20.0
+_PENDING_OVERVIEW_CACHE_TTL_SECONDS = 3.0
+_FORECAST_CACHE_TTL_SECONDS = 15 * 60.0
 _overview_cache_lock = threading.Lock()
 _overview_cache: dict[int, tuple[float, dict]] = {}
 _overview_inflight: dict[int, threading.Event] = {}
+_forecast_cache_lock = threading.Lock()
+_forecast_cache: dict[int, dict[str, Any]] = {}
+_forecast_inflight: dict[int, threading.Event] = {}
+_FORECAST_DATASET_KEYS = (
+    "daily_duration_data",
+    "daily_efficiency_data",
+    "weekly_duration_data",
+    "weekly_efficiency_data",
+)
+_PENDING_FORECAST_REASON = "预测计算中，请稍后刷新"
+_FORECAST_ERROR_REASON = "预测生成失败，请稍后重试"
+_FORECAST_CACHE_DIRNAME = "chart_forecasts"
 
 
 def _calculate_sma(
@@ -139,6 +156,203 @@ class _CategorySub(TypedDict):
 class _CategoryAgg(TypedDict):
     total: float
     subs: list[_CategorySub]
+
+
+def _force_sync_forecast_mode() -> bool:
+    if not has_app_context():
+        return False
+    explicit = current_app.config.get("CHART_FORECAST_SYNC_MODE")
+    if explicit is not None:
+        return bool(explicit)
+    return bool(current_app.config.get("TESTING"))
+
+
+def _utc_now_iso() -> str:
+    return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+
+
+def _today_cache_key() -> str:
+    return date.today().isoformat()
+
+
+def _build_default_forecast(
+    *,
+    status: str = "unavailable",
+    reason: str = "",
+) -> dict[str, Any]:
+    return {
+        "labels": [],
+        "prediction": [],
+        "lower": [],
+        "upper": [],
+        "model_name": None,
+        "history_points": 0,
+        "horizon": 0,
+        "trained_on": "all_history",
+        "confidence_level": 0.8,
+        "accuracy_threshold": 0.4,
+        "selection_strategy": "lowest_wape_then_rmse_with_weighted_blend",
+        "validation_wape": None,
+        "validation_rmse": None,
+        "baseline_wape": None,
+        "baseline_rmse": None,
+        "model_candidates": [],
+        "available": False,
+        "reason": reason,
+        "status": status,
+    }
+
+
+def _deep_round(value: Any) -> Any:
+    if isinstance(value, float):
+        return round(value, 6)
+    if isinstance(value, list):
+        return [_deep_round(item) for item in value]
+    if isinstance(value, tuple):
+        return [_deep_round(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _deep_round(item) for key, item in value.items()}
+    return value
+
+
+def _build_forecast_signature(
+    trend_data: dict[str, Any],
+    *,
+    global_start_date: date,
+    last_log_date: date,
+) -> str:
+    signature_payload: dict[str, Any] = {
+        "global_start_date": global_start_date.isoformat(),
+        "last_log_date": last_log_date.isoformat(),
+    }
+    for dataset_key in _FORECAST_DATASET_KEYS:
+        dataset = trend_data.get(dataset_key) or {}
+        signature_payload[dataset_key] = _deep_round(
+            {
+                "training_labels": dataset.get("training_labels") or [],
+                "training_actuals": dataset.get("training_actuals") or [],
+                "training_stage_features": dataset.get("training_stage_features") or [],
+                "future_stage_features": dataset.get("future_stage_features") or [],
+                "ongoing_label": dataset.get("ongoing_label"),
+                "ongoing_value": dataset.get("ongoing_value"),
+                "ongoing": bool(dataset.get("ongoing")),
+            }
+        )
+    digest_source = json.dumps(
+        signature_payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha1(digest_source.encode("utf-8")).hexdigest()
+
+
+def _attach_forecast_bundle(
+    payload: dict[str, Any],
+    forecast_bundle: dict[str, Any] | None,
+) -> dict[str, Any]:
+    for dataset_key in _FORECAST_DATASET_KEYS:
+        dataset = payload.get(dataset_key)
+        if not isinstance(dataset, dict):
+            continue
+        forecast = (forecast_bundle or {}).get(dataset_key)
+        dataset["forecast"] = copy.deepcopy(
+            forecast if isinstance(forecast, dict) else _build_default_forecast()
+        )
+    return payload
+
+
+def _build_forecast_status_payload(
+    *,
+    state: str,
+    signature: str | None,
+    message: str,
+    updated_at: str | None,
+    trained_for_date: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "state": state,
+        "signature": signature,
+        "message": message,
+        "updated_at": updated_at,
+        "trained_for_date": trained_for_date,
+    }
+
+
+def _build_pending_forecast_bundle() -> dict[str, dict[str, Any]]:
+    return {
+        dataset_key: _build_default_forecast(
+            status="pending",
+            reason=_PENDING_FORECAST_REASON,
+        )
+        for dataset_key in _FORECAST_DATASET_KEYS
+    }
+
+
+def _forecast_cache_dir() -> str:
+    instance_path = current_app.instance_path if has_app_context() else os.getcwd()
+    cache_dir = os.path.join(instance_path, _FORECAST_CACHE_DIRNAME)
+    os.makedirs(cache_dir, exist_ok=True)
+    return cache_dir
+
+
+def _forecast_cache_file(user_id: int) -> str:
+    return os.path.join(_forecast_cache_dir(), f"user_{user_id}.json")
+
+
+def _load_persisted_forecast_entry(user_id: int) -> dict[str, Any] | None:
+    cache_file = _forecast_cache_file(user_id)
+    if not os.path.exists(cache_file):
+        return None
+    try:
+        with open(cache_file, "r", encoding="utf-8") as fp:
+            payload = json.load(fp)
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    payload["expires_at"] = time.monotonic() + _FORECAST_CACHE_TTL_SECONDS
+    return payload
+
+
+def _persist_forecast_entry(
+    user_id: int,
+    entry: dict[str, Any],
+    *,
+    instance_path: str | None = None,
+    logger: Any | None = None,
+    testing: bool = False,
+) -> None:
+    if testing:
+        return
+    base_dir = instance_path or (current_app.instance_path if has_app_context() else os.getcwd())
+    cache_dir = os.path.join(base_dir, _FORECAST_CACHE_DIRNAME)
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_file = os.path.join(cache_dir, f"user_{user_id}.json")
+    serializable = copy.deepcopy(entry)
+    serializable.pop("expires_at", None)
+    try:
+        with open(cache_file, "w", encoding="utf-8") as fp:
+            json.dump(serializable, fp, ensure_ascii=False)
+    except OSError:
+        if logger is not None:
+            logger.warning(
+                "Failed to persist chart forecast cache for user %s",
+                user_id,
+            )
+
+
+def _clear_persisted_forecast_entry(user_id: int) -> None:
+    cache_file = _forecast_cache_file(user_id)
+    try:
+        if os.path.exists(cache_file):
+            os.remove(cache_file)
+    except OSError:
+        if has_app_context():
+            current_app.logger.warning(
+                "Failed to remove chart forecast cache for user %s",
+                user_id,
+            )
 
 
 def _week_start(d: date) -> date:
@@ -449,76 +663,413 @@ def _prepare_stage_annotations(user_id, all_stages, global_start_date, last_log_
     return annotations
 
 
-def _build_chart_data_for_user(user_id):
+def _build_chart_base_payload(user_id: int) -> tuple[dict[str, Any], dict[str, Any] | None]:
     """
-    为前端渲染图表准备所有必要的数据
+    构建统计总览的基础数据，不阻塞在预测计算上。
 
     返回:
-        dict: 包含KPIs、趋势数据、阶段注释等的字典
+        tuple[payload, forecast_context]
     """
     all_stages = (
         Stage.query.filter_by(user_id=user_id).order_by(Stage.start_date.asc()).all()
     )
     if not all_stages:
-        return {
-            "kpis": {},
-            "stage_annotations": [],
-            "setup_needed": True,
-            "has_data": False,
-        }
+        return (
+            {
+                "kpis": {},
+                "stage_annotations": [],
+                "setup_needed": True,
+                "has_data": False,
+                "forecast_status": _build_forecast_status_payload(
+                    state="unavailable",
+                    signature=None,
+                    message="暂无可用于预测的历史数据",
+                    updated_at=None,
+                    trained_for_date=None,
+                ),
+            },
+            None,
+        )
 
     stage_ids = [s.id for s in all_stages]
     all_logs = LogEntry.query.filter(LogEntry.stage_id.in_(stage_ids)).all()
     if not all_logs:
-        return {
-            "kpis": {
-                "avg_daily_minutes": 0,
-                "efficiency_star": "N/A",
-                "weekly_trend": "N/A",
+        return (
+            {
+                "kpis": {
+                    "avg_daily_minutes": 0,
+                    "efficiency_star": "N/A",
+                    "weekly_trend": "N/A",
+                },
+                "stage_annotations": [],
+                "has_data": False,
+                "forecast_status": _build_forecast_status_payload(
+                    state="unavailable",
+                    signature=None,
+                    message="暂无可用于预测的历史数据",
+                    updated_at=None,
+                    trained_for_date=None,
+                ),
             },
-            "has_data": False,
-        }
+            None,
+        )
 
     kpis = _calculate_kpis(user_id, stage_ids)
     trend_data = _prepare_trend_data(user_id, all_stages, all_logs)
-
     global_start_date = all_stages[0].start_date
     last_log_date = max(log.log_date for log in all_logs)
-    forecast_data = build_trend_forecasts(
-        daily_labels=trend_data["daily_duration_data"]["training_labels"],
-        daily_duration_values=trend_data["daily_duration_data"]["training_actuals"],
-        daily_efficiency_values=trend_data["daily_efficiency_data"]["training_actuals"],
-        daily_stage_features=trend_data["daily_duration_data"]["training_stage_features"],
-        daily_future_stage_features=trend_data["daily_duration_data"]["future_stage_features"],
-        weekly_labels=trend_data["weekly_duration_data"]["training_labels"],
-        weekly_duration_values=trend_data["weekly_duration_data"]["training_actuals"],
-        weekly_efficiency_values=trend_data["weekly_efficiency_data"]["training_actuals"],
-        weekly_stage_features=trend_data["weekly_duration_data"]["training_stage_features"],
-        weekly_future_stage_features=trend_data["weekly_duration_data"]["future_stage_features"],
-        global_start_date=global_start_date,
-        last_log_date=last_log_date,
-        daily_current_label=trend_data["daily_duration_data"]["ongoing_label"],
-        weekly_current_label=trend_data["weekly_duration_data"]["ongoing_label"],
-        weekly_duration_display_divisor=7.0,
-    )
-    for dataset_key, forecast in forecast_data.items():
-        trend_data[dataset_key]["forecast"] = forecast
-
     stage_annotations = _prepare_stage_annotations(
         user_id, all_stages, global_start_date, last_log_date
     )
-
-    final_data = {
+    signature = _build_forecast_signature(
+        trend_data,
+        global_start_date=global_start_date,
+        last_log_date=last_log_date,
+    )
+    base_payload = {
         "kpis": kpis,
         "stage_annotations": stage_annotations,
         "has_data": True,
+        "forecast_status": _build_forecast_status_payload(
+            state="idle",
+            signature=signature,
+            message="预测尚未开始",
+            updated_at=None,
+            trained_for_date=None,
+        ),
         **trend_data,
     }
+    forecast_context = {
+        "signature": signature,
+        "global_start_date": global_start_date,
+        "last_log_date": last_log_date,
+        "forecast_inputs": {
+            "daily_labels": trend_data["daily_duration_data"]["training_labels"],
+            "daily_duration_values": trend_data["daily_duration_data"]["training_actuals"],
+            "daily_efficiency_values": trend_data["daily_efficiency_data"]["training_actuals"],
+            "daily_stage_features": trend_data["daily_duration_data"]["training_stage_features"],
+            "daily_future_stage_features": trend_data["daily_duration_data"]["future_stage_features"],
+            "weekly_labels": trend_data["weekly_duration_data"]["training_labels"],
+            "weekly_duration_values": trend_data["weekly_duration_data"]["training_actuals"],
+            "weekly_efficiency_values": trend_data["weekly_efficiency_data"]["training_actuals"],
+            "weekly_stage_features": trend_data["weekly_duration_data"]["training_stage_features"],
+            "weekly_future_stage_features": trend_data["weekly_duration_data"]["future_stage_features"],
+            "global_start_date": global_start_date,
+            "last_log_date": last_log_date,
+            "daily_current_label": trend_data["daily_duration_data"]["ongoing_label"],
+            "weekly_current_label": trend_data["weekly_duration_data"]["ongoing_label"],
+            "weekly_duration_display_divisor": 7.0,
+        },
+    }
+    return base_payload, forecast_context
 
-    return final_data
+
+def _mark_forecast_bundle_ready(
+    forecast_bundle: dict[str, Any],
+) -> dict[str, Any]:
+    marked_bundle: dict[str, Any] = {}
+    for dataset_key in _FORECAST_DATASET_KEYS:
+        forecast = copy.deepcopy(
+            (forecast_bundle or {}).get(dataset_key) or _build_default_forecast()
+        )
+        forecast["status"] = "ready" if forecast.get("available") else "unavailable"
+        marked_bundle[dataset_key] = forecast
+    return marked_bundle
 
 
-def get_chart_data_for_user(user_id):
+def _store_forecast_entry(
+    user_id: int,
+    entry: dict[str, Any],
+    *,
+    instance_path: str | None = None,
+    logger: Any | None = None,
+    testing: bool = False,
+) -> None:
+    with _forecast_cache_lock:
+        _forecast_cache[user_id] = entry
+    if entry.get("state") == "ready":
+        _persist_forecast_entry(
+            user_id,
+            entry,
+            instance_path=instance_path,
+            logger=logger,
+            testing=testing,
+        )
+
+
+def _start_forecast_generation(
+    user_id: int,
+    *,
+    signature: str,
+    forecast_inputs: dict[str, Any],
+    trained_for_date: str,
+    force: bool = False,
+) -> None:
+    with _forecast_cache_lock:
+        cached = _forecast_cache.get(user_id)
+        now = time.monotonic()
+        if (
+            not force
+            and cached
+            and cached.get("trained_for_date") == trained_for_date
+            and cached.get("signature") == signature
+            and cached.get("expires_at", 0) > now
+            and cached.get("state") in {"pending", "ready"}
+        ):
+            return
+
+        if (
+            cached
+            and cached.get("signature") == signature
+            and cached.get("expires_at", 0) > now
+            and cached.get("state") in {"pending", "ready"}
+            and not force
+        ):
+            return
+
+        wait_event = _forecast_inflight.get(user_id)
+        if wait_event is not None and not force:
+            return
+        if wait_event is not None and force:
+            return
+
+        wait_event = threading.Event()
+        _forecast_inflight[user_id] = wait_event
+        _forecast_cache[user_id] = {
+            "signature": signature,
+            "state": "pending",
+            "message": _PENDING_FORECAST_REASON,
+            "updated_at": _utc_now_iso(),
+            "trained_for_date": trained_for_date,
+            "expires_at": now + _FORECAST_CACHE_TTL_SECONDS,
+            "forecast_bundle": _build_pending_forecast_bundle(),
+        }
+
+    app = current_app._get_current_object()
+    instance_path = app.instance_path
+    testing = bool(app.config.get("TESTING"))
+    logger = app.logger
+
+    def _runner():
+        try:
+            forecast_bundle = _mark_forecast_bundle_ready(
+                build_trend_forecasts(**forecast_inputs)
+            )
+            entry = {
+                "signature": signature,
+                "state": "ready",
+                "message": "预测结果已就绪",
+                "updated_at": _utc_now_iso(),
+                "trained_for_date": trained_for_date,
+                "expires_at": time.monotonic() + _FORECAST_CACHE_TTL_SECONDS,
+                "forecast_bundle": forecast_bundle,
+            }
+            _store_forecast_entry(
+                user_id,
+                entry,
+                instance_path=instance_path,
+                logger=logger,
+                testing=testing,
+            )
+        except Exception as exc:  # pragma: no cover - defensive logging path
+            with app.app_context():
+                app.logger.error(
+                    "Error generating chart forecasts for user %s: %s",
+                    user_id,
+                    exc,
+                    exc_info=True,
+                )
+            _store_forecast_entry(
+                user_id,
+                {
+                    "signature": signature,
+                    "state": "error",
+                    "message": _FORECAST_ERROR_REASON,
+                    "updated_at": _utc_now_iso(),
+                    "trained_for_date": trained_for_date,
+                    "expires_at": time.monotonic() + 30.0,
+                    "forecast_bundle": {
+                        dataset_key: _build_default_forecast(
+                            status="error",
+                            reason=_FORECAST_ERROR_REASON,
+                        )
+                        for dataset_key in _FORECAST_DATASET_KEYS
+                    },
+                },
+                instance_path=instance_path,
+                logger=logger,
+                testing=testing,
+            )
+        finally:
+            with _forecast_cache_lock:
+                event = _forecast_inflight.pop(user_id, None)
+                if event is not None:
+                    event.set()
+
+    threading.Thread(
+        target=_runner,
+        name=f"chart-forecast-{user_id}",
+        daemon=True,
+    ).start()
+
+
+def _resolve_forecast_entry(
+    user_id: int,
+    *,
+    signature: str,
+    forecast_inputs: dict[str, Any],
+    force_sync: bool = False,
+    force_retrain: bool = False,
+) -> dict[str, Any]:
+    trained_for_date = _today_cache_key()
+    if force_sync or _force_sync_forecast_mode():
+        forecast_bundle = _mark_forecast_bundle_ready(
+            build_trend_forecasts(**forecast_inputs)
+        )
+        return {
+            "signature": signature,
+            "state": "ready",
+            "message": "预测结果已就绪",
+            "updated_at": _utc_now_iso(),
+            "trained_for_date": trained_for_date,
+            "forecast_bundle": forecast_bundle,
+        }
+
+    now = time.monotonic()
+    with _forecast_cache_lock:
+        cached = _forecast_cache.get(user_id)
+        if (
+            cached
+            and cached.get("trained_for_date") == trained_for_date
+            and cached.get("signature") == signature
+            and cached.get("expires_at", 0) > now
+            and not force_retrain
+        ):
+            return copy.deepcopy(cached)
+
+    if not force_retrain:
+        persisted = _load_persisted_forecast_entry(user_id)
+        if (
+            persisted
+            and persisted.get("trained_for_date") == trained_for_date
+            and persisted.get("signature") == signature
+        ):
+            persisted["expires_at"] = time.monotonic() + _FORECAST_CACHE_TTL_SECONDS
+            _store_forecast_entry(user_id, persisted)
+            return copy.deepcopy(persisted)
+
+    _start_forecast_generation(
+        user_id,
+        signature=signature,
+        forecast_inputs=forecast_inputs,
+        trained_for_date=trained_for_date,
+        force=force_retrain,
+    )
+    with _forecast_cache_lock:
+        cached = _forecast_cache.get(user_id)
+        if cached and cached.get("signature") == signature:
+            return copy.deepcopy(cached)
+    return {
+        "signature": signature,
+        "state": "pending",
+        "message": _PENDING_FORECAST_REASON,
+        "updated_at": _utc_now_iso(),
+        "trained_for_date": trained_for_date,
+        "forecast_bundle": _build_pending_forecast_bundle(),
+    }
+
+
+def _build_chart_data_for_user(
+    user_id: int,
+    *,
+    force_sync_forecasts: bool = False,
+) -> dict[str, Any]:
+    base_payload, forecast_context = _build_chart_base_payload(user_id)
+    if not forecast_context:
+        return base_payload
+
+    forecast_entry = _resolve_forecast_entry(
+        user_id,
+        signature=forecast_context["signature"],
+        forecast_inputs=forecast_context["forecast_inputs"],
+        force_sync=force_sync_forecasts,
+    )
+    payload = copy.deepcopy(base_payload)
+    _attach_forecast_bundle(payload, forecast_entry.get("forecast_bundle"))
+    payload["forecast_status"] = _build_forecast_status_payload(
+        state=forecast_entry.get("state", "unavailable"),
+        signature=forecast_context["signature"],
+        message=forecast_entry.get("message", ""),
+        updated_at=forecast_entry.get("updated_at"),
+        trained_for_date=forecast_entry.get("trained_for_date"),
+    )
+    return payload
+
+
+def get_chart_forecast_status_for_user(user_id: int) -> dict[str, Any]:
+    base_payload, forecast_context = _build_chart_base_payload(user_id)
+    if not forecast_context:
+        return {
+            "status": "unavailable",
+            "signature": None,
+            "message": "暂无可用于预测的历史数据",
+            "updated_at": None,
+            "trained_for_date": None,
+            "forecasts": {
+                dataset_key: _build_default_forecast()
+                for dataset_key in _FORECAST_DATASET_KEYS
+            },
+        }
+
+    forecast_entry = _resolve_forecast_entry(
+        user_id,
+        signature=forecast_context["signature"],
+        forecast_inputs=forecast_context["forecast_inputs"],
+    )
+    return {
+        "status": forecast_entry.get("state", "unavailable"),
+        "signature": forecast_context["signature"],
+        "message": forecast_entry.get("message", ""),
+        "updated_at": forecast_entry.get("updated_at"),
+        "trained_for_date": forecast_entry.get("trained_for_date"),
+        "forecasts": copy.deepcopy(
+            forecast_entry.get("forecast_bundle") or _build_pending_forecast_bundle()
+        ),
+    }
+
+
+def retrain_chart_forecasts_for_user(user_id: int) -> dict[str, Any]:
+    base_payload, forecast_context = _build_chart_base_payload(user_id)
+    if not forecast_context:
+        return {
+            "status": "unavailable",
+            "signature": None,
+            "message": "暂无可用于预测的历史数据",
+            "updated_at": None,
+            "trained_for_date": None,
+        }
+
+    signature = forecast_context["signature"]
+    _clear_persisted_forecast_entry(user_id)
+    with _forecast_cache_lock:
+        _forecast_cache.pop(user_id, None)
+
+    forecast_entry = _resolve_forecast_entry(
+        user_id,
+        signature=signature,
+        forecast_inputs=forecast_context["forecast_inputs"],
+        force_retrain=True,
+    )
+    return {
+        "status": forecast_entry.get("state", "pending"),
+        "signature": signature,
+        "message": "已开始重新训练预测模型",
+        "updated_at": forecast_entry.get("updated_at"),
+        "trained_for_date": forecast_entry.get("trained_for_date"),
+    }
+
+
+def get_chart_data_for_user(user_id, *, force_sync_forecasts: bool = False):
     """
     为图表总览提供一个短 TTL 缓存，并对并发请求做去重。
 
@@ -526,8 +1077,11 @@ def get_chart_data_for_user(user_id):
     这里让同一用户在 20 秒内复用上一份结果，避免重复训练把请求拖到超时。
     """
 
-    if current_app and current_app.config.get("TESTING"):
-        return _build_chart_data_for_user(user_id)
+    if force_sync_forecasts or _force_sync_forecast_mode():
+        return _build_chart_data_for_user(
+            user_id,
+            force_sync_forecasts=force_sync_forecasts,
+        )
 
     now = time.monotonic()
     wait_event: threading.Event | None = None
@@ -554,10 +1108,15 @@ def get_chart_data_for_user(user_id):
 
     try:
         data = _build_chart_data_for_user(user_id)
+        cache_ttl = (
+            _OVERVIEW_CACHE_TTL_SECONDS
+            if data.get("forecast_status", {}).get("state") == "ready"
+            else _PENDING_OVERVIEW_CACHE_TTL_SECONDS
+        )
         cache_payload = copy.deepcopy(data)
         with _overview_cache_lock:
             _overview_cache[user_id] = (
-                time.monotonic() + _OVERVIEW_CACHE_TTL_SECONDS,
+                time.monotonic() + cache_ttl,
                 cache_payload,
             )
         return data
