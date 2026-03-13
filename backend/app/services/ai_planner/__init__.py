@@ -11,7 +11,7 @@ from .date_ranges import (
 from .efficiency import _compute_efficiency_baseline
 from .errors import AIPlannerError
 from .llm_client import _call_qwen, _configure_qwen
-from .main import generate_analysis, generate_plan, list_history
+from .main import generate_analysis, generate_briefing, generate_plan, list_history
 from .persistence import _save_insight
 from .prompts import (
     _build_analysis_prompt,
@@ -38,6 +38,7 @@ __all__ = [
     "_configure_qwen",
     "_call_qwen",
     "_save_insight",
+    "generate_briefing",
     "generate_analysis",
     "generate_plan",
     "list_history",

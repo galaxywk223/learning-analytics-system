@@ -1,260 +1,319 @@
 <template>
   <!-- eslint-disable vue/no-v-html -->
-  <div class="ios-view">
+  <div class="briefing-view">
     <PageContainer
       :title="{ icon: '🤖', text: '智能规划' }"
-      subtitle="按日、周、月或阶段梳理学习数据，生成易读的总结与下一步规划。"
+      subtitle="先复盘，再作战。"
     >
-      <div class="ios-content-wrapper">
-        <!-- Control Panel -->
-        <div class="ios-card control-panel">
-          <div class="panel-header">
-            <h3 class="panel-title">配置分析范围</h3>
-            <div class="current-status">
-              <span class="status-badge">{{ scopeLabel }}</span>
-              <span v-if="!isStageScope" class="status-badge secondary">{{
-                currentPeriodLabel
-              }}</span>
-              <span v-else class="status-badge secondary">{{
-                currentStageLabel
-              }}</span>
+      <div class="briefing-shell">
+        <section class="hero-card">
+          <div>
+            <span class="eyebrow">AI Briefing Desk</span>
+            <h2>把学习记录压缩成一份可执行的作战简报</h2>
+            <p>不是玩具文案，而是围绕状态、风险、机会与下一步打法的决策台。</p>
+          </div>
+          <div class="hero-actions">
+            <button
+              class="hero-btn primary"
+              :disabled="briefingLoading || diagnosisRefreshing"
+              @click="handleGenerateBriefing"
+            >
+              {{ briefingLoading ? "生成中..." : "生成复盘作战台" }}
+            </button>
+            <button
+              class="hero-btn secondary"
+              :disabled="briefingLoading || diagnosisRefreshing || !briefingResult"
+              @click="handleRefreshDiagnosis"
+            >
+              {{ diagnosisRefreshing ? "刷新中..." : "仅刷新诊断" }}
+            </button>
+            <button
+              class="hero-btn ghost"
+              :disabled="!briefingResult"
+              @click="handleClear"
+            >
+              清空
+            </button>
+          </div>
+        </section>
+
+        <section class="panel-card">
+          <div class="panel-head">
+            <div>
+              <span class="eyebrow">控制区</span>
+              <h3>配置复盘范围</h3>
+            </div>
+            <div class="chip-row">
+              <span class="chip">{{ scopeLabel }}</span>
+              <span class="chip muted">{{ currentSelectionLabel }}</span>
             </div>
           </div>
-
-          <div class="panel-body">
-            <div class="control-group">
-              <label class="group-label">时间维度</label>
-              <div class="ios-segmented-control">
+          <div class="control-grid">
+            <div class="control-block">
+              <label>时间维度</label>
+              <div class="segmented">
                 <button
                   v-for="item in scopeOptions"
                   :key="item.value"
-                  :class="[
-                    'segment-btn',
-                    scopeValue === item.value && 'active',
-                  ]"
+                  :class="['segmented-btn', scopeValue === item.value && 'active']"
                   @click="scopeValue = item.value"
                 >
                   {{ item.label }}
                 </button>
               </div>
             </div>
+            <div class="control-block">
+              <label>选择范围</label>
+              <button v-if="!isStageScope" class="picker-btn" @click="openDatePicker">
+                {{ dateValue || datePlaceholder }}
+              </button>
+              <el-date-picker
+                v-if="!isStageScope"
+                ref="datePicker"
+                v-model="dateValue"
+                :type="datePickerType"
+                value-format="YYYY-MM-DD"
+                :placeholder="datePlaceholder"
+                :clearable="false"
+                class="hidden-date-input"
+              />
+              <el-select
+                v-else
+                v-model="stageValue"
+                placeholder="请选择阶段"
+                filterable
+                class="stage-select"
+                :teleported="false"
+              >
+                <el-option
+                  v-for="stage in stageOptions"
+                  :key="stage.value"
+                  :label="stage.label"
+                  :value="stage.value"
+                />
+              </el-select>
+            </div>
+            <div class="control-block">
+              <label>最近生成</label>
+              <div class="meta-box">
+                <strong>{{ latestGeneratedLabel }}</strong>
+                <span>{{ latestPeriodLabel }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
-            <div class="control-group">
-              <label class="group-label">选择范围</label>
-              <div class="picker-wrapper">
-                <template v-if="!isStageScope">
-                  <button class="ios-picker-btn" @click="openDatePicker">
-                    <span class="icon">📅</span>
-                    <span class="value">{{
-                      dateValue || datePlaceholder
-                    }}</span>
-                    <el-icon class="arrow"><ArrowRight /></el-icon>
-                  </button>
-                  <el-date-picker
-                    ref="datePicker"
-                    v-model="dateValue"
-                    :type="datePickerType"
-                    value-format="YYYY-MM-DD"
-                    :placeholder="datePlaceholder"
-                    :clearable="false"
-                    class="hidden-date-input"
-                  />
-                </template>
-                <template v-else>
-                  <el-select
-                    v-model="stageValue"
-                    placeholder="请选择阶段"
-                    filterable
-                    class="ios-select"
-                    :teleported="false"
+        <section v-if="briefingResult" class="battle-desk">
+          <section class="panel-card overview-card">
+            <div class="overview-main">
+              <span class="status-pill" :class="`status-${statusTone}`">{{ statusLabel }}</span>
+              <h3>{{ briefingResult.diagnosis.core_judgement }}</h3>
+              <p>{{ briefingResult.diagnosis.strategy_bias }}</p>
+            </div>
+            <div class="overview-stats">
+              <div class="mini-stat">
+                <span>当前周期</span>
+                <strong>{{ briefingResult.meta.period_label }}</strong>
+              </div>
+              <div class="mini-stat">
+                <span>下一周期</span>
+                <strong>{{ briefingResult.meta.next_period_label }}</strong>
+              </div>
+              <div class="mini-stat">
+                <span>生成时间</span>
+                <strong>{{ formatDateTime(briefingResult.meta.generated_at) }}</strong>
+              </div>
+            </div>
+          </section>
+
+          <div class="info-grid">
+            <section class="panel-card">
+              <span class="eyebrow">诊断</span>
+              <h3>关键信号</h3>
+              <ul class="text-list">
+                <li v-for="item in briefingResult.diagnosis.key_signals" :key="item">{{ item }}</li>
+              </ul>
+            </section>
+            <section class="panel-card">
+              <span class="eyebrow danger">风险</span>
+              <h3>当前最该防的点</h3>
+              <ul class="text-list danger-list">
+                <li v-for="item in briefingResult.diagnosis.risks" :key="item">{{ item }}</li>
+              </ul>
+            </section>
+            <section class="panel-card">
+              <span class="eyebrow success">机会</span>
+              <h3>可以继续放大的优势</h3>
+              <ul class="text-list success-list">
+                <li v-for="item in briefingResult.diagnosis.opportunities" :key="item">{{ item }}</li>
+              </ul>
+            </section>
+            <section class="panel-card">
+              <span class="eyebrow">证据</span>
+              <h3>决策证据</h3>
+              <div class="evidence-grid">
+                <div v-for="item in evidenceHighlights" :key="item.label" class="evidence-card">
+                  <span>{{ item.label }}</span>
+                  <strong>{{ item.value }}</strong>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <section class="panel-card">
+            <div class="panel-head">
+              <div>
+                <span class="eyebrow">作战方案</span>
+                <h3>{{ briefingResult.battle_plan.main_objective }}</h3>
+              </div>
+              <div class="chip-row">
+                <span class="chip">{{ reviewPointLabel }}</span>
+              </div>
+            </div>
+            <div class="plan-grid">
+              <article class="sub-card">
+                <strong>次级目标</strong>
+                <ul class="text-list">
+                  <li
+                    v-for="item in briefingResult.battle_plan.secondary_objectives"
+                    :key="item"
                   >
-                    <el-option
-                      v-for="stage in stageOptions"
-                      :key="stage.value"
-                      :label="stage.label"
-                      :value="stage.value"
-                    />
-                  </el-select>
-                </template>
-              </div>
-            </div>
-
-            <div class="action-group">
-              <button
-                class="ios-btn primary"
-                :disabled="analysisLoading || planLoading"
-                @click="handleGenerateAnalysis"
-              >
-                <span class="icon">✨</span> 生成分析
-              </button>
-              <button
-                class="ios-btn primary-alt"
-                :disabled="analysisLoading || planLoading"
-                @click="handleGeneratePlan"
-              >
-                <span class="icon">🎯</span> 生成规划
-              </button>
-              <button
-                class="ios-btn ghost"
-                :disabled="!hasResult"
-                @click="handleClear"
-              >
-                <span class="icon">🗑️</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Results Grid -->
-        <div class="results-grid">
-          <!-- Analysis Card -->
-          <section
-            class="ios-card result-card"
-            :class="{ 'is-loading': analysisLoading }"
-          >
-            <div class="card-header">
-              <div class="header-left">
-                <div class="icon-box analysis-icon">📊</div>
-                <div class="header-text">
-                  <h3 class="title">分析总结</h3>
-                  <span v-if="analysisMeta.period" class="subtitle">{{
-                    analysisMeta.period
-                  }}</span>
-                </div>
-              </div>
-              <span class="ios-tag latest">最新</span>
-            </div>
-            <div v-loading="analysisLoading" class="card-body">
-              <div v-if="analysisHtml" class="markdown-content">
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <div class="markdown-body" v-html="analysisHtml"></div>
-                <div v-if="analysisMeta.generatedAt" class="timestamp">
-                  生成于 {{ formatDateTime(analysisMeta.generatedAt) }}
-                </div>
-              </div>
-              <div v-else class="empty-state">
-                <span class="emoji">🤔</span>
-                <p>暂无分析数据</p>
-              </div>
-            </div>
-          </section>
-
-          <!-- Plan Card -->
-          <section
-            class="ios-card result-card"
-            :class="{ 'is-loading': planLoading }"
-          >
-            <div class="card-header">
-              <div class="header-left">
-                <div class="icon-box plan-icon">🧭</div>
-                <div class="header-text">
-                  <h3 class="title">规划建议</h3>
-                  <div v-if="planMeta.period" class="subtitle-row">
-                    <span>{{ planMeta.period }}</span>
-                    <el-icon v-if="planMeta.nextPeriod"><ArrowRight /></el-icon>
-                    <span v-if="planMeta.nextPeriod">{{
-                      planMeta.nextPeriod
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-              <span class="ios-tag plan">规划</span>
-            </div>
-            <div v-loading="planLoading" class="card-body">
-              <div v-if="planHtml" class="markdown-content plan-content">
-                <!-- eslint-disable-next-line vue/no-v-html -->
-                <div class="markdown-body" v-html="planHtml"></div>
-                <div v-if="planMeta.generatedAt" class="timestamp">
-                  生成于 {{ formatDateTime(planMeta.generatedAt) }}
-                </div>
-              </div>
-              <div v-else class="empty-state">
-                <span class="emoji">💭</span>
-                <p>暂无规划建议</p>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <!-- History Section -->
-        <div v-loading="historyLoading" class="ios-card history-section">
-          <div class="section-header">
-            <div class="header-title">
-              <span class="icon">🕒</span>
-              <h3>历史记录</h3>
-            </div>
-            <div class="header-controls">
-              <div class="ios-segmented-control small">
-                <button
-                  v-for="item in historyTypeOptions"
-                  :key="item.value"
-                  :class="[
-                    'segment-btn',
-                    historyTypeValue === item.value && 'active',
-                  ]"
-                  @click="historyTypeValue = item.value"
+                    {{ item }}
+                  </li>
+                </ul>
+              </article>
+              <article class="sub-card">
+                <strong>资源倾斜</strong>
+                <ul class="allocation-list">
+                  <li
+                    v-for="item in briefingResult.battle_plan.resource_allocation"
+                    :key="`${item.target}-${item.allocation_pct}`"
+                  >
+                    <div>
+                      <b>{{ item.target }}</b>
+                      <small>{{ item.reason }}</small>
+                    </div>
+                    <span>{{ item.allocation_pct }}%</span>
+                  </li>
+                </ul>
+              </article>
+              <article class="sub-card">
+                <strong>关键任务</strong>
+                <div
+                  v-for="item in briefingResult.battle_plan.critical_tasks"
+                  :key="item.task"
+                  class="task-item"
                 >
-                  {{ item.label }}
-                </button>
+                  <b>{{ item.task }}</b>
+                  <p>{{ item.focus }}</p>
+                  <small>防错：{{ item.guardrail }}</small>
+                </div>
+              </article>
+              <article class="sub-card">
+                <strong>节奏与反模式</strong>
+                <ul class="text-list">
+                  <li
+                    v-for="item in briefingResult.battle_plan.execution_rhythm"
+                    :key="item"
+                  >
+                    {{ item }}
+                  </li>
+                </ul>
+                <ul class="text-list danger-list">
+                  <li
+                    v-for="item in briefingResult.battle_plan.anti_patterns"
+                    :key="item"
+                  >
+                    {{ item }}
+                  </li>
+                </ul>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel-card">
+            <div class="panel-head">
+              <div>
+                <span class="eyebrow">完整解读</span>
+                <h3>保留完整长文，便于深读与回看</h3>
               </div>
-              <button class="icon-btn" @click="handleRefreshHistory">🔄</button>
+            </div>
+            <div class="segmented narrative-tabs">
+              <button :class="['segmented-btn', narrativeTab === 'summary' && 'active']" @click="narrativeTab = 'summary'">整体简报</button>
+              <button :class="['segmented-btn', narrativeTab === 'analysis' && 'active']" @click="narrativeTab = 'analysis'">诊断全文</button>
+              <button :class="['segmented-btn', narrativeTab === 'plan' && 'active']" @click="narrativeTab = 'plan'">规划全文</button>
+            </div>
+            <div class="markdown-body briefing-markdown" v-html="narrativeHtml"></div>
+          </section>
+        </section>
+
+        <section v-else class="panel-card empty-card">
+          <div class="empty-body">
+            <span class="empty-emoji">🧭</span>
+            <h3>还没有生成作战简报</h3>
+            <p>选定周期后生成一次，你会得到结构化诊断、风险机会判断和下一周期打法。</p>
+          </div>
+        </section>
+
+        <section v-loading="historyLoading" class="panel-card">
+          <div class="panel-head">
+            <div>
+              <span class="eyebrow">历史简报</span>
+              <h3>按复盘记录回放你的策略演化</h3>
+            </div>
+            <div class="segmented small">
+              <button
+                v-for="item in historyTypeOptions"
+                :key="item.value"
+                :class="['segmented-btn', historyTypeValue === item.value && 'active']"
+                @click="historyTypeValue = item.value"
+              >
+                {{ item.label }}
+              </button>
             </div>
           </div>
-
-          <div v-if="historyRows.length" class="history-list">
-            <div
+          <div v-if="historyRows.length" class="history-grid">
+            <button
               v-for="item in historyRows"
               :key="item.id"
-              class="history-item"
+              type="button"
+              class="history-card"
               @click="handlePreview(item)"
             >
-              <div class="item-icon" :class="item.type">
-                {{ item.type === "plan" ? "🧭" : "📊" }}
+              <div class="history-top">
+                <span class="status-pill" :class="`status-${item.statusLevel}`">{{ item.typeLabel }}</span>
+                <small>{{ item.createdAt }}</small>
               </div>
-              <div class="item-content">
-                <div class="item-top">
-                  <span class="item-title">{{ item.typeLabel }}</span>
-                  <span class="item-date">{{ item.createdAt }}</span>
-                </div>
-                <div class="item-bottom">
-                  <span class="item-period">{{ item.period }}</span>
-                  <span class="item-scope">{{ item.scopeLabel }}</span>
-                </div>
-              </div>
-              <el-icon class="item-arrow"><ArrowRight /></el-icon>
-            </div>
+              <strong>{{ item.coreJudgement }}</strong>
+              <p>{{ item.period }}</p>
+            </button>
           </div>
-          <div v-else class="empty-history">
-            <span class="text">暂无历史记录</span>
-          </div>
-        </div>
-      </div>
+          <div v-else class="empty-history">暂无历史简报</div>
+        </section>
 
-      <!-- Preview Dialog -->
-      <el-dialog
-        v-model="previewDialogVisible"
-        :title="previewDialog.title"
-        width="90%"
-        class="ios-dialog"
-        destroy-on-close
-        align-center
-      >
-        <div class="dialog-meta">
-          <span v-if="previewDialog.period" class="meta-item">
-            <el-icon><Calendar /></el-icon> {{ previewDialog.period }}
-          </span>
-          <span v-if="previewDialog.generatedAt" class="meta-item">
-            <el-icon><Clock /></el-icon> {{ previewDialog.generatedAt }}
-          </span>
-        </div>
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <div
-          v-if="previewDialog.html"
-          class="markdown-body ios-markdown"
-          v-html="previewDialog.html"
-        ></div>
-        <el-empty v-else description="暂无内容" />
-      </el-dialog>
+        <el-dialog
+          v-model="previewDialogVisible"
+          :title="previewDialog.title"
+          width="92%"
+          destroy-on-close
+          align-center
+        >
+          <div v-if="previewDialog.briefing">
+            <div class="chip-row dialog-meta">
+              <span class="chip">{{ previewDialog.briefing.meta.period_label }}</span>
+              <span class="chip muted">{{ formatDateTime(previewDialog.briefing.meta.generated_at) }}</span>
+            </div>
+            <h3 class="dialog-title">
+              {{ previewDialog.briefing.diagnosis.core_judgement }}
+            </h3>
+            <div
+              class="markdown-body briefing-markdown"
+              v-html="renderMarkdown(previewDialog.briefing.narrative?.full_markdown)"
+            ></div>
+          </div>
+          <el-empty v-else description="暂无内容" />
+        </el-dialog>
+      </div>
     </PageContainer>
   </div>
 </template>
@@ -265,33 +324,24 @@ import dayjs from "dayjs";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import PageContainer from "@/components/layout/PageContainer.vue";
-import { ArrowRight, Calendar, Clock } from "@element-plus/icons-vue";
 import {
   useAIAssistantStore,
   type HistoryType,
   type Scope,
 } from "@/stores/modules/aiAssistant";
 import { useStageStore } from "@/stores/modules/stage";
+import type { AIBriefingResult } from "@/api/modules/ai";
+
 marked.setOptions({ breaks: true, gfm: true });
 
 interface HistoryRow {
   id: number;
   raw: any;
-  type: HistoryType;
   typeLabel: string;
-  scope: Scope;
-  scopeLabel: string;
+  statusLevel: "green" | "yellow" | "red";
+  coreJudgement: string;
   period: string;
-  nextPeriod?: string;
   createdAt: string;
-}
-
-interface PreviewDialogState {
-  title: string;
-  html: string;
-  generatedAt: string;
-  period?: string;
-  nextPeriod?: string;
 }
 
 const scopeLabelMap: Record<Scope, string> = {
@@ -301,8 +351,21 @@ const scopeLabelMap: Record<Scope, string> = {
   stage: "阶段",
 };
 
+const statusLabelMap: Record<string, string> = {
+  green: "状态良好",
+  yellow: "需要纠偏",
+  red: "高风险",
+};
+
 const aiStore = useAIAssistantStore();
 const stageStore = useStageStore();
+const narrativeTab = ref<"summary" | "analysis" | "plan">("summary");
+const datePicker = ref();
+const previewDialogVisible = ref(false);
+const previewDialog = ref<{ title: string; briefing: AIBriefingResult | null }>({
+  title: "",
+  briefing: null,
+});
 
 const scopeOptions: Array<{ value: Scope; label: string }> = [
   { value: "day", label: "日度" },
@@ -313,12 +376,14 @@ const scopeOptions: Array<{ value: Scope; label: string }> = [
 
 const historyTypeOptions: Array<{ value: HistoryType; label: string }> = [
   { value: "all", label: "全部" },
-  { value: "analysis", label: "分析" },
+  { value: "briefing", label: "简报" },
+  { value: "analysis", label: "诊断" },
   { value: "plan", label: "规划" },
 ];
 
-const analysisLoading = computed(() => aiStore.analysisLoading);
-const planLoading = computed(() => aiStore.planLoading);
+const briefingResult = computed(() => aiStore.briefingResult);
+const briefingLoading = computed(() => aiStore.briefingLoading);
+const diagnosisRefreshing = computed(() => aiStore.diagnosisRefreshing);
 const historyLoading = computed(() => aiStore.historyLoading);
 
 const scopeValue = computed<Scope>({
@@ -355,123 +420,67 @@ const historyTypeValue = computed<HistoryType>({
 });
 
 const isStageScope = computed(() => scopeValue.value === "stage");
-const datePickerType = computed(() =>
-  scopeValue.value === "month" ? "month" : "date",
-);
+const datePickerType = computed(() => (scopeValue.value === "month" ? "month" : "date"));
 const datePlaceholder = computed(() => {
-  switch (scopeValue.value) {
-    case "day":
-      return "选择具体日期";
-    case "week":
-      return "选择所在周任意日期";
-    case "month":
-      return "选择月份";
-    default:
-      return "";
-  }
+  if (scopeValue.value === "day") return "选择具体日期";
+  if (scopeValue.value === "week") return "选择所在周任意日期";
+  if (scopeValue.value === "month") return "选择月份";
+  return "";
 });
-
-// 头部展示：当前选区信息
 const scopeLabel = computed(() => scopeLabelMap[scopeValue.value]);
-const currentStageLabel = computed(() => {
-  if (!isStageScope.value) return "";
-  const id = stageValue.value;
-  const found = stageStore.stages.find((s: any) => Number(s.id) === Number(id));
-  return found ? `阶段：${found.name}` : "阶段：未选择";
-});
-
-const currentPeriodLabel = computed(() => {
-  if (isStageScope.value) return "";
-  const d = dayjs(dateValue.value || dayjs());
-  if (scopeValue.value === "day") {
-    const dateStr = d.format("YYYY-MM-DD");
-    return buildPeriodLabel("day", dateStr, dateStr);
+const currentSelectionLabel = computed(() => {
+  if (isStageScope.value) {
+    const found = stageStore.stages.find((item: any) => Number(item.id) === Number(stageValue.value));
+    return found ? found.name : "未选择阶段";
   }
-  if (scopeValue.value === "week") {
-    const weekday = d.day();
-    const monday = d.subtract((weekday + 6) % 7, "day");
-    const sunday = monday.add(6, "day");
-    return buildPeriodLabel(
-      "week",
-      monday.format("YYYY-MM-DD"),
-      sunday.format("YYYY-MM-DD"),
-    );
-  }
-  // month
-  const first = d.startOf("month");
-  const last = d.endOf("month");
-  return buildPeriodLabel(
-    "month",
-    first.format("YYYY-MM-DD"),
-    last.format("YYYY-MM-DD"),
-  );
+  return dateValue.value || datePlaceholder.value;
 });
-
-function renderMarkdown(text?: string) {
-  if (!text) return "";
-  const rawHtml = marked.parse(text) as string;
-  return DOMPurify.sanitize(rawHtml);
-}
+const latestGeneratedLabel = computed(() =>
+  briefingResult.value?.meta.generated_at ? formatDateTime(briefingResult.value.meta.generated_at) : "还未生成",
+);
+const latestPeriodLabel = computed(() => briefingResult.value?.meta.period_label || "等待生成第一份简报");
+const statusTone = computed(() => briefingResult.value?.diagnosis.status_level || "yellow");
+const statusLabel = computed(() => statusLabelMap[statusTone.value] || "需要判断");
+const reviewPointLabel = computed(() => briefingResult.value?.battle_plan.next_review_point || "等待生成");
 const stageOptions = computed(() =>
-  stageStore.stages.map((item: any) => ({
-    label: item.name,
-    value: Number(item.id),
+  stageStore.stages.map((item: any) => ({ label: item.name, value: Number(item.id) })),
+);
+const evidenceHighlights = computed(() => {
+  const metrics = briefingResult.value?.evidence?.metrics || {};
+  return [
+    { label: "总时长", value: `${metrics.total_hours ?? "--"}h` },
+    { label: "平均效率", value: `${metrics.average_efficiency ?? "--"}` },
+    {
+      label: "活跃率",
+      value: metrics.active_ratio == null ? "--" : `${(Number(metrics.active_ratio) * 100).toFixed(1)}%`,
+    },
+    { label: "连击", value: `${metrics.streak_current ?? 0} 天` },
+  ];
+});
+const narrativeHtml = computed(() => {
+  const result = briefingResult.value?.narrative;
+  if (!result) return "";
+  if (narrativeTab.value === "analysis") return renderMarkdown(result.analysis_markdown);
+  if (narrativeTab.value === "plan") return renderMarkdown(result.plan_markdown);
+  return renderMarkdown(result.full_markdown);
+});
+const historyRows = computed<HistoryRow[]>(() =>
+  (aiStore.historyItems || []).map((item: any) => ({
+    id: item.id,
+    raw: item,
+    typeLabel:
+      item.workflow_type === "briefing" ? "复盘简报" : item.insight_type === "plan" ? "规划" : "分析",
+    statusLevel: (item.status_level || "yellow") as "green" | "yellow" | "red",
+    coreJudgement: item.core_judgement || "历史记录",
+    period: item.period_label || item.input_snapshot?.period_label || "未标记周期",
+    createdAt: formatDateTime(item.created_at),
   })),
 );
 
-const analysisInsight = computed(() => aiStore.analysisResult as any | null);
-const planInsight = computed(() => aiStore.planResult as any | null);
-
-const analysisHtml = computed(() =>
-  renderMarkdown(analysisInsight.value?.text),
-);
-const planHtml = computed(() => renderMarkdown(planInsight.value?.text));
-
-const analysisMeta = computed(() => ({
-  period: analysisInsight.value?.period_label ?? "",
-  generatedAt: analysisInsight.value?.generated_at ?? "",
-}));
-
-const planMeta = computed(() => ({
-  period: planInsight.value?.period_label ?? "",
-  nextPeriod: planInsight.value?.next_period_label ?? "",
-  generatedAt: planInsight.value?.generated_at ?? "",
-}));
-
-const hasResult = computed(() => Boolean(analysisHtml.value || planHtml.value));
-
-const previewDialogVisible = ref(false);
-const datePicker = ref();
-const previewDialog = ref<PreviewDialogState>({
-  title: "",
-  html: "",
-  generatedAt: "",
-  period: "",
-  nextPeriod: "",
-});
-
-const historyRows = computed<HistoryRow[]>(() =>
-  (aiStore.historyItems || []).map((item: any) => {
-    const scope = (item.scope || "week") as Scope;
-    const period =
-      item.input_snapshot?.period_label ??
-      buildPeriodLabel(scope, item.start_date, item.end_date);
-    const nextPeriod =
-      item.input_snapshot?.next_period_label ??
-      buildPeriodLabel(scope, item.next_start_date, item.next_end_date);
-    return {
-      id: item.id,
-      raw: item,
-      type: item.insight_type as HistoryType,
-      typeLabel: item.insight_type === "analysis" ? "分析" : "规划",
-      scope,
-      scopeLabel: scopeLabelMap[scope] || scope,
-      period,
-      nextPeriod,
-      createdAt: formatDateTime(item.created_at),
-    };
-  }),
-);
+function renderMarkdown(text?: string) {
+  if (!text) return "";
+  return DOMPurify.sanitize(marked.parse(text) as string);
+}
 
 function formatDateTime(value?: string) {
   if (!value) return "";
@@ -485,67 +494,23 @@ function openDatePicker() {
   if (typeof picker.handleOpen === "function") picker.handleOpen();
 }
 
-function buildPeriodLabel(
-  scope: Scope,
-  start?: string | null,
-  end?: string | null,
-) {
-  if (!start && !end) return "";
-  if (start && end) {
-    if (start === end) {
-      return `${scopeLabelMap[scope]}（${start}）`;
-    }
-    return `${scopeLabelMap[scope]}（${start} 至 ${end}）`;
-  }
-  if (start) {
-    return `${scopeLabelMap[scope]}（自 ${start} 起）`;
-  }
-  if (end) {
-    return `${scopeLabelMap[scope]}（至 ${end}）`;
-  }
-  return scopeLabelMap[scope];
+async function handleGenerateBriefing() {
+  await aiStore.generateBriefing();
+  narrativeTab.value = "summary";
 }
 
-async function handleGenerateAnalysis() {
-  await aiStore.generateAnalysis();
-}
-
-async function handleGeneratePlan() {
-  await aiStore.generatePlan();
+async function handleRefreshDiagnosis() {
+  await aiStore.refreshDiagnosisOnly();
+  narrativeTab.value = "analysis";
 }
 
 function handleClear() {
   aiStore.clearResults();
 }
 
-async function handleRefreshHistory() {
-  await aiStore.fetchHistory(scopeValue.value);
-}
-
-function openPreviewFromResult(type: "analysis" | "plan") {
-  const insight =
-    type === "analysis" ? analysisInsight.value : planInsight.value;
-  if (!insight) return;
-  previewDialog.value = {
-    title: type === "analysis" ? "分析总结" : "规划建议",
-    html: renderMarkdown(insight.text) || "",
-    generatedAt: insight.generated_at
-      ? formatDateTime(insight.generated_at)
-      : "",
-    period: insight.period_label ?? "",
-    nextPeriod: insight.next_period_label ?? "",
-  };
-  previewDialogVisible.value = true;
-}
-
 function handlePreview(row: HistoryRow) {
-  previewDialog.value = {
-    title: row.type === "analysis" ? "历史分析" : "历史规划",
-    html: renderMarkdown(row.raw.output_text) || "",
-    generatedAt: row.createdAt,
-    period: row.period,
-    nextPeriod: row.nextPeriod,
-  };
+  aiStore.hydrateFromHistory(row.raw);
+  previewDialog.value = { title: row.typeLabel, briefing: aiStore.briefingResult };
   previewDialogVisible.value = true;
 }
 
@@ -555,659 +520,80 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-.ios-view {
-  min-height: 100%;
-  background-color: transparent; /* Allow global background to show */
-}
-
-.ios-content-wrapper {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  padding-bottom: 40px;
-}
-
-/* --- iOS Card Generic --- */
-.ios-card {
-  background: var(--surface-card);
-  border: 1px solid var(--stroke-soft);
-  border-radius: 20px;
-  box-shadow: var(--box-shadow-card);
-  overflow: hidden;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-
-  &:hover {
-    box-shadow: var(--box-shadow-hover);
-  }
-}
-
-/* --- Control Panel --- */
-.control-panel {
-  padding: 24px;
-
-  .panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-
-    .panel-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--color-text-heading);
-      margin: 0;
-    }
-
-    .current-status {
-      display: flex;
-      gap: 8px;
-    }
-
-    .status-badge {
-      padding: 6px 12px;
-      background: var(--surface-soft); /* iOS System Gray 5 */
-      color: var(--color-text-heading);
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 600;
-
-      &.secondary {
-        background: var(--surface-card-muted);
-        color: var(--color-text-secondary);
-      }
-    }
-  }
-
-  .panel-body {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    align-items: flex-end;
-  }
-}
-
-.control-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-
-  .group-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--color-text-secondary); /* iOS System Gray */
-    margin-left: 4px;
-  }
-}
-
-/* iOS Segmented Control */
-.ios-segmented-control {
-  background: var(--surface-soft);
-  padding: 3px;
-  border-radius: 9px;
-  display: inline-flex;
-  position: relative;
-
-  &.small {
-    padding: 2px;
-    border-radius: 8px;
-
-    .segment-btn {
-      padding: 4px 12px;
-      font-size: 12px;
-    }
-  }
-
-  .segment-btn {
-    border: none;
-    background: transparent;
-    padding: 8px 20px;
-    border-radius: 7px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--color-text-heading);
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &.active {
-      background: var(--surface-card);
-      box-shadow: var(--box-shadow);
-      font-weight: 600;
-    }
-  }
-}
-
-/* iOS Picker Button */
-.picker-wrapper {
-  display: flex;
-  align-items: center;
-}
-
-.ios-picker-btn {
-  background: var(--surface-card-muted);
-  border: none;
-  padding: 10px 16px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: background 0.2s;
-  min-width: 220px;
-  justify-content: space-between;
-
-  &:hover {
-    background: var(--surface-soft);
-  }
-
-  .icon {
-    font-size: 16px;
-  }
-
-  .value {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--color-primary); /* iOS Blue */
-    flex: 1;
-    text-align: left;
-  }
-
-  .arrow {
-    font-size: 14px;
-    color: var(--color-text-muted);
-  }
-}
-
-.ios-select {
-  width: 220px;
-
-  :deep(.el-input__wrapper) {
-    background-color: var(--surface-card-muted);
-    border-radius: 12px;
-    box-shadow: none !important;
-    padding: 4px 12px;
-  }
-
-  :deep(.el-input__inner) {
-    font-weight: 600;
-    color: var(--color-primary);
-  }
-}
-
-:deep(.hidden-date-input) {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-}
-
-/* Action Buttons */
-.action-group {
-  display: flex;
-  gap: 12px;
-  margin-left: auto;
-}
-
-.ios-btn {
-  border: none;
-  padding: 12px 24px;
-  border-radius: 14px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition:
-    transform 0.1s,
-    opacity 0.2s;
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  &.primary {
-    background: var(--color-primary);
-    color: var(--color-text-inverse);
-    box-shadow: var(--box-shadow);
-
-    &:hover:not(:disabled) {
-      background: var(--color-primary-dark);
-    }
-  }
-
-  &.primary-alt {
-    background: var(--color-success); /* iOS Green */
-    color: var(--color-text-inverse);
-    box-shadow: var(--box-shadow);
-
-    &:hover:not(:disabled) {
-      background: var(--color-success);
-    }
-  }
-
-  &.ghost {
-    background: var(--surface-card-muted);
-    color: var(--color-error); /* iOS Red */
-    padding: 12px;
-
-    &:hover:not(:disabled) {
-      background: var(--surface-soft);
-    }
-  }
-}
-
-/* --- Results Grid --- */
-.results-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 24px;
-}
-
-.result-card {
-  display: flex;
-  flex-direction: column;
-  min-height: 400px;
-
-  &.is-loading {
-    opacity: 0.8;
-    pointer-events: none;
-  }
-
-  .card-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--stroke-soft);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-
-    .header-left {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-    }
-
-    .icon-box {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      display: grid;
-      place-items: center;
-      font-size: 24px;
-
-      &.analysis-icon {
-        background: var(--color-primary-light); /* Light Blue */
-      }
-      &.plan-icon {
-        background: var(--surface-subtle); /* Light Green */
-      }
-    }
-
-    .header-text {
-      .title {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--color-text-heading);
-        margin: 0 0 4px 0;
-      }
-
-      .subtitle,
-      .subtitle-row {
-        font-size: 13px;
-        color: var(--color-text-secondary);
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-    }
-  }
-
-  .ios-tag {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 999px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-
-    &.latest {
-      background: var(--color-primary-light);
-      color: var(--color-primary);
-    }
-    &.plan {
-      background: var(--surface-subtle);
-      color: var(--color-success);
-    }
-  }
-
-  .card-body {
-    flex: 1;
-    padding: 24px;
-    overflow-y: auto;
-    background: var(--surface-card);
-  }
-}
-
-.markdown-content {
-  .timestamp {
-    margin-top: 24px;
-    font-size: 12px;
-    color: var(--color-text-muted);
-    text-align: right;
-  }
-}
-
-.empty-state {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-muted);
-  gap: 12px;
-
-  .emoji {
-    font-size: 48px;
-    opacity: 0.5;
-  }
-
-  p {
-    font-size: 15px;
-    font-weight: 500;
-  }
-}
-
-/* --- History Section --- */
-.history-section {
-  padding: 24px;
-
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-
-    .header-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-
-      .icon {
-        font-size: 20px;
-      }
-      h3 {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--color-text-heading);
-      }
-    }
-
-    .header-controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .icon-btn {
-      background: var(--surface-card-muted);
-      border: none;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-      font-size: 14px;
-      color: var(--color-text-secondary);
-      transition: all 0.2s;
-
-      &:hover {
-        background: var(--surface-soft);
-        color: var(--color-primary);
-      }
-    }
-  }
-}
-
-.history-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-
-.history-item {
-  background: var(--surface-subtle); /* Very light gray */
-  border-radius: 16px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  cursor: pointer;
-  transition: background 0.2s;
-
-  &:hover {
-    background: var(--surface-card-muted);
-  }
-
-  .item-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: grid;
-    place-items: center;
-    font-size: 20px;
-    flex-shrink: 0;
-
-    &.analysis {
-      background: var(--color-primary-light);
-    }
-    &.plan {
-      background: var(--surface-subtle);
-    }
-  }
-
-  .item-content {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .item-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .item-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--color-text-heading);
-    }
-
-    .item-date {
-      font-size: 12px;
-      color: var(--color-text-secondary);
-    }
-  }
-
-  .item-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .item-period {
-      font-size: 13px;
-      color: var(--color-text-base);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .item-scope {
-      font-size: 11px;
-      color: var(--color-text-secondary);
-      background: var(--surface-card);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-  }
-
-  .item-arrow {
-    color: var(--color-text-muted);
-    font-size: 14px;
-  }
-}
-
-.empty-history {
-  padding: 40px;
-  text-align: center;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-}
-
-/* --- Dialog & Markdown --- */
-.ios-dialog {
-  :deep(.el-dialog) {
-    border-radius: 20px;
-    overflow: hidden;
-  }
-
-  :deep(.el-dialog__header) {
-    margin: 0;
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--stroke-soft);
-
-    .el-dialog__title {
-      font-weight: 700;
-      font-size: 18px;
-    }
-  }
-
-  :deep(.el-dialog__body) {
-    padding: 24px;
-    max-height: 70vh;
-    overflow-y: auto;
-  }
-}
-
-.dialog-meta {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px dashed var(--stroke-soft);
-
-  .meta-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--color-text-secondary);
-  }
-}
-
-/* Markdown Styles for iOS Theme */
-:deep(.markdown-body) {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif;
-  color: var(--color-text-heading);
-  line-height: 1.6;
-
-  h1,
-  h2,
-  h3 {
-    border-bottom: none;
-    margin-top: 24px;
-    margin-bottom: 12px;
-    font-weight: 700;
-  }
-
-  h1 {
-    font-size: 24px;
-  }
-  h2 {
-    font-size: 20px;
-  }
-  h3 {
-    font-size: 17px;
-  }
-
-  p {
-    margin-bottom: 16px;
-  }
-
-  ul,
-  ol {
-    padding-left: 24px;
-    margin-bottom: 16px;
-  }
-
-  li {
-    margin-bottom: 8px;
-  }
-
-  blockquote {
-    border-left: 4px solid var(--color-primary);
-    background: var(--surface-card-muted);
-    padding: 12px 16px;
-    border-radius: 8px;
-    color: var(--color-text-base);
-    margin: 16px 0;
-  }
-
-  code {
-    background: var(--surface-card-muted);
-    color: var(--color-error);
-    padding: 2px 6px;
-    border-radius: 6px;
-    font-size: 0.9em;
-  }
-
-  pre {
-    background: var(--surface-card-strong);
-    border-radius: 12px;
-    padding: 16px;
-
-    code {
-      background: transparent;
-      color: var(--color-text-heading);
-      padding: 0;
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .control-panel .panel-body {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .action-group {
-    width: 100%;
-    justify-content: space-between;
-
-    .ios-btn {
-      flex: 1;
-      justify-content: center;
-    }
-  }
-
-  .results-grid {
-    grid-template-columns: 1fr;
-  }
-}
+.briefing-shell { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding-bottom: 40px; }
+.hero-card, .panel-card { border-radius: 28px; padding: 22px 24px; border: 1px solid color-mix(in srgb, var(--color-primary) 10%, var(--stroke-soft)); background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)), color-mix(in srgb, var(--surface-card) 92%, rgba(255,255,255,.02)); box-shadow: 0 24px 48px -36px rgba(15,23,42,.55), inset 0 1px 0 rgba(255,255,255,.04); }
+.hero-card { display: flex; justify-content: space-between; gap: 20px; align-items: end; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--color-primary); }
+.eyebrow.danger { color: #f87171; }
+.eyebrow.success { color: #34d399; }
+.hero-card h2, .panel-head h3, .overview-main h3 { color: var(--color-text-heading); }
+.hero-card h2 { margin: 8px 0 10px; font-size: clamp(28px, 4vw, 42px); line-height: 1.08; }
+.hero-card p, .overview-main p { margin: 0; color: var(--color-text-secondary); line-height: 1.7; }
+.hero-actions, .chip-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.hero-btn, .segmented-btn { border: none; cursor: pointer; font-weight: 700; }
+.hero-btn { border-radius: 999px; padding: 12px 18px; transition: transform .18s ease, opacity .2s ease; }
+.hero-btn:not(:disabled):hover { transform: translateY(-1px); }
+.hero-btn:disabled { opacity: .55; cursor: not-allowed; }
+.hero-btn.primary { background: linear-gradient(135deg, #4f6df5, #7d5cff); color: #fff; }
+.hero-btn.secondary { background: color-mix(in srgb, var(--color-primary) 16%, rgba(255,255,255,.03)); color: var(--color-text-heading); }
+.hero-btn.ghost { background: color-mix(in srgb, var(--surface-card) 88%, rgba(255,255,255,.02)); color: var(--color-text-secondary); }
+.panel-head { display: flex; justify-content: space-between; align-items: start; gap: 14px; margin-bottom: 18px; }
+.panel-head h3 { margin: 6px 0 0; font-size: 22px; }
+.chip { display: inline-flex; align-items: center; padding: 7px 12px; border-radius: 999px; background: color-mix(in srgb, var(--color-primary) 12%, rgba(255,255,255,.02)); color: var(--color-text-heading); font-size: 12px; font-weight: 700; }
+.chip.muted { background: color-mix(in srgb, var(--surface-card) 82%, rgba(255,255,255,.02)); color: var(--color-text-secondary); }
+.control-grid, .info-grid, .plan-grid, .history-grid { display: grid; gap: 16px; }
+.control-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.info-grid, .plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.history-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.control-block { display: flex; flex-direction: column; gap: 12px; }
+.control-block label { font-size: 13px; font-weight: 700; color: var(--color-text-secondary); }
+.segmented { display: inline-flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 16px; background: color-mix(in srgb, var(--surface-card) 82%, rgba(255,255,255,.02)); }
+.segmented.small .segmented-btn { padding: 8px 12px; font-size: 12px; }
+.segmented-btn { padding: 10px 16px; border-radius: 12px; background: transparent; color: var(--color-text-secondary); }
+.segmented-btn.active { background: color-mix(in srgb, var(--color-primary) 18%, rgba(255,255,255,.04)); color: var(--color-text-heading); }
+.picker-btn, .meta-box, .sub-card, .history-card, .evidence-card, .mini-stat { width: 100%; border-radius: 18px; background: color-mix(in srgb, var(--surface-card) 84%, rgba(255,255,255,.02)); border: 1px solid color-mix(in srgb, var(--color-primary) 8%, transparent); }
+.picker-btn { min-height: 54px; padding: 14px 16px; text-align: left; color: var(--color-text-heading); }
+.meta-box { min-height: 92px; padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.meta-box strong { color: var(--color-text-heading); }
+.meta-box span { color: var(--color-text-secondary); font-size: 13px; }
+.stage-select { width: 100%; }
+.stage-select :deep(.el-input__wrapper) { min-height: 54px; border-radius: 16px; background: color-mix(in srgb, var(--surface-card) 84%, rgba(255,255,255,.02)); box-shadow: none !important; }
+:deep(.hidden-date-input) { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
+.battle-desk { display: flex; flex-direction: column; gap: 18px; }
+.overview-card { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; }
+.overview-main h3 { margin: 12px 0 10px; font-size: 28px; line-height: 1.18; }
+.overview-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.mini-stat, .evidence-card, .sub-card, .history-card { padding: 16px; }
+.mini-stat span, .evidence-card span { display: block; color: var(--color-text-secondary); font-size: 12px; margin-bottom: 8px; }
+.mini-stat strong, .evidence-card strong { color: var(--color-text-heading); }
+.evidence-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.status-pill { display: inline-flex; align-items: center; padding: 7px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+.status-green { background: rgba(52,211,153,.16); color: #6ee7b7; }
+.status-yellow { background: rgba(251,191,36,.16); color: #fcd34d; }
+.status-red { background: rgba(248,113,113,.16); color: #fca5a5; }
+.text-list { margin: 14px 0 0; padding-left: 18px; display: grid; gap: 10px; color: var(--color-text-base); line-height: 1.7; }
+.danger-list li { color: #fecaca; }
+.success-list li { color: #bbf7d0; }
+.allocation-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 12px; }
+.allocation-list li { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 8%, transparent); }
+.allocation-list b, .task-item b, .history-card strong { color: var(--color-text-heading); }
+.allocation-list small, .task-item small, .history-card p, .empty-history, .empty-body p { color: var(--color-text-secondary); }
+.allocation-list span { color: #a5b4fc; font-weight: 800; }
+.task-item { padding: 14px 0; border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 8%, transparent); }
+.task-item p { margin: 8px 0 0; color: var(--color-text-base); line-height: 1.65; }
+.history-card { border: none; text-align: left; cursor: pointer; }
+.history-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.history-top small { color: var(--color-text-muted); }
+.history-card strong { display: block; margin: 12px 0 10px; line-height: 1.55; }
+.empty-card, .empty-history { min-height: 220px; display: flex; align-items: center; justify-content: center; }
+.empty-body { text-align: center; color: var(--color-text-secondary); }
+.empty-body h3 { color: var(--color-text-heading); }
+.empty-emoji { font-size: 44px; display: block; margin-bottom: 12px; }
+.dialog-meta { margin-bottom: 14px; }
+.dialog-title { margin: 0 0 16px; color: var(--color-text-heading); font-size: 24px; }
+:deep(.markdown-body) { color: var(--color-text-base); line-height: 1.8; }
+:deep(.markdown-body h2), :deep(.markdown-body h3) { color: var(--color-text-heading); margin-top: 22px; }
+:deep(.markdown-body code) { background: rgba(148,163,184,.14); padding: 2px 6px; border-radius: 6px; }
+@media (max-width: 1024px) { .hero-card, .overview-card, .control-grid, .info-grid, .plan-grid, .history-grid { display: grid; grid-template-columns: 1fr; } .hero-card { align-items: start; } .overview-stats { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .briefing-shell { gap: 16px; } .hero-card, .panel-card { padding: 18px; border-radius: 22px; } .hero-actions { justify-content: start; } .evidence-grid { grid-template-columns: 1fr; } }
 </style>
-

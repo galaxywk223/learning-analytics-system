@@ -26,6 +26,7 @@ from app.services.ai_planner import (  # type: ignore[F401]
     _parse_date,
     _save_insight,
     generate_analysis,
+    generate_briefing,
     generate_plan,
     list_history,
 )
@@ -48,6 +49,7 @@ __all__ = [
     "_configure_qwen",
     "_call_qwen",
     "_save_insight",
+    "generate_briefing",
     "generate_analysis",
     "generate_plan",
     "list_history",

@@ -173,6 +173,12 @@ export const useChartsStore = defineStore("charts", () => {
     if (typeof window === "undefined") {
       return;
     }
+    if (
+      kpiTopSubs30d.value.length === 0 &&
+      kpiTopSubsEfficiency30d.value.length === 0
+    ) {
+      return;
+    }
     try {
       sessionStorage.setItem(
         getTopSummaryCacheKey(),
@@ -697,8 +703,10 @@ export const useChartsStore = defineStore("charts", () => {
           ...x,
           percent: total > 0 ? Math.round((x.hours / total) * 100) : 0,
         }));
-      kpiTopSubs30d.value = items;
-      persistTopSummaryCache();
+      if (items.length > 0) {
+        kpiTopSubs30d.value = items;
+        persistTopSummaryCache();
+      }
     } catch (e) {
       console.warn("获取时长 TOP3 失败", e);
     }
@@ -775,8 +783,10 @@ export const useChartsStore = defineStore("charts", () => {
           ...x,
           percent: total > 0 ? Math.round((x.hours / total) * 100) : 0,
         }));
-      kpiTopSubsEfficiency30d.value = items;
-      persistTopSummaryCache();
+      if (items.length > 0) {
+        kpiTopSubsEfficiency30d.value = items;
+        persistTopSummaryCache();
+      }
     } catch (e) {
       console.warn("获取效率 TOP3 失败", e);
     }

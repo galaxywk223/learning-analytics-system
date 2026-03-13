@@ -272,7 +272,10 @@
                 >
                   <KpiCard label="时长 TOP3（近30天）" color="indigo">
                     <template #value>
-                      <div class="rank-stack">
+                      <div
+                        class="rank-stack"
+                        :class="{ 'rank-stack--loading': showTopSummaryDurationPlaceholder }"
+                      >
                         <div
                           v-for="card in topSubCards"
                           :key="card.key"
@@ -294,7 +297,10 @@
                   </KpiCard>
                   <KpiCard label="效率 TOP3（近30天）" color="green">
                     <template #value>
-                      <div class="rank-stack">
+                      <div
+                        class="rank-stack"
+                        :class="{ 'rank-stack--loading': showTopSummaryEfficiencyPlaceholder }"
+                      >
                         <div
                           v-for="card in topSubEfficiencyCards"
                           :key="card.key"
@@ -570,7 +576,28 @@ const currentCategoryName = computed(() => {
   return String(name);
 });
 
+const showTopSummaryDurationPlaceholder = computed(
+  () => charts.topSummaryLoading && (charts.kpiTopSubs30d || []).length === 0,
+);
+
+const showTopSummaryEfficiencyPlaceholder = computed(
+  () =>
+    charts.topSummaryLoading &&
+    (charts.kpiTopSubsEfficiency30d || []).length === 0,
+);
+
 const topSubCards = computed(() => {
+  if (showTopSummaryDurationPlaceholder.value) {
+    return Array.from({ length: 3 }, (_, idx) => ({
+      key: `duration-loading-${idx}`,
+      label: `时长 TOP${idx + 1}（近30天）`,
+      name: "加载中",
+      percentText: "请稍候",
+      medal: "",
+      barWidth: `${72 - idx * 14}%`,
+      opacity: 0.45,
+    }));
+  }
   const items = charts.kpiTopSubs30d || [];
   const normalized = [...items];
   while (normalized.length < 3) {
@@ -599,6 +626,17 @@ const topSubCards = computed(() => {
 });
 
 const topSubEfficiencyCards = computed(() => {
+  if (showTopSummaryEfficiencyPlaceholder.value) {
+    return Array.from({ length: 3 }, (_, idx) => ({
+      key: `efficiency-loading-${idx}`,
+      label: `效率 TOP${idx + 1}（近30天）`,
+      name: "加载中",
+      valueText: "请稍候",
+      medal: "",
+      barWidth: `${72 - idx * 14}%`,
+      opacity: 0.45,
+    }));
+  }
   const items = charts.kpiTopSubsEfficiency30d || [];
   const normalized = [...items];
   while (normalized.length < 3) {
@@ -1443,6 +1481,36 @@ onActivated(async () => {
   gap: 16px;
 }
 
+.rank-stack--loading {
+  .rank-stack__name,
+  .rank-stack__value,
+  .rank-bar span {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .rank-stack__name,
+  .rank-stack__value {
+    color: color-mix(in srgb, var(--color-text-secondary) 72%, transparent);
+  }
+
+  .rank-stack__name::after,
+  .rank-stack__value::after,
+  .rank-bar span::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.14) 50%,
+      transparent 100%
+    );
+    animation: rank-loading-sheen 1.4s ease-in-out infinite;
+  }
+}
+
 .rank-stack__item {
   display: flex;
   flex-direction: column;
@@ -1499,6 +1567,12 @@ onActivated(async () => {
       var(--color-primary) 0%,
       color-mix(in srgb, var(--color-primary-dark) 76%, #ffffff) 100%
     );
+  }
+}
+
+@keyframes rank-loading-sheen {
+  to {
+    transform: translateX(100%);
   }
 }
 

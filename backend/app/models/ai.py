@@ -30,10 +30,12 @@ class AIInsight(db.Model):
     user = db.relationship("User", backref=db.backref("ai_insights", lazy="dynamic"))
 
     def to_dict(self):
+        snapshot = self.input_snapshot or {}
         return {
             "id": self.id,
             "user_id": self.user_id,
             "insight_type": self.insight_type,
+            "workflow_type": snapshot.get("workflow_type", self.insight_type),
             "scope": self.scope,
             "scope_reference": self.scope_reference,
             "start_date": self.start_date.isoformat() if self.start_date else None,
@@ -45,6 +47,10 @@ class AIInsight(db.Model):
             if self.next_end_date
             else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "input_snapshot": self.input_snapshot,
+            "input_snapshot": snapshot,
             "output_text": self.output_text,
+            "status_level": snapshot.get("status_level"),
+            "core_judgement": snapshot.get("core_judgement"),
+            "period_label": snapshot.get("period_label"),
+            "next_period_label": snapshot.get("next_period_label"),
         }

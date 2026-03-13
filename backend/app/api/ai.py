@@ -8,6 +8,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.services.ai_planner_service import (
     AIPlannerError,
     generate_analysis,
+    generate_briefing,
     generate_plan,
     list_history,
 )
@@ -54,6 +55,18 @@ def create_analysis():
         return jsonify({"success": False, "message": str(exc)}), 400
 
 
+@bp.route("/briefing", methods=["POST"])
+@jwt_required()
+def create_briefing():
+    user_id = get_jwt_identity()
+    try:
+        scope, date_str, stage_id = _parse_request_payload()
+        result = generate_briefing(user_id, scope, date_str, stage_id)
+        return jsonify({"success": True, "data": result}), 200
+    except AIPlannerError as exc:
+        return jsonify({"success": False, "message": str(exc)}), 400
+
+
 @bp.route("/plan", methods=["POST"])
 @jwt_required()
 def create_plan():
@@ -95,7 +108,7 @@ def get_history():
     insight_type = request.args.get("type")
     if insight_type:
         insight_type = insight_type.lower()
-        if insight_type not in {"analysis", "plan"}:
+        if insight_type not in {"analysis", "plan", "briefing"}:
             return jsonify({"success": False, "message": "type 参数无效"}), 400
     else:
         insight_type = None
