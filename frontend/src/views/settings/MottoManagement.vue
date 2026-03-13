@@ -1,6 +1,6 @@
 <template>
   <PageContainer
-    :title="{ icon: '💬', text: '格言管理' }"
+    :title="{ icon: 'lucide:message-square-quote', text: '格言管理' }"
     subtitle="写下一句激励你的话语，启发每一天。"
     :custom-class="'settings-subpage'"
   >

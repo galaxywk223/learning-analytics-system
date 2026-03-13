@@ -1,8 +1,10 @@
 <template>
   <div class="focus-view">
     <PageContainer
-      :title="{ icon: '🎯', text: isTimerRunning ? '专注中' : '专注计时' }"
+      :title="{ icon: 'lucide:timer-reset', text: isTimerRunning ? '专注中' : '专注计时' }"
       subtitle="保持专注，记录每一步的累积"
+      header-variant="hero"
+      max-width="wide"
     >
       <div class="focus-layout">
         <div class="focus-layout__timer">
@@ -487,39 +489,44 @@ onActivated(() => {
 <style scoped lang="scss">
 .focus-view {
   position: relative;
-  min-height: 100vh;
-  padding: clamp(1.5rem, 3vw, 3rem);
-  background: transparent;
-  overflow: hidden;
-
-  &::after {
-    display: none;
-  }
+  min-height: 100%;
 }
 
 .focus-layout {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(320px, 360px) minmax(420px, 1fr);
-  gap: clamp(1.8rem, 3vw, 3rem);
+  grid-template-columns: minmax(320px, 420px) minmax(420px, 1fr);
+  gap: clamp(1.25rem, 2.2vw, 2rem);
   align-items: center;
   justify-content: center;
-  margin-top: clamp(1rem, 3vw, 1.5rem);
+  margin-top: 8px;
 
   &__timer {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
     align-items: center;
+    padding: clamp(20px, 3vw, 32px);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-subtle);
+    background:
+      radial-gradient(circle at top, color-mix(in srgb, var(--brand-primary) 10%, transparent) 0%, transparent 32%),
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-elevated) 94%, white) 0%, var(--bg-surface) 100%);
+    box-shadow: var(--shadow-2);
   }
 
   &__details {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    max-width: 620px;
     width: 100%;
+    padding: clamp(20px, 3vw, 32px);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-subtle);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-elevated) 94%, white) 0%, var(--bg-surface) 100%);
+    box-shadow: var(--shadow-2);
   }
 }
 
@@ -668,14 +675,6 @@ onActivated(() => {
 }
 
 @media (max-width: 768px) {
-  .focus-view {
-    padding: 1.5rem;
-  }
-
-  .focus-container {
-    padding: 2rem 1.5rem;
-  }
-
   .focus-layout {
     grid-template-columns: 1fr;
   }

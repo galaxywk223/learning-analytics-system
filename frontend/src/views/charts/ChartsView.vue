@@ -1,8 +1,9 @@
 <template>
   <div class="charts-view">
     <PageContainer
-      :title="{ icon: '📊', text: '统计分析' }"
+      :title="{ icon: 'lucide:chart-column-big', text: '统计分析' }"
       subtitle="通过数据洞察学习模式，掌握成长轨迹"
+      max-width="full"
     >
       <div class="charts-layout">
         <aside class="charts-sidebar">

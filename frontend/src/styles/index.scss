@@ -1,48 +1,7 @@
-/**
- * 样式统一入口文件
- * 按照加载顺序组织：base -> themes -> layouts -> components -> views
- */
-
-/* 性能优化：全局设置 */
-* {
-  /* 减少重绘和回流 */
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* 优化滚动性能 */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(85, 100, 216, 0.45) transparent;
-}
-
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-  background: rgba(85, 100, 216, 0.45);
-  border-radius: 4px;
-
-  &:hover {
-    background: rgba(57, 69, 166, 0.6);
-  }
-}
-
-/* 基础样式 */
 @import "./base/base.scss";
-
-
-/* 布局 */
 @import "./layouts/layout.scss";
 @import "./layouts/grid.scss";
 @import "./layouts/page-container.scss";
-
-/* 组件 */
 @import "./components/components.scss";
 @import "./components/_pill-buttons.scss";
 @import "./components/_element-plus.scss";

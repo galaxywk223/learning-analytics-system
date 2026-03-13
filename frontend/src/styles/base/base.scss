@@ -1,289 +1,245 @@
-/* frontend/src/styles/base/base.scss */
-
-/* ===== 1. Google Font Import ===== */
-/* ===== 1. Google Font Import (Removed for performance in China) ===== */
-/* @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"); */
-
-/* ===== 2. Theme Variables ===== */
 @import "./themes";
 
-/* ===== 3. Global Styles & Resets ===== */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
-  font-family: var(--font-family-base) !important;
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 html,
 body {
   margin: 0;
-  padding: 0;
-  height: 100%;
-  /* 基础底色 */
-  background-color: var(--color-bg-page);
-  transition: background-color var(--transition-speed) var(--transition-ease), color var(--transition-speed) var(--transition-ease);
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top, var(--bg-spotlight) 0%, transparent 32%),
+    linear-gradient(180deg, var(--bg-page) 0%, color-mix(in srgb, var(--bg-page) 88%, #ffffff) 100%);
 }
 
 body {
   font-family: var(--font-family-base);
-  color: var(--color-text-base);
-  line-height: 1.6;
   font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
 }
 
 #app {
-  position: relative;
-  width: 100%;
   min-height: 100vh;
-  background-color: transparent;
-  z-index: 1;
-  overflow-x: hidden;
 }
 
-/* Global Theme Transitions */
-.sidebar,
-.main-content,
-.el-card,
-.el-dialog,
-.el-drawer,
-.el-button,
-.nav-link {
-  transition: background-color var(--transition-speed) var(--transition-ease),
-              color var(--transition-speed) var(--transition-ease),
-              border-color var(--transition-speed) var(--transition-ease),
-              box-shadow var(--transition-speed) var(--transition-ease);
+::selection {
+  background: color-mix(in srgb, var(--brand-primary) 24%, transparent);
+  color: var(--text-primary);
 }
 
-/* ===== 5. Utility Classes ===== */
-.icon-lg {
-  width: 48px;
-  height: 48px;
+*:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brand-primary) 64%, white);
+  outline-offset: 3px;
 }
 
-.text-accent {
-  color: var(--color-accent);
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--brand-primary) 42%, transparent) transparent;
 }
 
-.text-primary {
-  color: var(--color-primary);
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-/* ===== 6. Component-specific additions ===== */
-.logo-img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  flex-shrink: 0;
+*::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-/* 所有图标不可选中复制 */
-svg,
-i {
-  user-select: none;
-  -webkit-user-select: none;
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--brand-primary) 42%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--brand-primary) 58%, transparent);
+  background-clip: padding-box;
+}
+
+.app-surface,
+.surface-1,
+.surface-2,
+.surface-3 {
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.surface-1 {
+  box-shadow: var(--shadow-1);
+  border-radius: var(--radius-md);
+}
+
+.surface-2 {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-elevated) 92%, white) 0%, var(--bg-surface) 100%);
+  box-shadow: var(--shadow-2);
+  border-radius: var(--radius-lg);
+}
+
+.surface-3 {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--brand-primary) 10%, transparent) 0%, transparent 28%),
+    linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  box-shadow: var(--shadow-3);
+  border-radius: var(--radius-xl);
+}
+
+.app-kicker {
+  margin: 0;
+  color: var(--brand-primary);
+  font-size: 0.77rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.app-caption {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
 }
 
 .emoji-icon {
   user-select: none;
-  -webkit-user-select: none;
-  pointer-events: none;
-  display: inline-block;
 }
 
-/* ===== 7. 玻璃态效果 (可选) ===== */
-.glass-effect {
-  background-color: var(--surface-card);
-  border: 1px solid var(--stroke-soft);
+.app-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--brand-primary) 14%, var(--bg-surface));
+  color: var(--brand-primary);
+  box-shadow: inset 0 1px 0 var(--glass-line);
 }
 
-/* ===== 8. Element Plus 全局样式覆盖 ===== */
-/* 下拉菜单透明样式 */
-.el-select-dropdown {
-  background: var(--surface-card) !important;
-  border: 1px solid var(--stroke-soft) !important;
-  border-radius: var(--border-radius-md) !important;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12) !important;
-}
-
-.el-select-dropdown__item {
-  color: var(--color-text-secondary) !important;
-
-  &:hover {
-    background: var(--surface-card-muted) !important;
-  }
-
-  &.is-selected {
-    background: var(--color-primary-light) !important;
-    color: var(--color-primary-dark) !important;
-    font-weight: 600;
-  }
-}
-
-.el-popper {
-  &.is-light {
-    background: var(--surface-card) !important;
-    border: 1px solid var(--stroke-soft) !important;
-  }
-}
-
-/* ==== 表单基础样式 ==== */
-:where(.el-form):not(.el-form--inline) {
-  background: var(--surface-card);
-  border: 1px solid var(--stroke-soft);
-  border-radius: 18px;
-  padding: clamp(18px, 2.4vw, 28px);
-}
-
-:where(.el-form):not(.el-form--inline) .el-form-item {
-  margin-bottom: 20px;
-}
-
-.el-form-item__label {
+.app-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-surface) 88%, var(--brand-primary-soft));
+  color: var(--text-secondary);
+  font-size: 0.84rem;
   font-weight: 600;
-  color: var(--color-text-secondary);
-  padding-bottom: 6px;
 }
 
-:where(.el-input__wrapper),
-:where(.el-date-editor .el-input__wrapper),
-:where(.el-select .el-input__wrapper) {
-  background: var(--surface-card-muted);
-  border: 1px solid var(--color-border-input);
-  border-radius: 12px;
-  box-shadow: none;
-  transition:
-    border-color var(--transition-speed) ease,
-    background-color var(--transition-speed) ease;
+.app-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-surface) 84%, var(--brand-primary-soft)) 0%, var(--bg-surface) 100%);
+  box-shadow: var(--shadow-1);
 }
 
-:where(.el-input__wrapper):hover,
-:where(.el-date-editor .el-input__wrapper):hover,
-:where(.el-select .el-input__wrapper):hover {
-  border-color: var(--color-primary);
-  background: var(--surface-card);
+.app-segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-subtle);
 }
 
-:where(.el-input__wrapper.is-focus),
-:where(.el-date-editor .el-input__wrapper.is-focus),
-:where(.el-select .el-input__wrapper.is-focus) {
-  border-color: var(--color-primary-dark);
-  background: var(--surface-card);
-}
-
-/* Disabled controls should follow app theme in both old/new Element Plus structures */
-:where(.el-select) {
-  --el-fill-color-light: var(--surface-card-muted);
-  --el-disabled-bg-color: var(--surface-card-muted);
-  --el-disabled-border-color: var(--color-border-input);
-  --el-select-disabled-border: var(--color-border-input);
-  --el-disabled-text-color: var(--color-text-muted);
-}
-
-:where(.el-input.is-disabled .el-input__wrapper),
-:where(.el-input__wrapper.is-disabled),
-:where(.el-select__wrapper.is-disabled) {
-  background: var(--surface-card-muted) !important;
-  border-color: var(--color-border-input) !important;
-  box-shadow: 0 0 0 1px var(--color-border-input) inset !important;
-}
-
-:where(.el-input.is-disabled .el-input__inner),
-:where(.el-input__inner:disabled),
-:where(.el-select__wrapper.is-disabled .el-select__selected-item),
-:where(.el-select__wrapper.is-disabled .el-select__placeholder),
-:where(.el-select__wrapper.is-disabled .el-select__caret) {
-  color: var(--color-text-muted) !important;
-  -webkit-text-fill-color: var(--color-text-muted) !important;
-}
-
-.el-input__inner,
-.el-textarea__inner {
-  color: var(--color-text-base);
-  background: transparent;
-}
-
-.el-textarea__inner {
-  border-radius: 12px;
-  border: 1px solid var(--color-border-input);
-  background: var(--surface-card-muted);
-  transition:
-    border-color var(--transition-speed) ease,
-    background-color var(--transition-speed) ease;
-}
-
-.el-textarea__inner:hover,
-.el-textarea__inner:focus {
-  border-color: var(--color-primary-dark);
-  background: var(--surface-card);
-  outline: none;
-  box-shadow: none;
-}
-
-.el-form-item__error {
-  margin-top: 6px;
-  color: var(--color-error);
-  font-size: 13px;
-}
-
-.el-form-item__content {
-  color: var(--color-text-base);
-}
-
-.el-form-item__label:after {
-  display: none;
-}
-
-.el-checkbox__label,
-.el-radio__label {
-  color: var(--color-text-secondary);
-}
-
-/* Global form simplification (previously Windows-only) */
-:where(.el-form):not(.el-form--inline) {
-  background: transparent;
+.app-segmented__btn {
+  min-height: 38px;
+  padding: 0 14px;
   border: none;
-  padding: 12px 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
 }
 
-:where(.el-input__wrapper),
-:where(.el-date-editor .el-input__wrapper),
-:where(.el-select .el-input__wrapper) {
-  transition: none;
-  box-shadow: none;
-  transform: translateZ(0);
+.app-segmented__btn:hover {
+  color: var(--text-primary);
 }
 
-.el-textarea__inner {
-  transition: none;
+.app-segmented__btn.active {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-1);
 }
 
-/* ===== 9. 全局字体强制应用 ===== */
-html,
-body,
-div,
-span,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-p,
-a,
-button,
-input,
-textarea,
-select,
-label,
-.el-button,
-.el-input,
-.el-select,
-.el-table,
-.el-dialog,
-.el-message,
-.el-notification {
-  font-family: var(--font-family-base) !important;
+.app-empty {
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  padding: clamp(28px, 5vw, 56px);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg-muted) 78%, transparent);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.app-empty h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.15rem;
+}
+
+.app-empty p {
+  margin: 0;
+  max-width: 36rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

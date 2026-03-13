@@ -1,109 +1,67 @@
-// _pill-buttons.scss
-// 统一样式的胶囊按钮
-
 .pill-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 600;
-    border-radius: 999px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    letter-spacing: 0.5px;
-
-    &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        filter: grayscale(0.5);
-    }
-
-    &:active {
-        transform: scale(0.98);
-    }
+  min-height: 42px;
+  padding: 0 18px;
+  border: none;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    color var(--motion-fast) var(--motion-ease);
 }
 
-// 主按钮 (紫色/蓝色渐变)
+.pill-btn:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
 .pill-btn.primary {
-    background: linear-gradient(
-        135deg,
-        var(--color-primary) 0%,
-        var(--color-primary-dark) 100%
-    );
-    color: var(--color-text-inverse);
-    box-shadow: var(--box-shadow);
-
-    &:hover:not(:disabled) {
-        box-shadow: var(--box-shadow-hover);
-        transform: translateY(-1px);
-    }
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-strong) 100%);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-1);
 }
 
-// 危险按钮 (红色/橙色渐变)
-.pill-btn.danger {
-    background: linear-gradient(
-        135deg,
-        var(--color-error) 0%,
-        var(--color-warning) 100%
-    );
-    color: var(--color-text-inverse);
-    box-shadow: var(--box-shadow);
-
-    &:hover:not(:disabled) {
-        box-shadow: var(--box-shadow-hover);
-        transform: translateY(-1px);
-    }
-}
-
-// 次要按钮 (灰色)
 .pill-btn.secondary {
-    background: var(--surface-card-muted);
-    color: var(--color-text-secondary);
-    border: 1px solid var(--stroke-soft);
-
-    &:hover:not(:disabled) {
-        background: var(--surface-soft);
-        color: var(--color-text-heading);
-    }
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
 }
 
-// 描边按钮
 .pill-btn.outline {
-    background: transparent;
-    border: 1px solid var(--stroke-soft);
-    color: var(--color-text-secondary);
-
-    &:hover:not(:disabled) {
-        border-color: var(--stroke-strong);
-        color: var(--color-text-heading);
-        background: var(--surface-card-muted);
-    }
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
 }
 
-// 按钮组容器 (垂直排列)
+.pill-btn.danger {
+  background: color-mix(in srgb, var(--status-error) 16%, var(--bg-elevated));
+  color: var(--status-error);
+  border: 1px solid color-mix(in srgb, var(--status-error) 18%, var(--border-subtle));
+}
+
+.pill-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.pill-btn-group-horizontal,
 .pill-btn-group-vertical {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
-
-    .pill-btn {
-        width: 100%;
-        padding: 14px 24px; // 稍微大一点
-        font-size: 17px;
-    }
+  display: flex;
+  gap: 12px;
 }
 
-// 按钮组容器 (水平排列)
 .pill-btn-group-horizontal {
-    display: flex;
-    flex-direction: row;
-    gap: 12px;
-    justify-content: flex-end;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
 
-    .pill-btn {
-        min-width: 100px;
-    }
+.pill-btn-group-vertical {
+  flex-direction: column;
 }

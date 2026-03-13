@@ -1,47 +1,60 @@
 <template>
   <!-- eslint-disable vue/no-v-html -->
   <div class="ai-chat-view">
-    <PageContainer custom-class="ai-chat-page">
-      <div class="gpt-shell">
-        <aside class="gpt-sidebar" :class="{ open: sidebarOpen }">
-          <div class="sidebar-header">
-            <button class="new-chat-btn" @click="handleNewChat">
-              <span class="new-chat-btn__icon">+</span>
-              <span>新对话</span>
-            </button>
+    <PageContainer
+      :title="{ icon: 'lucide:sparkles', text: '智能规划' }"
+      subtitle="基于你的学习数据，帮你梳理重点、拆解问题和安排下一步。"
+      custom-class="ai-chat-page"
+      max-width="wide"
+      density="compact"
+    >
+      <template #actions>
+        <button
+          type="button"
+          class="page-tool-btn mobile-only"
+          @click="sidebarOpen = !sidebarOpen"
+        >
+          <Icon :icon="sidebarOpen ? 'lucide:panel-left-close' : 'lucide:panel-left-open'" />
+          <span>{{ sidebarOpen ? "收起历史" : "历史对话" }}</span>
+        </button>
+        <button type="button" class="page-primary-btn" @click="handleNewChat">
+          <Icon icon="lucide:plus" />
+          <span>新对话</span>
+        </button>
+      </template>
+
+      <div class="planner-shell">
+        <aside class="planner-sidebar" :class="{ open: sidebarOpen }">
+          <div class="planner-sidebar__header">
+            <strong>历史对话</strong>
+            <span>保留最近的规划和追问，方便回看。</span>
           </div>
 
-          <div class="sidebar-section">
-            <span class="sidebar-label">历史对话</span>
-            <div class="session-list" v-loading="sessionsLoading">
-              <button
-                v-for="session in sessions"
-                :key="session.id"
-                type="button"
-                class="session-item"
-                :class="{ active: currentSession?.id === session.id }"
-                @click="handleOpenSession(session.id)"
-              >
-                <strong>{{ session.title }}</strong>
-                <span>{{ sessionPreview(session) }}</span>
-              </button>
-              <div v-if="!sessions.length && !sessionsLoading" class="session-empty">
-                还没有历史对话
-              </div>
+          <div class="session-list" v-loading="sessionsLoading">
+            <button
+              v-for="session in sessions"
+              :key="session.id"
+              type="button"
+              class="session-item"
+              :class="{ active: currentSession?.id === session.id }"
+              @click="handleOpenSession(session.id)"
+            >
+              <strong>{{ session.title }}</strong>
+              <span>{{ sessionPreview(session) }}</span>
+            </button>
+            <div v-if="!sessions.length && !sessionsLoading" class="session-empty">
+              还没有历史对话
             </div>
           </div>
         </aside>
 
-        <section class="gpt-main">
-          <header class="chat-topbar">
-            <button class="topbar-btn mobile-only" @click="sidebarOpen = !sidebarOpen">
-              {{ sidebarOpen ? "关闭历史" : "历史" }}
-            </button>
-            <div class="topbar-title">
-              <strong>{{ currentSession ? currentSession.title : "智能规划" }}</strong>
-              <span>默认已注入全局概览，AI 会自己决定还需要哪些时间窗口数据。</span>
+        <section class="planner-main">
+          <header class="planner-main__header">
+            <div class="planner-main__title">
+              <strong>{{ currentSession ? currentSession.title : "开始一段新的规划对话" }}</strong>
+              <span>{{ currentSessionSummary }}</span>
             </div>
-            <div class="topbar-chip">GPT 模式</div>
+            <div class="planner-main__badge">全局概览已开启</div>
           </header>
 
           <div ref="threadRef" class="chat-thread" v-loading="messagesLoading">
@@ -54,7 +67,7 @@
                   :class="message.role"
                 >
                   <div v-if="message.role === 'assistant'" class="message-avatar assistant">
-                    AI
+                    <Icon icon="lucide:sparkles" />
                   </div>
                   <div class="message-block">
                     <div
@@ -73,10 +86,8 @@
 
               <section v-else class="empty-state">
                 <div class="empty-state__badge">智能规划</div>
-                <h1>今天想直接问什么？</h1>
-                <p>
-                  它会先看你的聚合学习数据，再自己补足需要的时间窗口信息，最后像 GPT 一样直接回答。
-                </p>
+                <h2>从一个具体问题开始</h2>
+                <p>它会结合你的学习数据，直接给出判断、建议和下一步动作。</p>
                 <div class="starter-grid">
                   <button
                     v-for="prompt in starterPrompts"
@@ -91,7 +102,9 @@
               </section>
 
               <article v-if="sending" class="message-row assistant">
-                <div class="message-avatar assistant">AI</div>
+                <div class="message-avatar assistant">
+                  <Icon icon="lucide:sparkles" />
+                </div>
                 <div class="message-block">
                   <div class="message-surface assistant thinking-surface">
                     <span></span>
@@ -113,13 +126,15 @@
                 @keydown="handleComposerKeydown"
               ></textarea>
               <div class="composer-footer">
-                <span class="composer-hint">全局概览上下文已开启</span>
+                <span class="composer-hint">会优先使用全局概览，再补充必要的时间窗口信息</span>
                 <button
-                  class="send-btn"
+                  type="button"
+                  class="page-primary-btn send-btn"
                   :disabled="sending || !inputTextValue.trim()"
                   @click="handleSend"
                 >
-                  {{ sending ? "发送中..." : "发送" }}
+                  <Icon icon="lucide:send-horizontal" />
+                  <span>{{ sending ? "发送中..." : "发送" }}</span>
                 </button>
               </div>
             </div>
@@ -135,6 +150,7 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import dayjs from "dayjs";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import { Icon } from "@iconify/vue";
 
 import PageContainer from "@/components/layout/PageContainer.vue";
 import { useAIAssistantStore } from "@/stores/modules/aiAssistant";
@@ -173,6 +189,14 @@ const currentMessages = computed(() => aiStore.currentMessages);
 const sessionsLoading = computed(() => aiStore.sessionsLoading);
 const messagesLoading = computed(() => aiStore.messagesLoading);
 const sending = computed(() => aiStore.sending);
+
+const currentSessionSummary = computed(() => {
+  if (!currentSession.value) {
+    return "从一个具体问题开始，AI 会结合你的学习数据给出建议。";
+  }
+
+  return sessionPreview(currentSession.value);
+});
 
 function renderMarkdown(text?: string) {
   if (!text) return "";
@@ -242,110 +266,106 @@ onMounted(async () => {
   min-height: 100%;
 }
 
-:deep(.ai-chat-page.page-container) {
-  max-width: 1520px;
-  height: 100vh;
-  padding: 12px 20px 20px;
-  box-sizing: border-box;
-}
-
 :deep(.ai-chat-page .page-body) {
   gap: 0;
-  height: 100%;
 }
 
-.gpt-shell {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 0;
-  height: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 28px;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at top, rgba(120, 139, 255, 0.08), transparent 32%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
-    #12192b;
-  box-shadow: 0 28px 60px -42px rgba(0, 0, 0, 0.72);
-}
-
-.gpt-sidebar {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.01)),
-    #101727;
-}
-
-.sidebar-header {
-  padding: 18px;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background:
-    linear-gradient(180deg, rgba(16, 23, 39, 0.96), rgba(16, 23, 39, 0.92)),
-    #101727;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.new-chat-btn,
+.page-primary-btn,
+.page-tool-btn,
 .session-item,
-.starter-card,
-.topbar-btn,
-.send-btn {
+.starter-card {
   border: none;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
 }
 
-.new-chat-btn {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 13px 16px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
-  color: #eef2ff;
-  font-weight: 700;
-}
-
-.new-chat-btn:hover,
+.page-primary-btn:hover,
+.page-tool-btn:hover,
 .session-item:hover,
-.starter-card:hover,
-.topbar-btn:hover,
-.send-btn:hover {
+.starter-card:hover {
   transform: translateY(-1px);
 }
 
-.new-chat-btn__icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
+.page-primary-btn,
+.page-tool-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.08);
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 14px;
+  font-size: 0.92rem;
+  font-weight: 700;
 }
 
-.sidebar-section {
+.page-primary-btn {
+  background: var(--brand-primary);
+  color: white;
+  box-shadow: var(--shadow-1);
+}
+
+.page-primary-btn :deep(svg),
+.page-tool-btn :deep(svg),
+.message-avatar :deep(svg) {
+  width: 18px;
+  height: 18px;
+}
+
+.page-tool-btn {
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+.planner-shell {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 18px;
+  min-height: 720px;
+}
+
+.planner-sidebar,
+.planner-main {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-elevated) 94%, white) 0%, var(--bg-surface) 100%);
+  box-shadow: var(--shadow-1);
+}
+
+.planner-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 2px 14px 16px;
   min-height: 0;
-  flex: 1;
+  overflow: hidden;
 }
 
-.sidebar-label {
-  padding: 0 6px;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(186, 198, 255, 0.58);
+.planner-sidebar__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.planner-sidebar__header strong,
+.planner-main__title strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.planner-sidebar__header span,
+.planner-main__title span {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.55;
 }
 
 .session-list {
@@ -354,105 +374,79 @@ onMounted(async () => {
   gap: 8px;
   min-height: 0;
   overflow: auto;
-  padding-right: 2px;
+  padding: 14px;
 }
 
 .session-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px;
+  gap: 5px;
+  padding: 13px 14px;
   border-radius: 16px;
+  border: 1px solid transparent;
   text-align: left;
   background: transparent;
-  color: rgba(225, 232, 255, 0.88);
 }
 
 .session-item strong {
-  font-size: 14px;
-  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.92rem;
   line-height: 1.45;
 }
 
-.session-item span {
-  font-size: 12px;
-  color: rgba(169, 179, 210, 0.78);
+.session-item span,
+.session-empty,
+.message-meta,
+.composer-hint {
+  color: var(--text-muted);
+  font-size: 0.82rem;
 }
 
 .session-item.active {
-  background: rgba(116, 138, 255, 0.12);
-  box-shadow: inset 0 0 0 1px rgba(116, 138, 255, 0.12);
+  border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--border-subtle));
+  background: color-mix(in srgb, var(--brand-primary) 9%, var(--bg-surface));
 }
 
 .session-empty {
-  padding: 18px 14px;
-  font-size: 14px;
-  color: rgba(169, 179, 210, 0.72);
+  padding: 18px 10px;
 }
 
-.gpt-main {
+.planner-main {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.012), rgba(255, 255, 255, 0.008)),
-    #131b2d;
 }
 
-.chat-topbar {
+.planner-main__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 64px;
-  padding: 16px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(10, 15, 26, 0.22);
-  backdrop-filter: blur(10px);
-  position: sticky;
-  top: 0;
-  z-index: 5;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-elevated) 76%, transparent);
 }
 
-.topbar-title {
+.planner-main__title {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 0;
 }
 
-.topbar-title strong {
-  color: #f5f7ff;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.topbar-title span {
-  color: rgba(177, 187, 214, 0.78);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.topbar-chip,
-.topbar-btn {
+.planner-main__badge,
+.empty-state__badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: fit-content;
+  padding: 7px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(225, 232, 255, 0.86);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.topbar-chip {
-  padding: 8px 12px;
-  white-space: nowrap;
-}
-
-.topbar-btn {
-  padding: 8px 12px;
+  background: color-mix(in srgb, var(--brand-primary) 12%, var(--bg-surface));
+  color: var(--brand-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .chat-thread {
@@ -462,18 +456,18 @@ onMounted(async () => {
 }
 
 .thread-inner {
-  width: min(880px, calc(100% - 40px));
+  width: min(900px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 32px 0 40px;
+  padding: 28px 0 34px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
 }
 
 .message-row {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr);
-  gap: 16px;
+  gap: 14px;
   align-items: start;
 }
 
@@ -489,14 +483,12 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 800;
+  flex-shrink: 0;
 }
 
 .message-avatar.assistant {
-  background: linear-gradient(135deg, #4f6df5, #7d5cff);
-  color: #fff;
-  box-shadow: 0 14px 28px -18px rgba(79, 109, 245, 0.9);
+  background: color-mix(in srgb, var(--brand-primary) 14%, var(--bg-surface));
+  color: var(--brand-primary);
 }
 
 .message-block {
@@ -512,62 +504,54 @@ onMounted(async () => {
 
 .message-surface {
   max-width: min(760px, 100%);
-  line-height: 1.85;
-  color: #eef2ff;
+  color: var(--text-primary);
+  line-height: 1.8;
 }
 
 .message-surface.assistant {
-  padding: 2px 0;
+  padding: 18px 20px;
+  border-radius: 20px;
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-elevated) 92%, white);
+  box-shadow: var(--shadow-1);
 }
 
 .message-surface.user {
   padding: 14px 18px;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 12px 28px -26px rgba(0, 0, 0, 0.85);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--brand-primary) 11%, var(--bg-surface));
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 16%, var(--border-subtle));
 }
 
 .message-meta {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 10px;
-  font-size: 12px;
-  color: rgba(169, 179, 210, 0.74);
 }
 
 .empty-state {
-  min-height: calc(100vh - 280px);
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 16px;
+  gap: 14px;
+  padding: 24px 0;
 }
 
-.empty-state__badge {
-  width: fit-content;
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: rgba(116, 138, 255, 0.12);
-  color: #aab8ff;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.empty-state h1 {
+.empty-state h2 {
   margin: 0;
-  color: #f5f7ff;
-  font-size: clamp(34px, 4vw, 54px);
-  line-height: 1.08;
-  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+  line-height: 1.12;
+  letter-spacing: -0.04em;
 }
 
 .empty-state p {
   margin: 0;
-  max-width: 720px;
-  color: rgba(188, 197, 224, 0.84);
-  font-size: 16px;
-  line-height: 1.8;
+  max-width: 42rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.75;
 }
 
 .starter-grid {
@@ -580,29 +564,26 @@ onMounted(async () => {
 .starter-card {
   padding: 16px 18px;
   border-radius: 18px;
+  border: 1px solid var(--border-subtle);
   text-align: left;
-  background: rgba(255, 255, 255, 0.035);
-  color: #e8edff;
+  background: color-mix(in srgb, var(--bg-elevated) 90%, white);
+  color: var(--text-primary);
   line-height: 1.7;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: var(--shadow-1);
 }
 
 .chat-composer {
-  padding: 0 24px 24px;
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
-  background: linear-gradient(180deg, rgba(19, 27, 45, 0), rgba(19, 27, 45, 0.88) 18%, rgba(19, 27, 45, 0.98));
+  padding: 0 20px 20px;
 }
 
 .composer-card {
-  width: min(880px, 100%);
+  width: min(900px, 100%);
   margin: 0 auto;
   padding: 16px 16px 12px;
-  border-radius: 24px;
-  background: rgba(20, 28, 47, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 24px 48px -38px rgba(0, 0, 0, 0.9);
+  border-radius: 22px;
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-elevated) 94%, white);
+  box-shadow: var(--shadow-1);
 }
 
 .composer-input {
@@ -613,14 +594,14 @@ onMounted(async () => {
   border: none;
   outline: none;
   background: transparent;
-  color: #eff3ff;
+  color: var(--text-primary);
   font: inherit;
-  font-size: 16px;
+  font-size: 0.98rem;
   line-height: 1.8;
 }
 
 .composer-input::placeholder {
-  color: rgba(166, 177, 208, 0.72);
+  color: var(--text-muted);
 }
 
 .composer-footer {
@@ -629,22 +610,6 @@ onMounted(async () => {
   justify-content: space-between;
   gap: 16px;
   margin-top: 8px;
-}
-
-.composer-hint {
-  font-size: 12px;
-  color: rgba(166, 177, 208, 0.72);
-}
-
-.send-btn {
-  min-width: 92px;
-  min-height: 44px;
-  padding: 0 18px;
-  border-radius: 16px;
-  background: #ffffff;
-  color: #101827;
-  font-size: 14px;
-  font-weight: 800;
 }
 
 .send-btn:disabled {
@@ -656,14 +621,14 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 54px;
 }
 
 .thinking-surface span {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: rgba(180, 190, 219, 0.8);
+  background: color-mix(in srgb, var(--brand-primary) 58%, white);
   animation: blink 1.2s infinite ease-in-out;
 }
 
@@ -697,7 +662,7 @@ onMounted(async () => {
 }
 
 :deep(.markdown-body code) {
-  background: rgba(148, 163, 184, 0.14);
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--bg-surface));
   padding: 2px 6px;
   border-radius: 6px;
 }
@@ -717,25 +682,17 @@ onMounted(async () => {
 }
 
 @media (max-width: 1120px) {
-  :deep(.ai-chat-page.page-container) {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  .gpt-shell {
+  .planner-shell {
     grid-template-columns: 1fr;
   }
 
-  .gpt-sidebar {
+  .planner-sidebar {
     display: none;
   }
 
-  .gpt-sidebar.open {
+  .planner-sidebar.open {
     display: flex;
-    min-height: 280px;
     max-height: 42vh;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   .mobile-only {
@@ -744,31 +701,24 @@ onMounted(async () => {
 }
 
 @media (max-width: 760px) {
-  :deep(.ai-chat-page.page-container) {
-    padding: 8px 10px 10px;
-  }
-
-  .chat-topbar,
+  .planner-main__header,
   .chat-composer {
     padding-left: 14px;
     padding-right: 14px;
   }
 
+  .planner-main__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .thread-inner {
     width: min(100%, calc(100% - 28px));
-    padding-top: 24px;
+    padding-top: 22px;
   }
 
   .starter-grid {
     grid-template-columns: 1fr;
-  }
-
-  .chat-topbar {
-    align-items: flex-start;
-  }
-
-  .topbar-chip {
-    display: none;
   }
 
   .composer-footer {

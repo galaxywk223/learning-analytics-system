@@ -1,785 +1,274 @@
-/* Common Variables (Typography, Spacing, etc.) */
 :root {
-  /* Typography */
-  --font-family-base: "Inter", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", "Segoe UI", Arial, sans-serif;
-  --font-family-heading: var(--font-family-base);
+  --font-family-base:
+    "Inter", "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  --font-family-heading:
+    "Inter", "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
 
-  /* Layout & Spacing */
-  --sidebar-width: 260px;
-  --sidebar-collapsed-width: 72px;
-  --border-radius-sm: 0.375rem; /* 6px */
-  --border-radius-md: 0.5rem;   /* 8px */
-  --border-radius-lg: 1rem;     /* 16px */
-  --transition-speed: 0.3s;
-  --transition-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 30px;
+  --radius-pill: 999px;
+
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  --sidebar-width: 268px;
+  --sidebar-collapsed-width: 92px;
+  --topbar-height: 76px;
+  --page-max-width-narrow: 880px;
+  --page-max-width-default: 1180px;
+  --page-max-width-wide: 1320px;
+  --page-padding-x: clamp(18px, 2.6vw, 32px);
+  --page-padding-y: clamp(18px, 2.4vw, 30px);
+
+  --motion-fast: 0.18s;
+  --motion-base: 0.26s;
+  --motion-slow: 0.4s;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* =========================================
-   Light Theme (Default) - Blue/White
-   ========================================= */
-[data-theme='light'] {
-  /* Base Palette */
-  --color-primary: #5564d8;
-  --color-primary-light: #dee4ff;
-  --color-primary-dark: #3945a6;
-  --color-accent: #f4b740;
+@mixin theme-vars(
+  $bg-page,
+  $bg-surface,
+  $bg-elevated,
+  $bg-muted,
+  $text-primary,
+  $text-secondary,
+  $text-muted,
+  $text-inverse,
+  $border-subtle,
+  $border-strong,
+  $brand-primary,
+  $brand-primary-soft,
+  $brand-primary-strong,
+  $brand-accent,
+  $success,
+  $warning,
+  $error,
+  $info,
+  $shadow-color,
+  $glow-color
+) {
+  --bg-page: #{$bg-page};
+  --bg-surface: #{$bg-surface};
+  --bg-elevated: #{$bg-elevated};
+  --bg-muted: #{$bg-muted};
+  --bg-spotlight: #{$glow-color};
 
-  /* Text Colors */
-  --color-text-base: #1d2433;
-  --color-text-secondary: #4b5565;
-  --color-text-muted: #868fa0;
-  --color-text-light: #f8fafc;
-  --color-text-heading: #111827;
-  --color-text-logo: #111827;
-  --color-text-inverse: #ffffff;
+  --text-primary: #{$text-primary};
+  --text-secondary: #{$text-secondary};
+  --text-muted: #{$text-muted};
+  --text-inverse: #{$text-inverse};
 
-  /* Background Colors */
-  --color-bg-page: #f2f4f7;
-  --color-bg-sidebar: #ffffff;
-  --color-bg-card: #ffffff;
-  --color-bg-hover: rgba(0, 0, 0, 0.05);
-  --color-bg-active: rgba(0, 0, 0, 0.1);
+  --border-subtle: #{$border-subtle};
+  --border-strong: #{$border-strong};
 
-  /* Border Colors */
-  --color-border-card: #e2e8f0;
-  --color-border-sidebar: #e2e8f0;
-  --color-border-input: #c7d0e6;
-  --color-border-hover: #cbd5e1;
+  --brand-primary: #{$brand-primary};
+  --brand-primary-soft: #{$brand-primary-soft};
+  --brand-primary-strong: #{$brand-primary-strong};
+  --brand-accent: #{$brand-accent};
 
-  /* Surface Palette */
-  --surface-page: #f2f4f7;
-  --surface-section: #edf1f6;
-  --surface-card: #ffffff;
-  --surface-card-muted: #f8fafc;
-  --surface-card-strong: #e4e9fb;
-  --surface-subtle: #f1f3fa;
-  --surface-soft: #dfe5f7;
-  --stroke-soft: #e2e8f0;
-  --stroke-strong: #cbd5e1;
+  --status-success: #{$success};
+  --status-warning: #{$warning};
+  --status-error: #{$error};
+  --status-info: #{$info};
 
-  /* Status Colors */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
+  --shadow-1: 0 18px 42px -34px #{$shadow-color};
+  --shadow-2: 0 26px 58px -34px #{$shadow-color};
+  --shadow-3:
+    0 34px 80px -44px #{$shadow-color},
+    0 16px 24px -18px rgba(15, 23, 42, 0.18);
 
-  /* Shadows */
-  --box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --box-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --box-shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --glass-line: rgba(255, 255, 255, 0.54);
 
-  /* Element Plus Overrides */
-  --el-color-primary: var(--color-primary);
-  --el-color-success: var(--color-success);
-  --el-color-warning: var(--color-warning);
-  --el-color-danger: var(--color-error);
-  --el-color-info: var(--color-info);
-  
-  --el-bg-color: var(--color-bg-card);
-  --el-bg-color-page: var(--color-bg-page);
-  --el-bg-color-overlay: #ffffff;
-  
-  --el-text-color-primary: var(--color-text-heading);
-  --el-text-color-regular: var(--color-text-base);
-  --el-text-color-secondary: var(--color-text-secondary);
-  --el-text-color-placeholder: var(--color-text-muted);
-  
-  --el-border-color: var(--color-border-card);
-  --el-border-color-light: var(--stroke-soft);
-  --el-border-color-lighter: var(--surface-subtle);
-  
-  --el-fill-color-blank: var(--color-bg-card);
+  --el-color-primary: var(--brand-primary);
+  --el-color-success: var(--status-success);
+  --el-color-warning: var(--status-warning);
+  --el-color-danger: var(--status-error);
+  --el-color-info: var(--status-info);
+  --el-bg-color: var(--bg-surface);
+  --el-bg-color-page: var(--bg-page);
+  --el-bg-color-overlay: var(--bg-elevated);
+  --el-fill-color-blank: var(--bg-surface);
+  --el-fill-color-light: var(--bg-muted);
+  --el-text-color-primary: var(--text-primary);
+  --el-text-color-regular: var(--text-primary);
+  --el-text-color-secondary: var(--text-secondary);
+  --el-text-color-placeholder: var(--text-muted);
+  --el-border-color: var(--border-subtle);
+  --el-border-color-light: var(--border-subtle);
+  --el-border-color-lighter: var(--bg-muted);
+
+  /* Legacy aliases kept so old page styles continue to compile safely. */
+  --color-primary: var(--brand-primary);
+  --color-primary-light: var(--brand-primary-soft);
+  --color-primary-dark: var(--brand-primary-strong);
+  --color-accent: var(--brand-accent);
+  --color-success: var(--status-success);
+  --color-warning: var(--status-warning);
+  --color-error: var(--status-error);
+  --color-info: var(--status-info);
+
+  --color-bg-page: var(--bg-page);
+  --color-bg-sidebar: var(--bg-surface);
+  --color-bg-card: var(--bg-surface);
+  --color-bg-hover: rgba(128, 145, 176, 0.12);
+  --color-bg-active: rgba(128, 145, 176, 0.18);
+
+  --color-text-base: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-heading: var(--text-primary);
+  --color-text-light: var(--text-inverse);
+  --color-text-logo: var(--text-primary);
+  --color-text-inverse: var(--text-inverse);
+
+  --color-border-card: var(--border-subtle);
+  --color-border-sidebar: var(--border-subtle);
+  --color-border-input: var(--border-strong);
+  --color-border-hover: var(--brand-primary);
+
+  --surface-page: var(--bg-page);
+  --surface-section: color-mix(in srgb, var(--bg-surface) 74%, var(--brand-primary-soft));
+  --surface-card: var(--bg-surface);
+  --surface-card-muted: var(--bg-muted);
+  --surface-card-strong: color-mix(in srgb, var(--bg-elevated) 84%, var(--brand-primary-soft));
+  --surface-subtle: color-mix(in srgb, var(--bg-surface) 84%, var(--brand-primary-soft));
+  --surface-soft: color-mix(in srgb, var(--bg-muted) 90%, var(--brand-primary-soft));
+  --stroke-soft: var(--border-subtle);
+  --stroke-strong: var(--border-strong);
+
+  --box-shadow: var(--shadow-1);
+  --box-shadow-card: var(--shadow-2);
+  --box-shadow-hover: var(--shadow-3);
 }
 
-/* =========================================
-   Dark Theme - Deep Blue/Grey
-   ========================================= */
-[data-theme='dark'] {
-  /* Base Palette */
-  --color-primary: #6c7ae0;
-  --color-primary-light: #2a3055;
-  --color-primary-dark: #8c9bf2;
-  --color-accent: #fcd34d;
-
-  /* Text Colors */
-  --color-text-base: #e2e8f0;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
-  --color-text-light: #f8fafc;
-  --color-text-heading: #f1f5f9;
-  --color-text-logo: #f8fafc;
-  --color-text-inverse: #0f172a;
-
-  /* Background Colors */
-  --color-bg-page: #0f172a;
-  --color-bg-sidebar: #1e293b;
-  --color-bg-card: #1e293b;
-  --color-bg-hover: rgba(255, 255, 255, 0.05);
-  --color-bg-active: rgba(255, 255, 255, 0.1);
-
-  /* Border Colors */
-  --color-border-card: #334155;
-  --color-border-sidebar: #334155;
-  --color-border-input: #475569;
-  --color-border-hover: #475569;
-
-  /* Surface Palette */
-  --surface-page: #0f172a;
-  --surface-section: #1e293b;
-  --surface-card: #1e293b;
-  --surface-card-muted: #334155;
-  --surface-card-strong: #475569;
-  --surface-subtle: #1e293b;
-  --surface-soft: #334155;
-  --stroke-soft: #334155;
-  --stroke-strong: #475569;
-
-  /* Status Colors */
-  --color-success: #34d399;
-  --color-warning: #fbbf24;
-  --color-error: #f87171;
-  --color-info: #60a5fa;
-
-  /* Shadows */
-  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-  --box-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-  --box-shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-
-  /* Element Plus Overrides */
-  --el-color-primary: var(--color-primary);
-  --el-color-success: var(--color-success);
-  --el-color-warning: var(--color-warning);
-  --el-color-danger: var(--color-error);
-  --el-color-info: var(--color-info);
-  
-  --el-bg-color: var(--color-bg-card);
-  --el-bg-color-page: var(--color-bg-page);
-  --el-bg-color-overlay: #1e293b;
-  
-  --el-text-color-primary: var(--color-text-heading);
-  --el-text-color-regular: var(--color-text-base);
-  --el-text-color-secondary: var(--color-text-secondary);
-  --el-text-color-placeholder: var(--color-text-muted);
-  
-  --el-border-color: var(--color-border-card);
-  --el-border-color-light: var(--stroke-soft);
-  --el-border-color-lighter: var(--surface-card-strong);
-  
-  --el-fill-color-blank: var(--color-bg-card);
+[data-theme="paper"] {
+  @include theme-vars(
+    #f3eee4,
+    #fbf8f2,
+    #ffffff,
+    #f1ece1,
+    #223047,
+    #56657e,
+    #8390a3,
+    #fcfaf6,
+    #ddd4c5,
+    #c2b8a7,
+    #6d84b3,
+    #dde5f2,
+    #526c99,
+    #be8a46,
+    #4d8a69,
+    #b6852f,
+    #c56458,
+    #5d8da8,
+    rgba(43, 54, 76, 0.34),
+    rgba(109, 132, 179, 0.12)
+  );
 }
 
-/* =========================================
-   Sakura Theme - Pink/White (Soft)
-   ========================================= */
-[data-theme='sakura'] {
-  /* Base Palette */
-  --color-primary: #ec4899;
-  --color-primary-light: #fce7f3;
-  --color-primary-dark: #be185d;
-  --color-accent: #fb7185;
-
-  /* Text Colors */
-  --color-text-base: #4a044e;
-  --color-text-secondary: #831843;
-  --color-text-muted: #bc5e84;
-  --color-text-light: #fff1f2;
-  --color-text-heading: #831843;
-  --color-text-logo: #831843;
-  --color-text-inverse: #ffffff;
-
-  /* Background Colors */
-  --color-bg-page: #fff1f2;
-  --color-bg-sidebar: #fdf2f8;
-  --color-bg-card: #ffffff;
-  --color-bg-hover: rgba(236, 72, 153, 0.08);
-  --color-bg-active: rgba(236, 72, 153, 0.15);
-
-  /* Border Colors */
-  --color-border-card: #fbcfe8;
-  --color-border-sidebar: #fbcfe8;
-  --color-border-input: #f9a8d4;
-  --color-border-hover: #f472b6;
-
-  /* Surface Palette */
-  --surface-page: #fff1f2;
-  --surface-section: #fce7f3;
-  --surface-card: #ffffff;
-  --surface-card-muted: #fdf2f8;
-  --surface-card-strong: #fce7f3;
-  --surface-subtle: #fdf2f8;
-  --surface-soft: #fce7f3;
-  --stroke-soft: #fbcfe8;
-  --stroke-strong: #f9a8d4;
-
-  /* Status Colors */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
-
-  /* Shadows */
-  --box-shadow: 0 1px 2px rgba(131, 24, 67, 0.08);
-  --box-shadow-hover: 0 4px 8px rgba(131, 24, 67, 0.12);
-  --box-shadow-card: 0 2px 4px rgba(131, 24, 67, 0.06);
-
-  /* Element Plus Overrides */
-  --el-color-primary: var(--color-primary);
-  --el-color-success: var(--color-success);
-  --el-color-warning: var(--color-warning);
-  --el-color-danger: var(--color-error);
-  --el-color-info: var(--color-info);
-  
-  --el-bg-color: var(--color-bg-card);
-  --el-bg-color-page: var(--color-bg-page);
-  --el-bg-color-overlay: #ffffff;
-  
-  --el-text-color-primary: var(--color-text-heading);
-  --el-text-color-regular: var(--color-text-base);
-  --el-text-color-secondary: var(--color-text-secondary);
-  --el-text-color-placeholder: var(--color-text-muted);
-  
-  --el-border-color: var(--color-border-card);
-  --el-border-color-light: var(--stroke-soft);
-  --el-border-color-lighter: var(--surface-subtle);
-  
-  --el-fill-color-blank: var(--color-bg-card);
+[data-theme="midnight"] {
+  @include theme-vars(
+    #101923,
+    #162231,
+    #1c2b3d,
+    #132031,
+    #edf3fb,
+    #a4b4ca,
+    #74839b,
+    #09111b,
+    #2b3a4d,
+    #40526a,
+    #83a3d8,
+    #233853,
+    #9fb8e4,
+    #d6a66d,
+    #5fb98b,
+    #e0b35c,
+    #d77b75,
+    #72acd2,
+    rgba(0, 0, 0, 0.52),
+    rgba(131, 163, 216, 0.16)
+  );
 }
 
-/* =========================================
-   Cyberpunk Theme - Neon Pink/Blue/Black
-   ========================================= */
-[data-theme='cyberpunk'] {
-  /* Base Palette */
-  --color-primary: #00f0ff;
-  --color-primary-light: #003f4d;
-  --color-primary-dark: #00a0aa;
-  --color-accent: #ff0099;
-
-  /* Text Colors */
-  --color-text-base: #e0fbfc;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
-  --color-text-light: #f8fafc;
-  --color-text-heading: #00f0ff;
-  --color-text-logo: #ff0099;
-  --color-text-inverse: #000000;
-
-  /* Background Colors */
-  --color-bg-page: #000000; /* Pure Black */
-  --color-bg-sidebar: #050505;
-  --color-bg-card: #0a0a0a;
-  --color-bg-hover: rgba(0, 240, 255, 0.15);
-  --color-bg-active: rgba(0, 240, 255, 0.25);
-
-  /* Border Colors */
-  --color-border-card: #1a1a1a;
-  --color-border-sidebar: #1a1a1a;
-  --color-border-input: #333;
-  --color-border-hover: #00f0ff;
-
-  /* Surface Palette */
-  --surface-page: #000000;
-  --surface-section: #050505;
-  --surface-card: #0a0a0a;
-  --surface-card-muted: #121212;
-  --surface-card-strong: #1a1a1a;
-  --surface-subtle: #050505;
-  --surface-soft: #121212;
-  --stroke-soft: #222;
-  --stroke-strong: #333;
-
-  /* Status Colors */
-  --color-success: #00ff9d;
-  --color-warning: #ffd700;
-  --color-error: #ff2a6d;
-  --color-info: #00f0ff;
-
-  /* Shadows */
-  --box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
-  --box-shadow-hover: 0 0 20px rgba(0, 240, 255, 0.3), 0 0 10px rgba(255, 0, 153, 0.2);
-  --box-shadow-card: 0 0 15px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-
-  /* Element Plus Overrides */
-  --el-color-primary: var(--color-primary);
-  --el-color-success: var(--color-success);
-  --el-color-warning: var(--color-warning);
-  --el-color-danger: var(--color-error);
-  --el-color-info: var(--color-info);
-  
-  --el-bg-color: var(--color-bg-card);
-  --el-bg-color-page: var(--color-bg-page);
-  --el-bg-color-overlay: #121212;
-  
-  --el-text-color-primary: var(--color-text-heading);
-  --el-text-color-regular: var(--color-text-base);
-  --el-text-color-secondary: var(--color-text-secondary);
-  --el-text-color-placeholder: var(--color-text-muted);
-  
-  --el-border-color: var(--color-border-card);
-  --el-border-color-light: var(--stroke-soft);
-  --el-border-color-lighter: var(--surface-card-strong);
-  
-  --el-fill-color-blank: var(--color-bg-card);
+[data-theme="forest"] {
+  @include theme-vars(
+    #edf1e7,
+    #fbfcf8,
+    #ffffff,
+    #eef4ec,
+    #20352d,
+    #587265,
+    #88a091,
+    #fbfdf8,
+    #d6e1d7,
+    #b8c9bc,
+    #5c866f,
+    #dbe9df,
+    #456d59,
+    #b88c54,
+    #4a8f65,
+    #ae8c46,
+    #bb655a,
+    #5f8ea1,
+    rgba(31, 49, 42, 0.3),
+    rgba(92, 134, 111, 0.1)
+  );
 }
 
-/* =========================================
-   Forest Theme - Green/Nature (Light)
-   ========================================= */
-[data-theme='forest'] {
-  /* Base Palette */
-  --color-primary: #059669;
-  --color-primary-light: #d1fae5;
-  --color-primary-dark: #047857;
-  --color-accent: #10b981;
-
-  /* Text Colors */
-  --color-text-base: #064e3b;
-  --color-text-secondary: #065f46;
-  --color-text-muted: #6ee7b7;
-  --color-text-light: #ecfdf5;
-  --color-text-heading: #064e3b;
-  --color-text-logo: #064e3b;
-  --color-text-inverse: #ffffff;
-
-  /* Background Colors */
-  --color-bg-page: #ecfdf5;
-  --color-bg-sidebar: #f0fdf4;
-  --color-bg-card: #ffffff;
-  --color-bg-hover: rgba(5, 150, 105, 0.08);
-  --color-bg-active: rgba(5, 150, 105, 0.15);
-
-  /* Border Colors */
-  --color-border-card: #a7f3d0;
-  --color-border-sidebar: #a7f3d0;
-  --color-border-input: #6ee7b7;
-  --color-border-hover: #34d399;
-
-  /* Surface Palette */
-  --surface-page: #ecfdf5;
-  --surface-section: #d1fae5;
-  --surface-card: #ffffff;
-  --surface-card-muted: #f0fdf4;
-  --surface-card-strong: #d1fae5;
-  --surface-subtle: #f0fdf4;
-  --surface-soft: #d1fae5;
-  --stroke-soft: #a7f3d0;
-  --stroke-strong: #6ee7b7;
-
-  /* Status Colors */
-  --color-success: #059669;
-  --color-warning: #d97706;
-  --color-error: #dc2626;
-  --color-info: #0ea5e9;
-
-  /* Shadows */
-  --box-shadow: 0 1px 2px rgba(6, 78, 59, 0.08);
-  --box-shadow-hover: 0 4px 8px rgba(6, 78, 59, 0.12);
-  --box-shadow-card: 0 2px 4px rgba(6, 78, 59, 0.06);
-
-  /* Element Plus Overrides */
-  --el-color-primary: var(--color-primary);
-  --el-color-success: var(--color-success);
-  --el-color-warning: var(--color-warning);
-  --el-color-danger: var(--color-error);
-  --el-color-info: var(--color-info);
-  
-  --el-bg-color: var(--color-bg-card);
-  --el-bg-color-page: var(--color-bg-page);
-  --el-bg-color-overlay: #ffffff;
-  
-  --el-text-color-primary: var(--color-text-heading);
-  --el-text-color-regular: var(--color-text-base);
-  --el-text-color-secondary: var(--color-text-secondary);
-  --el-text-color-placeholder: var(--color-text-muted);
-  
-  --el-border-color: var(--color-border-card);
-  --el-border-color-light: var(--stroke-soft);
-  --el-border-color-lighter: var(--surface-subtle);
-  
-  --el-fill-color-blank: var(--color-bg-card);
+[data-theme="ocean"] {
+  @include theme-vars(
+    #eaf0f2,
+    #f7fbfc,
+    #ffffff,
+    #ebf3f5,
+    #21394a,
+    #587286,
+    #89a1b0,
+    #fbfdfe,
+    #d5e1e6,
+    #b7c8d0,
+    #5d8ba3,
+    #dceaf0,
+    #466f86,
+    #bb8b4e,
+    #4f907a,
+    #b48e46,
+    #bf665d,
+    #588fae,
+    rgba(31, 50, 63, 0.28),
+    rgba(93, 139, 163, 0.1)
+  );
 }
 
-/* =========================================
-   Ocean Theme - Blue/Teal (Light)
-   ========================================= */
-[data-theme='ocean'] {
-  /* Base Palette */
-  --color-primary: #0891b2;
-  --color-primary-light: #cffafe;
-  --color-primary-dark: #155e75;
-  --color-accent: #06b6d4;
-
-  /* Text Colors */
-  --color-text-base: #164e63;
-  --color-text-secondary: #155e75;
-  --color-text-muted: #67e8f9;
-  --color-text-light: #ecfeff;
-  --color-text-heading: #164e63;
-  --color-text-logo: #164e63;
-  --color-text-inverse: #ffffff;
-
-  /* Background Colors */
-  --color-bg-page: #ecfeff;
-  --color-bg-sidebar: #f0f9ff;
-  --color-bg-card: #ffffff;
-  --color-bg-hover: rgba(8, 145, 178, 0.08);
-  --color-bg-active: rgba(8, 145, 178, 0.15);
-
-  /* Border Colors */
-  --color-border-card: #a5f3fc;
-  --color-border-sidebar: #a5f3fc;
-  --color-border-input: #67e8f9;
-  --color-border-hover: #22d3ee;
-
-  /* Surface Palette */
-  --surface-page: #ecfeff;
-  --surface-section: #cffafe;
-  --surface-card: #ffffff;
-  --surface-card-muted: #f0f9ff;
-  --surface-card-strong: #cffafe;
-  --surface-subtle: #f0f9ff;
-  --surface-soft: #cffafe;
-  --stroke-soft: #a5f3fc;
-  --stroke-strong: #67e8f9;
-
-  /* Status Colors */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #0ea5e9;
-
-  /* Shadows */
-  --box-shadow: 0 1px 2px rgba(22, 78, 99, 0.08);
-  --box-shadow-hover: 0 4px 8px rgba(22, 78, 99, 0.12);
-  --box-shadow-card: 0 2px 4px rgba(22, 78, 99, 0.06);
-
-  /* Element Plus Overrides */
-  --el-color-primary: var(--color-primary);
-  --el-color-success: var(--color-success);
-  --el-color-warning: var(--color-warning);
-  --el-color-danger: var(--color-error);
-  --el-color-info: var(--color-info);
-  
-  --el-bg-color: var(--color-bg-card);
-  --el-bg-color-page: var(--color-bg-page);
-  --el-bg-color-overlay: #ffffff;
-  
-  --el-text-color-primary: var(--color-text-heading);
-  --el-text-color-regular: var(--color-text-base);
-  --el-text-color-secondary: var(--color-text-secondary);
-  --el-text-color-placeholder: var(--color-text-muted);
-  
-  --el-border-color: var(--color-border-card);
-  --el-border-color-light: var(--stroke-soft);
-  --el-border-color-lighter: var(--surface-subtle);
-  
-  --el-fill-color-blank: var(--color-bg-card);
-}
-
-/* =========================================
-   Sunset Theme - Orange/Red (Dark)
-   ========================================= */
-[data-theme='sunset'] {
-  /* Base Palette */
-  --color-primary: #f97316;
-  --color-primary-light: #7c2d12;
-  --color-primary-dark: #ea580c;
-  --color-accent: #fb923c;
-
-  /* Text Colors */
-  --color-text-base: #ffedd5;
-  --color-text-secondary: #fed7aa;
-  --color-text-muted: #fdba74;
-  --color-text-light: #fff7ed;
-  --color-text-heading: #ffedd5;
-  --color-text-logo: #f97316;
-  --color-text-inverse: #431407;
-
-  /* Background Colors */
-  --color-bg-page: #431407;
-  --color-bg-sidebar: #2a0a04; /* Darker brown */
-  --color-bg-card: #2a0a04;
-  --color-bg-hover: rgba(249, 115, 22, 0.15);
-  --color-bg-active: rgba(249, 115, 22, 0.25);
-
-  /* Border Colors */
-  --color-border-card: #7c2d12;
-  --color-border-sidebar: #7c2d12;
-  --color-border-input: #9a3412;
-  --color-border-hover: #f97316;
-
-  /* Surface Palette */
-  --surface-page: #431407;
-  --surface-section: #2a0a04;
-  --surface-card: #2a0a04;
-  --surface-card-muted: #571e0c;
-  --surface-card-strong: #7c2d12;
-  --surface-subtle: #2a0a04;
-  --surface-soft: #571e0c;
-  --stroke-soft: #7c2d12;
-  --stroke-strong: #9a3412;
-
-  /* Status Colors */
-  --color-success: #22c55e;
-  --color-warning: #fbbf24;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
-
-  /* Shadows */
-  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-  --box-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-  --box-shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-
-  /* Element Plus Overrides */
-  --el-color-primary: var(--color-primary);
-  --el-color-success: var(--color-success);
-  --el-color-warning: var(--color-warning);
-  --el-color-danger: var(--color-error);
-  --el-color-info: var(--color-info);
-  
-  --el-bg-color: var(--color-bg-card);
-  --el-bg-color-page: var(--color-bg-page);
-  --el-bg-color-overlay: #2a0a04;
-  
-  --el-text-color-primary: var(--color-text-heading);
-  --el-text-color-regular: var(--color-text-base);
-  --el-text-color-secondary: var(--color-text-secondary);
-  --el-text-color-placeholder: var(--color-text-muted);
-  
-  --el-border-color: var(--color-border-card);
-  --el-border-color-light: var(--stroke-soft);
-  --el-border-color-lighter: var(--surface-card-strong);
-  
-  --el-fill-color-blank: var(--color-bg-card);
-}
-
-/* =========================================
-   Violet Theme - Purple (Dark)
-   ========================================= */
-[data-theme='violet'] {
-  /* Base Palette */
-  --color-primary: #8b5cf6;
-  --color-primary-light: #4c1d95;
-  --color-primary-dark: #7c3aed;
-  --color-accent: #a78bfa;
-
-  /* Text Colors */
-  --color-text-base: #ede9fe;
-  --color-text-secondary: #c4b5fd;
-  --color-text-muted: #a78bfa;
-  --color-text-light: #f5f3ff;
-  --color-text-heading: #ede9fe;
-  --color-text-logo: #8b5cf6;
-  --color-text-inverse: #1e1b4b;
-
-  /* Background Colors */
-  --color-bg-page: #1e1b4b; /* Deep Indigo */
-  --color-bg-sidebar: #2e1065;
-  --color-bg-card: #2e1065;
-  --color-bg-hover: rgba(139, 92, 246, 0.15);
-  --color-bg-active: rgba(139, 92, 246, 0.25);
-
-  /* Border Colors */
-  --color-border-card: #5b21b6;
-  --color-border-sidebar: #5b21b6;
-  --color-border-input: #6d28d9;
-  --color-border-hover: #8b5cf6;
-
-  /* Surface Palette */
-  --surface-page: #1e1b4b;
-  --surface-section: #2e1065;
-  --surface-card: #2e1065;
-  --surface-card-muted: #4c1d95;
-  --surface-card-strong: #5b21b6;
-  --surface-subtle: #2e1065;
-  --surface-soft: #4c1d95;
-  --stroke-soft: #5b21b6;
-  --stroke-strong: #6d28d9;
-
-  /* Status Colors */
-  --color-success: #34d399;
-  --color-warning: #fbbf24;
-  --color-error: #f87171;
-  --color-info: #60a5fa;
-
-  /* Shadows */
-  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-  --box-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-  --box-shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-
-  /* Element Plus Overrides */
-  --el-color-primary: var(--color-primary);
-  --el-color-success: var(--color-success);
-  --el-color-warning: var(--color-warning);
-  --el-color-danger: var(--color-error);
-  --el-color-info: var(--color-info);
-  
-  --el-bg-color: var(--color-bg-card);
-  --el-bg-color-page: var(--color-bg-page);
-  --el-bg-color-overlay: #2e1065;
-  
-  --el-text-color-primary: var(--color-text-heading);
-  --el-text-color-regular: var(--color-text-base);
-  --el-text-color-secondary: var(--color-text-secondary);
-  --el-text-color-placeholder: var(--color-text-muted);
-  
-  --el-border-color: var(--color-border-card);
-  --el-border-color-light: var(--stroke-soft);
-  --el-border-color-lighter: var(--surface-card-strong);
-  
-  --el-fill-color-blank: var(--color-bg-card);
-}
-
-/* =========================================
-   Latte Theme - Warm Brown/Beige (Light)
-   ========================================= */
-[data-theme='latte'] {
-  /* Base Palette */
-  --color-primary: #a16207;
-  --color-primary-light: #fef3c7;
-  --color-primary-dark: #713f12;
-  --color-accent: #d97706;
-
-  /* Text Colors */
-  --color-text-base: #451a03;
-  --color-text-secondary: #78350f;
-  --color-text-muted: #b45309;
-  --color-text-light: #fffbeb;
-  --color-text-heading: #451a03;
-  --color-text-logo: #78350f;
-  --color-text-inverse: #ffffff;
-
-  /* Background Colors */
-  --color-bg-page: #fffbeb;
-  --color-bg-sidebar: #fff7ed;
-  --color-bg-card: #ffffff;
-  --color-bg-hover: rgba(161, 98, 7, 0.08);
-  --color-bg-active: rgba(161, 98, 7, 0.15);
-
-  /* Border Colors */
-  --color-border-card: #fde68a;
-  --color-border-sidebar: #fde68a;
-  --color-border-input: #fcd34d;
-  --color-border-hover: #fbbf24;
-
-  /* Surface Palette */
-  --surface-page: #fffbeb;
-  --surface-section: #fef3c7;
-  --surface-card: #ffffff;
-  --surface-card-muted: #fff7ed;
-  --surface-card-strong: #fef3c7;
-  --surface-subtle: #fff7ed;
-  --surface-soft: #fef3c7;
-  --stroke-soft: #fde68a;
-  --stroke-strong: #fcd34d;
-
-  /* Status Colors */
-  --color-success: #15803d;
-  --color-warning: #b45309;
-  --color-error: #b91c1c;
-  --color-info: #0369a1;
-
-  /* Shadows */
-  --box-shadow: 0 1px 2px rgba(120, 53, 15, 0.08);
-  --box-shadow-hover: 0 4px 8px rgba(120, 53, 15, 0.12);
-  --box-shadow-card: 0 2px 4px rgba(120, 53, 15, 0.06);
-
-  /* Element Plus Overrides */
-  --el-color-primary: var(--color-primary);
-  --el-color-success: var(--color-success);
-  --el-color-warning: var(--color-warning);
-  --el-color-danger: var(--color-error);
-  --el-color-info: var(--color-info);
-  
-  --el-bg-color: var(--color-bg-card);
-  --el-bg-color-page: var(--color-bg-page);
-  --el-bg-color-overlay: #ffffff;
-  
-  --el-text-color-primary: var(--color-text-heading);
-  --el-text-color-regular: var(--color-text-base);
-  --el-text-color-secondary: var(--color-text-secondary);
-  --el-text-color-placeholder: var(--color-text-muted);
-  
-  --el-border-color: var(--color-border-card);
-  --el-border-color-light: var(--stroke-soft);
-  --el-border-color-lighter: var(--surface-subtle);
-  
-  --el-fill-color-blank: var(--color-bg-card);
-}
-
-/* =========================================
-   Coffee Theme - Dark Brown (Dark)
-   ========================================= */
-[data-theme='coffee'] {
-  /* Base Palette */
-  --color-primary: #d97706;
-  --color-primary-light: #78350f;
-  --color-primary-dark: #b45309;
-  --color-accent: #f59e0b;
-
-  /* Text Colors */
-  --color-text-base: #fef3c7;
-  --color-text-secondary: #fde68a;
-  --color-text-muted: #d97706;
-  --color-text-light: #fffbeb;
-  --color-text-heading: #fffbeb;
-  --color-text-logo: #fbbf24;
-  --color-text-inverse: #451a03;
-
-  /* Background Colors */
-  --color-bg-page: #451a03;
-  --color-bg-sidebar: #291005; /* Deep Coffee */
-  --color-bg-card: #291005;
-  --color-bg-hover: rgba(217, 119, 6, 0.15);
-  --color-bg-active: rgba(217, 119, 6, 0.25);
-
-  /* Border Colors */
-  --color-border-card: #78350f;
-  --color-border-sidebar: #78350f;
-  --color-border-input: #92400e;
-  --color-border-hover: #d97706;
-
-  /* Surface Palette */
-  --surface-page: #451a03;
-  --surface-section: #291005;
-  --surface-card: #291005;
-  --surface-card-muted: #55200b;
-  --surface-card-strong: #78350f;
-  --surface-subtle: #291005;
-  --surface-soft: #55200b;
-  --stroke-soft: #78350f;
-  --stroke-strong: #92400e;
-
-  /* Status Colors */
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
-
-  /* Shadows */
-  --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-  --box-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-  --box-shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
-
-  /* Element Plus Overrides */
-  --el-color-primary: var(--color-primary);
-  --el-color-success: var(--color-success);
-  --el-color-warning: var(--color-warning);
-  --el-color-danger: var(--color-error);
-  --el-color-info: var(--color-info);
-  
-  --el-bg-color: var(--color-bg-card);
-  --el-bg-color-page: var(--color-bg-page);
-  --el-bg-color-overlay: #291005;
-  
-  --el-text-color-primary: var(--color-text-heading);
-  --el-text-color-regular: var(--color-text-base);
-  --el-text-color-secondary: var(--color-text-secondary);
-  --el-text-color-placeholder: var(--color-text-muted);
-  
-  --el-border-color: var(--color-border-card);
-  --el-border-color-light: var(--stroke-soft);
-  --el-border-color-lighter: var(--surface-card-strong);
-  
-  --el-fill-color-blank: var(--color-bg-card);
+[data-theme="amber"] {
+  @include theme-vars(
+    #f4ebdc,
+    #fbf6ee,
+    #ffffff,
+    #f2e7d5,
+    #392b20,
+    #7a624f,
+    #aa8f76,
+    #fffaf3,
+    #e0d1bd,
+    #c9b79e,
+    #a97a46,
+    #f0dfc8,
+    #8f6334,
+    #8d8fb5,
+    #4c8764,
+    #b38335,
+    #c36354,
+    #5e84a0,
+    rgba(65, 42, 23, 0.28),
+    rgba(169, 122, 70, 0.12)
+  );
 }

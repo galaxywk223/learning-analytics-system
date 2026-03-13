@@ -1,9 +1,16 @@
 <template>
   <PageContainer
-    :title="{ icon: '⏰', text: '倒计时' }"
+    :title="{ icon: 'lucide:calendar-clock', text: '倒计时' }"
     :subtitle="relativeTime"
     :custom-class="'countdown-page'"
+    max-width="wide"
   >
+    <template #actions>
+      <button class="pill-btn primary countdown-add-desktop" type="button" @click="openCreate">
+        <span>新建目标</span>
+      </button>
+    </template>
+
     <el-skeleton v-if="store.loading" :rows="6" animated />
     <div v-else>
       <el-collapse

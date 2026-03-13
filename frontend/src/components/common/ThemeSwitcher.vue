@@ -2,53 +2,46 @@
   <div class="theme-switcher">
     <el-popover
       placement="bottom-end"
-      :width="360"
+      :width="320"
       trigger="click"
       popper-class="theme-popper"
     >
       <template #reference>
-        <el-button circle class="theme-btn">
+        <button type="button" class="theme-trigger" aria-label="切换主题">
           <Icon icon="lucide:palette" />
-        </el-button>
+        </button>
       </template>
 
       <div class="theme-panel">
-        <h3 class="panel-title">主题设置</h3>
-        
-        <div class="theme-group">
-          <h4 class="group-title">浅色模式</h4>
-          <div class="theme-grid">
-            <div
-              v-for="theme in lightThemes"
-              :key="theme.id"
-              class="theme-item"
-              :class="{ active: currentTheme === theme.id }"
-              @click="setTheme(theme.id)"
-            >
-              <div class="theme-preview" :style="{ background: theme.primaryColor }">
-                <Icon v-if="currentTheme === theme.id" icon="lucide:check" class="check-icon" />
-              </div>
-              <span class="theme-name">{{ theme.name }}</span>
-            </div>
-          </div>
+        <div class="theme-panel__header">
+          <p class="app-kicker">Theme</p>
+          <h3>工作台外观</h3>
+          <p>统一结构，只切换材质和气氛。</p>
         </div>
 
-        <div class="theme-group">
-          <h4 class="group-title">深色模式</h4>
-          <div class="theme-grid">
-            <div
-              v-for="theme in darkThemes"
-              :key="theme.id"
-              class="theme-item"
-              :class="{ active: currentTheme === theme.id }"
-              @click="setTheme(theme.id)"
-            >
-              <div class="theme-preview" :style="{ background: theme.primaryColor }">
-                <Icon v-if="currentTheme === theme.id" icon="lucide:check" class="check-icon" />
-              </div>
-              <span class="theme-name">{{ theme.name }}</span>
-            </div>
-          </div>
+        <div class="theme-list">
+          <button
+            v-for="theme in themes"
+            :key="theme.id"
+            type="button"
+            class="theme-option"
+            :class="{ active: currentTheme === theme.id }"
+            @click="setTheme(theme.id)"
+          >
+            <span
+              class="theme-option__preview"
+              :style="{ background: theme.preview }"
+            />
+            <span class="theme-option__copy">
+              <strong>{{ theme.name }}</strong>
+              <small>{{ theme.description }}</small>
+            </span>
+            <Icon
+              v-if="currentTheme === theme.id"
+              icon="lucide:check"
+              class="theme-option__check"
+            />
+          </button>
         </div>
       </div>
     </el-popover>
@@ -56,127 +49,110 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useThemeStore } from '@/stores/modules/theme';
-import { Icon } from '@iconify/vue';
+import { computed } from "vue";
+import { Icon } from "@iconify/vue";
+import { useThemeStore } from "@/stores/modules/theme";
 
 const themeStore = useThemeStore();
+
 const currentTheme = computed(() => themeStore.currentTheme);
+const themes = computed(() => themeStore.themes);
 
-const lightThemes = computed(() => themeStore.themes.filter(t => t.type === 'light'));
-const darkThemes = computed(() => themeStore.themes.filter(t => t.type === 'dark'));
-
-const setTheme = (id: string) => {
-  themeStore.setTheme(id);
-};
+const setTheme = (id: string) => themeStore.setTheme(id);
 </script>
 
 <style scoped lang="scss">
-.theme-switcher {
-  display: inline-block;
-}
-
-.theme-btn {
-  width: 40px;
-  height: 40px;
-  font-size: 18px;
-  border: none;
-  background: var(--surface-card);
-  color: var(--color-text-secondary);
-  box-shadow: var(--box-shadow);
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: var(--surface-card-muted);
-    color: var(--color-primary);
-    transform: translateY(-2px);
-  }
+.theme-trigger {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-surface) 88%, white);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
 }
 
 .theme-panel {
-  padding: 8px;
-}
-
-.panel-title {
-  margin: 0 0 16px;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text-heading);
-}
-
-.theme-group {
-  margin-bottom: 20px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.group-title {
-  margin: 0 0 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.theme-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
-
-.theme-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
-
-  &.active {
-    .theme-name {
-      color: var(--color-primary);
-      font-weight: 600;
-    }
-  }
+  gap: 14px;
 }
 
-.theme-preview {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  margin-bottom: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.theme-panel__header {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid transparent;
-  transition: all 0.2s;
+  flex-direction: column;
+  gap: 4px;
 
-  .active & {
-    border-color: var(--color-primary);
-    transform: scale(1.1);
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h3 {
+    color: var(--text-primary);
+    font-size: 1.05rem;
+  }
+
+  p:last-child {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
   }
 }
 
-.check-icon {
-  color: #fff;
-  font-size: 20px;
-  font-weight: bold;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+.theme-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.theme-name {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  text-align: center;
-  line-height: 1.2;
-  white-space: nowrap;
-  transform: scale(0.9); /* Prevent text wrapping for longer names */
+.theme-option {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-surface) 90%, white);
+  cursor: pointer;
+  text-align: left;
+}
+
+.theme-option.active {
+  border-color: color-mix(in srgb, var(--brand-primary) 30%, var(--border-subtle));
+  background: color-mix(in srgb, var(--brand-primary-soft) 48%, var(--bg-elevated));
+}
+
+.theme-option__preview {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36);
+}
+
+.theme-option__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+
+  strong {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+  }
+
+  small {
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+}
+
+.theme-option__check {
+  color: var(--brand-primary);
 }
 </style>

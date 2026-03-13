@@ -5,8 +5,7 @@ export const useSettingsStore = defineStore("settings", {
   state: () => ({
     activeStageId: Number(localStorage.getItem("ll_active_stage_id") || 0),
     layout: {
-      // 默认折叠侧边栏，仅在用户明确设为 "0" 时展开
-      sidebarCollapsed: localStorage.getItem("ll_sidebar_collapsed") !== "0",
+      sidebarCollapsed: localStorage.getItem("ll_sidebar_collapsed") === "1",
     },
   }),
   actions: {

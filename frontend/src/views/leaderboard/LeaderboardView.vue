@@ -1,8 +1,9 @@
 <template>
   <div class="leaderboard-view">
     <PageContainer
-      :title="{ icon: '📈', text: '社区排行' }"
+      :title="{ icon: 'lucide:users-round', text: '社区排行' }"
       subtitle="实时查看社区学习时长与效率榜单，点选用户了解详情"
+      max-width="wide"
     >
       <section class="leaderboard-toolbar">
         <div class="segment-group">
@@ -445,12 +446,11 @@ async function handleLeave() {
 
 <style scoped lang="scss">
 .leaderboard-view {
-  padding: 24px clamp(16px, 3vw, 32px) 48px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 18px;
   background: transparent;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 .leaderboard-toolbar {
@@ -535,7 +535,7 @@ async function handleLeave() {
   align-items: center;
   gap: 24px;
   padding: 24px 32px;
-  border-radius: 24px;
+  border-radius: var(--radius-xl);
   background: var(--surface-card);
   box-shadow: var(--box-shadow-card);
   border: 1px solid var(--color-border-card);
@@ -625,7 +625,7 @@ async function handleLeave() {
 
 .podium-card {
   background: var(--surface-card);
-  border-radius: 24px;
+  border-radius: var(--radius-xl);
   padding: 24px;
   box-shadow: var(--box-shadow-card);
   border: 1px solid var(--color-border-card);
@@ -778,7 +778,7 @@ async function handleLeave() {
 
 .list-card {
   background: var(--surface-card);
-  border-radius: 24px;
+  border-radius: var(--radius-xl);
   box-shadow: var(--box-shadow-card);
   border: 1px solid var(--color-border-card);
   overflow: hidden;
@@ -968,10 +968,6 @@ async function handleLeave() {
 }
 
 @media (max-width: 768px) {
-  .leaderboard-view {
-    padding: 16px;
-  }
-
   .join-banner {
     flex-direction: column;
     align-items: stretch;

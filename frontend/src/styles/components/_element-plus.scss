@@ -1,158 +1,206 @@
-/* Element Plus Component Overrides */
-
-/* --- ElMessage (Toast) --- */
-.el-message {
-  --el-message-bg-color: rgba(255, 255, 255, 0.95);
-  --el-message-border-color: rgba(0, 0, 0, 0.05);
-  --el-message-padding: 12px 24px;
-  --el-message-close-size: 16px;
-  --el-message-close-icon-color: #909399;
-  --el-message-close-hover-color: #303133;
-
-  min-width: 300px;
-  border-radius: 50px !important;
-  /* Perfect pill shape */
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.08),
-    0 2px 4px rgba(0, 0, 0, 0.04) !important;
-  border: 1px solid rgba(0, 0, 0, 0.05) !important;
-  padding: 10px 24px !important;
-  top: 24px !important;
-  /* Spacing from top */
-  /* backdrop-filter: blur(10px); */
-  /* -webkit-backdrop-filter: blur(10px); */
-  font-family:
-    "Inter",
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    sans-serif;
+.el-button {
+  --el-button-font-weight: 600;
+  --el-border-radius-base: var(--radius-md);
+  --el-component-size-large: 44px;
+  --el-component-size-default: 40px;
+  --el-component-size-small: 34px;
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease);
 }
 
-.el-message--success {
-  background-color: rgba(240, 253, 244, 0.95) !important;
-  border-color: rgba(22, 163, 74, 0.1) !important;
-  color: #15803d !important;
-}
-
-.el-message--warning {
-  background-color: rgba(255, 251, 235, 0.95) !important;
-  border-color: rgba(217, 119, 6, 0.1) !important;
-  color: #b45309 !important;
-}
-
-.el-message--error {
-  background-color: rgba(254, 242, 242, 0.95) !important;
-  border-color: rgba(220, 38, 38, 0.1) !important;
-  color: #b91c1c !important;
-}
-
-.el-message--info {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  color: #374151 !important;
-}
-
-.el-message .el-message__content {
-  font-weight: 500;
-  font-size: 14px;
-  letter-spacing: -0.01em;
-}
-
-/* Fix icon alignment */
-.el-message .el-message__icon {
-  margin-right: 12px;
-  font-size: 18px;
-}
-
-/* --- ElMessageBox (Alert/Confirm) --- */
-.el-message-box {
-  border-radius: 16px !important;
-  border: 1px solid rgba(0, 0, 0, 0.05) !important;
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
-  padding-bottom: 20px !important;
-  font-family: inherit;
-  width: 400px;
-  max-width: 90vw;
-}
-
-/* Header */
-.el-message-box__header {
-  padding: 20px 24px 10px !important;
-}
-
-.el-message-box__title {
-  font-size: 18px !important;
-  font-weight: 700 !important;
-  color: #111827 !important;
-}
-
-.el-message-box__headerbtn {
-  top: 20px !important;
-  right: 20px !important;
-}
-
-/* Content */
-.el-message-box__content {
-  padding: 0 24px 20px !important;
-  color: #4b5563 !important;
-  font-size: 14px !important;
-  line-height: 1.6 !important;
-}
-
-/* Footer buttons */
-.el-message-box__btns {
-  padding: 10px 24px 0 !important;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-/* Transform Element Buttons inside Message Box to Pill Style */
-.el-message-box__btns .el-button {
-  border-radius: 999px !important;
-  padding: 8px 20px !important;
-  height: auto !important;
-  font-weight: 600 !important;
-  border: none !important;
-  transition: all 0.2s ease !important;
-}
-
-.el-message-box__btns .el-button--primary {
-  background-color: #111827 !important;
-  color: white !important;
-}
-
-.el-message-box__btns .el-button--primary:hover {
-  background-color: #374151 !important;
+.el-button:not(.is-disabled):hover {
   transform: translateY(-1px);
 }
 
-.el-message-box__btns .el-button--default {
-  background-color: transparent !important;
-  color: #6b7280 !important;
-  border: 1px solid transparent !important;
+.el-button--primary {
+  box-shadow: var(--shadow-1);
 }
 
-.el-message-box__btns .el-button--default:hover {
-  background-color: #f3f4f6 !important;
-  color: #111827 !important;
+.el-button--default,
+.el-button.is-link,
+.el-button--text {
+  color: var(--text-secondary);
 }
 
-/* Input inside message box */
-.el-message-box__input .el-input__inner {
-  border-radius: 8px !important;
-  padding: 8px 12px !important;
+.el-card {
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--bg-surface) !important;
+  box-shadow: var(--shadow-1) !important;
 }
 
-/* Ensure no font encoding issues by forcing system fonts stack */
-.el-message,
+.el-card__body {
+  padding: 20px !important;
+}
+
+.el-dialog,
+.el-drawer {
+  border-radius: var(--radius-xl) !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--bg-elevated) !important;
+  box-shadow: var(--shadow-3) !important;
+}
+
+.el-dialog__header,
+.el-drawer__header {
+  margin-right: 0 !important;
+  padding: 22px 24px 0 !important;
+}
+
+.el-dialog__body,
+.el-drawer__body {
+  padding: 20px 24px 24px !important;
+}
+
+.el-dialog__title,
+.el-drawer__title {
+  color: var(--text-primary) !important;
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+}
+
+.el-overlay-dialog {
+  backdrop-filter: blur(8px);
+}
+
+.el-message {
+  border-radius: var(--radius-pill) !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: color-mix(in srgb, var(--bg-elevated) 88%, white) !important;
+  box-shadow: var(--shadow-2) !important;
+  color: var(--text-primary) !important;
+}
+
 .el-message-box {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji" !important;
+  border-radius: var(--radius-xl) !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--bg-elevated) !important;
+  box-shadow: var(--shadow-3) !important;
+  padding-bottom: 16px !important;
+}
+
+.el-message-box__title {
+  color: var(--text-primary) !important;
+}
+
+.el-message-box__content {
+  color: var(--text-secondary) !important;
+}
+
+.el-message-box__btns {
+  gap: 10px;
+}
+
+.el-form:not(.el-form--inline) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.el-form-item {
+  margin-bottom: 18px;
+}
+
+.el-form-item__label {
+  padding-bottom: 8px !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+}
+
+.el-form-item__error {
+  font-size: 12px !important;
+}
+
+.el-input__wrapper,
+.el-textarea__inner,
+.el-select__wrapper,
+.el-date-editor .el-input__wrapper,
+.el-select .el-input__wrapper {
+  border-radius: 14px !important;
+  background: var(--bg-muted) !important;
+  border: 1px solid var(--border-subtle) !important;
+  box-shadow: none !important;
+  color: var(--text-primary) !important;
+}
+
+.el-input__wrapper,
+.el-select__wrapper,
+.el-date-editor .el-input__wrapper,
+.el-select .el-input__wrapper {
+  min-height: 44px;
+}
+
+.el-input__wrapper:hover,
+.el-select__wrapper:hover,
+.el-date-editor .el-input__wrapper:hover,
+.el-select .el-input__wrapper:hover,
+.el-textarea__inner:hover {
+  border-color: var(--border-strong) !important;
+  background: color-mix(in srgb, var(--bg-muted) 85%, white) !important;
+}
+
+.el-input__wrapper.is-focus,
+.el-select__wrapper.is-focused,
+.el-date-editor.is-active .el-input__wrapper,
+.el-select .el-input__wrapper.is-focus,
+.el-textarea__inner:focus {
+  border-color: var(--brand-primary) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 18%, transparent) !important;
+  background: var(--bg-elevated) !important;
+}
+
+.el-input__inner,
+.el-textarea__inner,
+.el-select__selected-item,
+.el-textarea__inner::placeholder,
+.el-input__inner::placeholder {
+  color: var(--text-primary) !important;
+}
+
+.el-textarea__inner::placeholder,
+.el-input__inner::placeholder,
+.el-select__placeholder {
+  color: var(--text-muted) !important;
+}
+
+.el-popper.is-light,
+.el-select-dropdown {
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--bg-elevated) !important;
+  box-shadow: var(--shadow-2) !important;
+}
+
+.el-select-dropdown__item.is-selected {
+  background: var(--brand-primary-soft) !important;
+  color: var(--brand-primary-strong) !important;
+}
+
+.el-skeleton {
+  --el-skeleton-color: color-mix(in srgb, var(--bg-muted) 86%, white);
+  --el-skeleton-to-color: color-mix(in srgb, var(--brand-primary-soft) 42%, white);
+}
+
+.el-collapse {
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+.el-collapse-item__header {
+  min-height: 58px;
+  background: transparent !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+}
+
+.el-collapse-item__wrap {
+  background: transparent !important;
+  border-bottom: none !important;
+}
+
+.el-empty__description p {
+  color: var(--text-secondary) !important;
 }

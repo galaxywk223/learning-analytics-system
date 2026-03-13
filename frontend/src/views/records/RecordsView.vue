@@ -1,9 +1,36 @@
 <template>
   <PageContainer
-    :title="{ icon: '📒', text: '学习记录' }"
+    :title="{ icon: 'lucide:notebook-tabs', text: '学习记录' }"
     subtitle="在这里回顾每一次努力，见证成长的每一步。"
     :custom-class="'records-view'"
+    max-width="wide"
+    sticky-actions
   >
+    <template #actions>
+      <div class="records-toolbar desktop-actions">
+        <span class="records-stage-chip">
+          {{ currentStage?.name || "未选择阶段" }}
+        </span>
+        <button class="pill-btn secondary" type="button" @click="shuffleCategoryColors">
+          <Icon icon="lucide:shuffle" />
+          打乱色系
+        </button>
+        <button class="pill-btn secondary" type="button" @click="toggleSort">
+          <Icon icon="lucide:arrow-up-down" />
+          {{ currentSort === "desc" ? "最新优先" : "最早优先" }}
+        </button>
+        <button
+          class="pill-btn primary"
+          type="button"
+          :disabled="!canAddRecord"
+          @click="openAddDialog()"
+        >
+          <Icon icon="lucide:plus" />
+          添加记录
+        </button>
+      </div>
+    </template>
+
     <el-skeleton v-if="loading" :rows="4" :animated="false" />
 
     <EmptyState
@@ -367,6 +394,25 @@ watch(
 </script>
 
 <style scoped lang="scss">
+.records-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.records-stage-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-surface) 88%, var(--brand-primary-soft));
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
 .record-actions {
   display: flex;
   align-items: center;
@@ -435,6 +481,10 @@ watch(
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px);
   z-index: 1200;
+}
+
+.desktop-actions {
+  display: flex;
 }
 
 .fab {
@@ -526,9 +576,19 @@ watch(
 }
 
 @media (max-width: 640px) {
+  .desktop-actions {
+    display: none;
+  }
+
   .floating-actions {
     right: 16px;
     bottom: 16px;
+  }
+}
+
+@media (min-width: 641px) {
+  .floating-actions {
+    display: none;
   }
 }
 </style>

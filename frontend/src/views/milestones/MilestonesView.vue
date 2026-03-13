@@ -1,10 +1,23 @@
 ﻿<template>
   <PageContainer
-    :title="{ icon: '🏆', text: '成就时刻' }"
+    :title="{ icon: 'lucide:trophy', text: '成就时刻' }"
     subtitle="记录下每一个值得纪念的闪光瞬间。"
     :custom-class="'milestones-view'"
-    :max-width="1400"
+    max-width="wide"
   >
+    <template #actions>
+      <div class="milestones-actions-desktop">
+        <button class="pill-btn secondary" type="button" @click="openCategoryManager">
+          <Icon icon="lucide:folder-cog" />
+          管理分类
+        </button>
+        <button class="pill-btn primary" type="button" @click="openCreate">
+          <Icon icon="lucide:plus" />
+          记录成就
+        </button>
+      </div>
+    </template>
+
     <div class="layout-grid">
       <aside class="sidebar-filter">
         <div class="filter-list">

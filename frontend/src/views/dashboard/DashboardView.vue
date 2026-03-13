@@ -1,164 +1,117 @@
 <template>
   <div class="dashboard-view">
-    <!-- Header Section -->
-    <header class="dashboard-header">
-      <div class="header-glow header-glow--a"></div>
-      <div class="header-glow header-glow--b"></div>
-      <div class="header-content">
-        <div class="header-copy">
-          <p class="header-kicker">
-            <span class="header-kicker__dot"></span>
-            {{ dashboardGreeting }}，欢迎回来
-          </p>
-          <h1 class="cheer-title">加油</h1>
-          <h2 class="hero-title">把今天再往前推一点</h2>
-          <div class="hero-motto">
-            <div class="hero-motto__header">
-              <span class="hero-motto__label">今日格言</span>
-              <button
-                type="button"
-                class="hero-motto__refresh"
-                :disabled="mottoRefreshing || mottoStore.loading"
-                title="换一句"
-                @click="refreshHeroMotto()"
-              >
-                <Icon
-                  icon="lucide:refresh-cw"
-                  :class="{ 'is-spinning': mottoRefreshing || mottoStore.loading }"
-                />
-              </button>
-            </div>
-            <p class="hero-motto__content">
-              “{{ activeMotto?.content || FALLBACK_MOTTO }}”
-            </p>
-            <p class="hero-motto__meta">
-              {{
-                mottoStore.items.length
-                  ? `来自你的 ${mottoStore.items.length} 条自定义格言`
-                  : "当前还没有自定义格言"
-              }}
-            </p>
+    <section class="overview-card">
+      <div class="overview-copy">
+        <h1>{{ dashboardHeadline }}</h1>
+        <div class="overview-quote">
+          <div class="overview-quote__header">
+            <span>今日格言</span>
+            <button
+              type="button"
+              class="overview-quote__refresh"
+              :disabled="mottoRefreshing || mottoStore.loading"
+              title="换一句"
+              @click="refreshHeroMotto()"
+            >
+              <Icon
+                icon="lucide:refresh-cw"
+                :class="{ 'is-spinning': mottoRefreshing || mottoStore.loading }"
+              />
+            </button>
           </div>
-        </div>
-
-        <aside class="header-summary">
-          <div class="summary-hero">
-            <span class="summary-label">今日学习时长</span>
-            <div class="summary-hero__value">{{ todayFocusDuration }}</div>
-            <div class="summary-hero__meta">
-              <span>共 {{ totalRecordsLabel }} 条记录</span>
-              <span>{{ latestRecordStatus }}</span>
-            </div>
-          </div>
-
-          <div class="summary-mini-grid">
-            <div class="summary-card">
-              <span class="summary-label">下个倒计时</span>
-              <strong class="summary-value-sm">{{ countdownDays }}</strong>
-              <span class="summary-meta">{{ countdownTitle }}</span>
-            </div>
-            <div class="summary-card">
-              <span class="summary-label">里程碑</span>
-              <strong class="summary-value-sm">{{ milestoneCount }}</strong>
-              <span class="summary-meta">已记录的重要节点</span>
-            </div>
-          </div>
-        </aside>
-      </div>
-
-      <div class="header-status-row">
-        <div class="status-pill">
-          <Icon icon="lucide:calendar-days" />
-          <span>{{ latestRecordStatus }}</span>
-        </div>
-        <div class="status-pill">
-          <Icon icon="lucide:flag" />
-          <span>{{ countdownStatus }}</span>
-        </div>
-        <div class="status-pill status-pill--quote">
-          <Icon icon="lucide:sparkles" />
-          <span>{{ heroMotto }}</span>
+          <p>{{ activeMotto?.content || FALLBACK_MOTTO }}</p>
         </div>
       </div>
-    </header>
 
-    <!-- Main Grid Layout -->
-    <div class="dashboard-grid">
-      <!-- Row 1: Core Data (Wide Cards) -->
-      <div class="grid-row-1">
-        <!-- Card 1: Stats Analysis -->
-        <router-link to="/charts" class="bento-card wide-card stats-card">
-          <div class="card-header-row">
-            <p class="card-title">统计分析</p>
-            <Icon icon="lucide:arrow-up-right" class="header-icon" />
-          </div>
-          <div class="card-content">
-            <div class="chart-header">
-              <Icon icon="lucide:trending-up" class="card-icon-small" />
-              <span class="trend-label">近7天学习时长</span>
-            </div>
-            <div class="chart-preview">
-              <div class="bar-chart">
-                <div
-                  v-for="(height, idx) in barHeights"
-                  :key="idx"
-                  class="bar"
-                  :title="`${barLabels[idx]} · ${barValues[idx]} 分钟`"
-                >
-                  <div
-                    :class="['bar-fill', `fill-${idx}`]"
-                    :style="{ height: `${height}%` }"
-                  ></div>
-                  <span class="bar-label">{{ barLabels[idx] }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </router-link>
-
-        <!-- Card 2: Learning Records -->
-        <router-link to="/records" class="bento-card wide-card record-card">
-          <p class="card-title">学习记录</p>
-          <div class="card-content">
-            <!-- Table Header -->
-            <div class="record-table-header">
-              <span class="col-name">项目/课程</span>
-              <span class="col-cat">培养类别</span>
-              <span class="col-date">日期</span>
-              <span class="col-duration">时长</span>
-              <span class="col-mood"></span>
-            </div>
-            
-            <ul v-if="recentRecords.length" class="record-list">
-              <li
-                v-for="item in recentRecords"
-                :key="item.id"
-                class="record-row"
-              >
-                <span class="record-name" :title="item.title">{{ item.title || "未命名记录" }}</span>
-                <span class="record-sub" :title="item.subcategory">{{ item.subcategory }}</span>
-                <span class="record-date">{{ formatRecordDate(item.date) }}</span>
-                <span class="record-duration">{{ item.duration || "暂无时长" }}</span>
-                <span class="record-mood">{{ moodEmoji(item.mood) }}</span>
-              </li>
-            </ul>
-            <div v-else class="record-empty">
-              <span class="empty-emoji">📘</span>
-              <span class="empty-text">暂无记录</span>
-            </div>
-          </div>
-        </router-link>
+      <div class="overview-main">
+        <span class="overview-main__label">今日学习时长</span>
+        <strong>{{ todayFocusDuration }}</strong>
+        <p>{{ latestRecordStatus }}</p>
       </div>
+    </section>
 
-    </div>
+    <section class="kpi-grid">
+      <article class="kpi-card">
+        <span class="kpi-card__label">累计记录</span>
+        <strong>{{ totalRecordsLabel }}</strong>
+        <p>持续沉淀每一次练习与复盘</p>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-card__label">下个目标</span>
+        <strong>{{ countdownDays }} 天</strong>
+        <p>{{ countdownTitle }}</p>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-card__label">里程碑</span>
+        <strong>{{ milestoneCount }}</strong>
+        <p>已记录的重要节点</p>
+      </article>
+    </section>
 
-    <!-- Floating Action Button -->
-    <div class="fab-wrapper">
-       <router-link to="/settings" class="fab-settings">
-        <Icon icon="lucide:message-circle-question" />
+    <section class="content-grid">
+      <router-link to="/charts" class="panel-card panel-card--chart">
+        <div class="panel-card__header">
+          <div>
+            <h2>统计分析</h2>
+            <p>近 7 天学习时长</p>
+          </div>
+          <Icon icon="lucide:arrow-up-right" />
+        </div>
+
+        <div v-if="hasBarData" class="chart-preview">
+          <div class="bar-chart">
+            <div
+              v-for="(height, idx) in barHeights"
+              :key="idx"
+              class="bar"
+              :title="`${barLabels[idx]} · ${barValues[idx]} 分钟`"
+            >
+              <div class="bar-fill" :style="{ height: `${height}%` }"></div>
+              <span class="bar-label">{{ barLabels[idx] }}</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="panel-empty">
+          <span>最近 7 天还没有学习时长</span>
+          <p>开始记录后，这里会显示你的每日投入趋势。</p>
+        </div>
       </router-link>
-    </div>
-   
+
+      <router-link to="/records" class="panel-card panel-card--records">
+        <div class="panel-card__header">
+          <div>
+            <h2>学习记录</h2>
+            <p>最近 5 条记录</p>
+          </div>
+          <Icon icon="lucide:arrow-up-right" />
+        </div>
+
+        <div v-if="recentRecords.length" class="records-list">
+          <div class="records-list__head">
+            <span>项目</span>
+            <span>日期</span>
+            <span>时长</span>
+          </div>
+          <div
+            v-for="item in recentRecords"
+            :key="item.id"
+            class="records-list__row"
+          >
+            <div class="records-list__title">
+              <strong :title="item.title">{{ item.title || "未命名记录" }}</strong>
+              <small :title="item.subcategory">{{ item.subcategory }}</small>
+            </div>
+            <span>{{ formatRecordDate(item.date) }}</span>
+            <span>{{ item.duration || "暂无时长" }}</span>
+          </div>
+        </div>
+
+        <div v-else class="panel-empty">
+          <span>暂无记录</span>
+          <p>开始一段新的学习记录后，这里会展示最近内容。</p>
+        </div>
+      </router-link>
+    </section>
   </div>
 </template>
 
@@ -181,8 +134,7 @@ const formatDuration = (minutes) => {
   if (!minutes) return "0 分钟";
   const hrs = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  if (hrs && mins) return `${hrs}:${mins.toString().padStart(2, '0')}`; // Format as H:MM or just MM if preferred, but screenshot shows "42 分钟"
-  // Screenshot shows "42 分钟"
+  if (hrs && mins) return `${hrs}:${mins.toString().padStart(2, "0")}`;
   return `${minutes} 分钟`;
 };
 
@@ -251,9 +203,8 @@ const sortedRecords = computed(() => {
   });
 });
 
-const recentRecords = computed(() => {
-  // Just take top 5 for the list
-  return sortedRecords.value.slice(0, 5).map((item: any) => ({
+const recentRecords = computed(() =>
+  sortedRecords.value.slice(0, 5).map((item: any) => ({
     id: item.id ?? item.record_id ?? Math.random(),
     title:
       item.task || item.title || item.content || item.category || "未命名记录",
@@ -264,9 +215,9 @@ const recentRecords = computed(() => {
         ? formatDuration(Math.round(item.duration))
         : "0 分钟",
     mood: item.mood,
-    subcategory: item.subcategory?.name || item.subcategory_name || "培养 阶段", // Fallback to match screenshot style if missing
-  }));
-});
+    subcategory: item.subcategory?.name || item.subcategory_name || "培养阶段",
+  })),
+);
 
 const formatRecordDate = (value?: string) =>
   value ? dayjs(value).format("YYYY-MM-DD") : "时间未知";
@@ -280,9 +231,27 @@ const todayFocusDuration = computed(() => {
     .padStart(2, "0")}`;
 });
 
-const dashboardGreeting = computed(
-  () => dashboardStore.summary?.greeting || "欢迎回来",
-);
+const dashboardHeadline = computed(() => {
+  const hour = dayjs().hour();
+
+  if (hour >= 5 && hour < 11) {
+    return "早上好，开始今天的学习";
+  }
+
+  if (hour >= 11 && hour < 14) {
+    return "中午好，继续稳步推进";
+  }
+
+  if (hour >= 14 && hour < 18) {
+    return "下午好，把进度再往前推一点";
+  }
+
+  if (hour >= 18 && hour < 24) {
+    return "晚上好，欢迎回来";
+  }
+
+  return "夜深了，收个尾也很好";
+});
 
 const totalRecordsLabel = computed(
   () => dashboardStore.summary?.total_records ?? 0,
@@ -290,14 +259,15 @@ const totalRecordsLabel = computed(
 
 const countdownDays = computed(() => {
   const next = dashboardStore.summary?.next_countdown;
-  return Math.max(next?.remaining_days ?? 0, 9); // Default to 9 to match screenshot if 0
+  return Math.max(next?.remaining_days ?? 0, 0);
 });
+
 const countdownTitle = computed(
-  () => dashboardStore.summary?.next_countdown?.title || "开学",
+  () => dashboardStore.summary?.next_countdown?.title || "暂时没有倒计时",
 );
 
 const milestoneCount = computed(
-  () => dashboardStore.summary?.milestones_count ?? 19, // Default to 19 to match screenshot if 0
+  () => dashboardStore.summary?.milestones_count ?? 0,
 );
 
 const latestRecordStatus = computed(() => {
@@ -307,26 +277,12 @@ const latestRecordStatus = computed(() => {
     : "最近还没有记录";
 });
 
-const countdownStatus = computed(() => {
-  const next = dashboardStore.summary?.next_countdown;
-  if (!next) return "暂时没有倒计时";
-  return `${next.title} 还剩 ${Math.max(next.remaining_days ?? 0, 0)} 天`;
-});
-
-const heroMotto = computed(() => {
-  const content = activeMotto.value?.content;
-  if (!content) return "稳定推进，比偶尔爆发更可靠";
-  return content.length > 24 ? `${content.slice(0, 24)}...` : content;
-});
-
 const last7Days = computed(() => {
   const today = dayjs().startOf("day");
   return Array.from({ length: 7 }, (_, i) => today.subtract(6 - i, "day"));
 });
 
 const barValues = computed(() => {
-  // Mock data or real data logic
-  // For visual consistency with screenshot, we can just use real data
   const map = new Map<string, number>();
   last7Days.value.forEach((d) => map.set(d.format("YYYY-MM-DD"), 0));
 
@@ -341,32 +297,23 @@ const barValues = computed(() => {
     }
   });
 
-  // If empty, fill with some dummy pattern to look like the screenshot?
-  // No, better to use real data. But let's ensure at least 1 bar shows up if empty for demo?
-  // User wants "Optimization", usually implies UI polish, not fake data.
   return last7Days.value.map((d) => map.get(d.format("YYYY-MM-DD")) || 0);
 });
 
 const barLabels = computed(() => last7Days.value.map((d) => d.format("MM/DD")));
 
+const hasBarData = computed(() =>
+  barValues.value.some((value: number) => value > 0),
+);
+
 const barHeights = computed(() => {
   const data = barValues.value;
-  // If all 0, use a default pattern for visualization?
-  // Let's stick to real data scaling
-  const max = Math.max(...data, 60); // Min max of 60 mins
-  return data.map((v: number) => Math.max(10, Math.round((v / max) * 100))); // Min 10% height
+  const max = Math.max(...data, 0);
+  if (max <= 0) {
+    return data.map(() => 0);
+  }
+  return data.map((v: number) => (v > 0 ? Math.max(14, Math.round((v / max) * 100)) : 0));
 });
-
-const moodEmoji = (mood?: number) => {
-  const moods: Record<number, string> = {
-    5: "😃",
-    4: "😊",
-    3: "😐",
-    2: "😟",
-    1: "😠",
-  };
-  return moods[mood ?? 0] || "🙂";
-};
 </script>
 
 <style scoped lang="scss">

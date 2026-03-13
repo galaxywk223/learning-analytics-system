@@ -1,193 +1,86 @@
-/* frontend/src/assets/styles/components.css */
-
-/* ===== Cards ===== */
-.card {
-  background-color: var(--surface-card);
-  border: 1px solid var(--color-border-card);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--box-shadow);
-  overflow: hidden;
+.card,
+.app-card {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-elevated) 92%, white) 0%, var(--bg-surface) 100%);
+  box-shadow: var(--shadow-1);
   transition:
-    background-color var(--transition-speed) ease,
-    border-color var(--transition-speed) ease,
-    box-shadow var(--transition-speed) ease;
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease);
 }
 
-.card:hover {
-  background-color: var(--surface-card-muted);
-  border-color: var(--stroke-soft);
-  box-shadow: var(--box-shadow-hover);
+.card:hover,
+.app-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
 }
 
-.card-header {
-  background-color: transparent;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-border-card);
-}
-
-.card-body {
-  padding: 1.5rem;
-}
-
-.card-title {
-  font-family: var(--font-family-heading);
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-/* ===== Accordion (Weekly Logs) ===== */
-.accordion-item {
-  background-color: var(--surface-card);
-  border-radius: var(--border-radius-md) !important;
-  border: 1px solid var(--color-border-card);
-  box-shadow: var(--box-shadow);
-  overflow: hidden;
-  transition:
-    background-color var(--transition-speed) ease,
-    border-color var(--transition-speed) ease,
-    box-shadow var(--transition-speed) ease;
-  margin-bottom: 1rem;
-}
-
-.accordion-item:not(:first-of-type) {
-  border-top: 1px solid var(--stroke-soft);
-}
-
-.accordion-item:hover {
-  box-shadow: var(--box-shadow-hover);
-  background-color: var(--surface-card-muted);
-}
-
-.accordion-button {
-  background-color: transparent;
-}
-
-.accordion-button:not(.collapsed) {
-  box-shadow: none;
-  color: var(--color-primary-dark);
-}
-
-.accordion-body {
-  font-size: 1.05rem;
-  line-height: 1.7;
-}
-
-/* ===== Buttons ===== */
-.btn {
-  font-weight: 600;
-  border-radius: var(--border-radius-sm);
-  padding: 0.6rem 1.2rem;
-  transition:
-    background-color var(--transition-speed) ease,
-    color var(--transition-speed) ease,
-    border-color var(--transition-speed) ease;
-  box-shadow: none;
-}
-
-.btn:hover {
-  box-shadow: none;
-}
-
-.btn-primary {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
-  color: white;
-}
-
-.btn-accent {
-  background-color: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-text-base);
-}
-
-.btn-accent:hover {
-  background-color: #e4a92f;
-  border-color: #e4a92f;
-  color: var(--color-text-heading);
-}
-
-/* ===== Forms ===== */
-.form-label {
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-.form-control,
-.form-select {
-  border-radius: var(--border-radius-sm);
-  border: 1px solid var(--color-border-card);
-}
-
-.form-control:focus,
-.form-select:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
-}
-
-/* ===== Navigation Links (Sidebar) ===== */
-.nav-link {
+.card-header,
+.app-card__header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: var(--border-radius-md);
-  text-decoration: none;
-  color: #555555;
-  transition:
-    background-color var(--transition-speed),
-    color var(--transition-speed);
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 0;
 }
 
-.nav-link:hover {
-  background-color: rgba(59, 130, 246, 0.08);
-  color: #1f2937;
+.card-body,
+.app-card__body {
+  padding: 20px;
 }
 
-.nav-link.active,
-.nav-link.router-link-exact-active {
-  background-color: rgba(59, 130, 246, 0.14);
-  color: #1d4ed8;
+.card-title,
+.app-card__title {
+  margin: 0;
+  font-size: 1rem;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.18);
+  color: var(--text-primary);
 }
 
-.nav-link svg {
-  width: 24px;
-  height: 24px;
-  color: inherit;
+.app-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  font-weight: 600;
 }
 
-/* ===== Dashboard Cards ===== */
-.dashboard-card {
-  text-decoration: none;
-  color: inherit;
-  display: block;
+.app-fab {
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-strong) 100%);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-3);
+  cursor: pointer;
   transition:
-    background-color var(--transition-speed) ease,
-    border-color var(--transition-speed) ease;
-  height: 100%;
-  border-radius: var(--border-radius-md);
-  background-color: var(--surface-card);
-  border: 1px solid var(--color-border-card);
-  border-top: 3px solid var(--color-primary);
-  overflow: hidden;
-  position: relative;
+    transform var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease),
+    filter var(--motion-fast) var(--motion-ease);
 }
 
-.dashboard-card:hover {
-  background-color: var(--surface-card-muted);
-  border-color: var(--stroke-soft);
-  border-top-color: var(--color-primary-dark);
+.app-fab:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.02);
 }
 
-.dashboard-card .card-body {
-  padding: 2rem;
-  text-align: center;
+.app-fab--secondary {
+  width: 44px;
+  height: 44px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-1);
 }

@@ -1,117 +1,117 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { computed, ref } from "vue";
+import { defineStore } from "pinia";
 
-export const useThemeStore = defineStore('theme', () => {
-  // State
-  const currentTheme = ref<string>('light');
-  
-  // Available themes configuration
-  const themes = [
-    {
-      id: 'light',
-      name: '默认浅色',
-      type: 'light',
-      primaryColor: '#5564d8'
-    },
-    {
-      id: 'forest',
-      name: '清新森林',
-      type: 'light',
-      primaryColor: '#059669'
-    },
-    {
-      id: 'ocean',
-      name: '清爽海洋',
-      type: 'light',
-      primaryColor: '#0891b2'
-    },
-    {
-      id: 'sakura',
-      name: '樱花粉',
-      type: 'light',
-      primaryColor: '#ec4899'
-    },
-    {
-      id: 'dark',
-      name: '默认深色',
-      type: 'dark',
-      primaryColor: '#6c7ae0'
-    },
-    {
-      id: 'cyberpunk',
-      name: '赛博朋克',
-      type: 'dark',
-      primaryColor: '#00f0ff'
-    },
-    {
-      id: 'sunset',
-      name: '日落余晖',
-      type: 'dark',
-      primaryColor: '#f97316'
-    },
-    {
-      id: 'violet',
-      name: '暗夜紫罗兰',
-      type: 'dark',
-      primaryColor: '#8b5cf6'
-    },
-    {
-      id: 'latte',
-      name: '香醇拿铁',
-      type: 'light',
-      primaryColor: '#a16207'
-    },
-    {
-      id: 'coffee',
-      name: '浓郁咖啡',
-      type: 'dark',
-      primaryColor: '#d97706'
-    }
-  ];
+export type ThemeId = "paper" | "midnight" | "forest" | "ocean" | "amber";
 
-  // Getters
-  const isDark = computed(() => {
-    const theme = themes.find(t => t.id === currentTheme.value);
-    return theme?.type === 'dark';
-  });
+type ThemeOption = {
+  id: ThemeId;
+  name: string;
+  mode: "light" | "dark";
+  preview: string;
+  description: string;
+};
 
-  // Actions
+const STORAGE_KEY = "app-theme";
+
+const LEGACY_THEME_MAP: Record<string, ThemeId> = {
+  light: "paper",
+  sakura: "paper",
+  latte: "amber",
+  ocean: "ocean",
+  forest: "forest",
+  dark: "midnight",
+  cyberpunk: "midnight",
+  violet: "midnight",
+  sunset: "amber",
+  coffee: "amber",
+};
+
+const DEFAULT_THEME: ThemeId = "paper";
+
+const THEME_OPTIONS: ThemeOption[] = [
+  {
+    id: "paper",
+    name: "纸感晨雾",
+    mode: "light",
+    preview: "linear-gradient(135deg, #8a9bce 0%, #f2ebdc 100%)",
+    description: "默认主题，灰蓝与暖米白的学习工作台。",
+  },
+  {
+    id: "midnight",
+    name: "午夜墨蓝",
+    mode: "dark",
+    preview: "linear-gradient(135deg, #4f6aa8 0%, #0f172a 100%)",
+    description: "深色模式，适合夜间浏览与沉浸复盘。",
+  },
+  {
+    id: "forest",
+    name: "松林草稿",
+    mode: "light",
+    preview: "linear-gradient(135deg, #5b8d77 0%, #ecf1e7 100%)",
+    description: "低饱和绿色，偏自然和长时阅读。",
+  },
+  {
+    id: "ocean",
+    name: "静海坐标",
+    mode: "light",
+    preview: "linear-gradient(135deg, #4f8ca6 0%, #ebf4f7 100%)",
+    description: "冷静青蓝，适合数据和图表场景。",
+  },
+  {
+    id: "amber",
+    name: "琥珀砂页",
+    mode: "light",
+    preview: "linear-gradient(135deg, #b27a3e 0%, #f5ead6 100%)",
+    description: "暖砂色纸面感，更偏计划与整理。",
+  },
+];
+
+function normalizeThemeId(rawTheme: string | null | undefined): ThemeId {
+  if (!rawTheme) return DEFAULT_THEME;
+
+  const matched = THEME_OPTIONS.find((item) => item.id === rawTheme);
+  if (matched) return matched.id;
+
+  return LEGACY_THEME_MAP[rawTheme] || DEFAULT_THEME;
+}
+
+function applyThemeToDocument(themeId: ThemeId) {
+  const theme = THEME_OPTIONS.find((item) => item.id === themeId) || THEME_OPTIONS[0];
+  document.documentElement.setAttribute("data-theme", theme.id);
+  document.documentElement.classList.toggle("dark", theme.mode === "dark");
+}
+
+export const useThemeStore = defineStore("theme", () => {
+  const currentTheme = ref<ThemeId>(DEFAULT_THEME);
+
+  const themes = THEME_OPTIONS;
+
+  const currentThemeMeta = computed(
+    () => themes.find((theme) => theme.id === currentTheme.value) || themes[0],
+  );
+
+  const isDark = computed(() => currentThemeMeta.value.mode === "dark");
+
   function setTheme(themeId: string) {
-    if (!themes.find(t => t.id === themeId)) {
-      console.warn(`Theme ${themeId} not found, falling back to light`);
-      themeId = 'light';
-    }
-    
-    currentTheme.value = themeId;
-    localStorage.setItem('app-theme', themeId);
-    
-    // Apply theme to document
-    document.documentElement.setAttribute('data-theme', themeId);
-    
-    // Handle Element Plus dark mode class
-    if (isDark.value) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    const normalized = normalizeThemeId(themeId);
+    currentTheme.value = normalized;
+    localStorage.setItem(STORAGE_KEY, normalized);
+    applyThemeToDocument(normalized);
   }
 
   function initTheme() {
-    const savedTheme = localStorage.getItem('app-theme');
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(prefersDark ? 'dark' : 'light');
-    }
+    const savedTheme = normalizeThemeId(localStorage.getItem(STORAGE_KEY));
+    currentTheme.value = savedTheme;
+    localStorage.setItem(STORAGE_KEY, savedTheme);
+    applyThemeToDocument(savedTheme);
   }
 
   return {
     currentTheme,
+    currentThemeMeta,
     themes,
     isDark,
     setTheme,
-    initTheme
+    initTheme,
   };
 });

@@ -1,6 +1,6 @@
 ﻿<template>
   <PageContainer
-    :title="{ icon: '🏆', text: '成就分类管理' }"
+    :title="{ icon: 'lucide:shapes', text: '成就分类管理' }"
     subtitle="管理您的成就时刻分类标签。"
     :custom-class="'milestone-category-manager'"
     :max-width="900"
