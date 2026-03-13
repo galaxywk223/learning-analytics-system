@@ -266,7 +266,10 @@
                     </template>
                   </KpiCard>
                 </div>
-                <div v-loading="charts.trendsLoading" class="kpi-grid top-summary-grid">
+                <div
+                  v-loading="charts.topSummaryLoading"
+                  class="kpi-grid top-summary-grid"
+                >
                   <KpiCard label="时长 TOP3（近30天）" color="indigo">
                     <template #value>
                       <div class="rank-stack">

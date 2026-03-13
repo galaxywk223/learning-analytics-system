@@ -15,6 +15,7 @@ export const useChartsStore = defineStore("charts", () => {
   let forecastPollingTimer: ReturnType<typeof setTimeout> | null = null;
   let forecastPollingToken = 0;
   const OVERVIEW_CACHE_PREFIX = "charts:overview:";
+  const TOP_SUMMARY_CACHE_PREFIX = "charts:top-summary:";
   const UI_STATE_STORAGE_KEY = "charts:ui-state";
 
   const defaultForecast = () => ({
@@ -81,6 +82,7 @@ export const useChartsStore = defineStore("charts", () => {
   };
   const kpiTopSubs30d = ref<TopSub[]>([]);
   const kpiTopSubsEfficiency30d = ref<TopSub[]>([]); // 效率 TOP3
+  const topSummaryLoading = ref(true);
 
   // 趋势图表数据（从rawChartData中提取）
   const trends = ref({
@@ -144,6 +146,10 @@ export const useChartsStore = defineStore("charts", () => {
     return `${OVERVIEW_CACHE_PREFIX}${stageId.value}`;
   }
 
+  function getTopSummaryCacheKey() {
+    return `${TOP_SUMMARY_CACHE_PREFIX}${dayjs().format("YYYY-MM-DD")}`;
+  }
+
   function persistUiState() {
     if (typeof window === "undefined") {
       return;
@@ -160,6 +166,44 @@ export const useChartsStore = defineStore("charts", () => {
       );
     } catch (error) {
       console.warn("持久化图表 UI 状态失败", error);
+    }
+  }
+
+  function persistTopSummaryCache() {
+    if (typeof window === "undefined") {
+      return;
+    }
+    try {
+      sessionStorage.setItem(
+        getTopSummaryCacheKey(),
+        JSON.stringify({
+          duration: kpiTopSubs30d.value,
+          efficiency: kpiTopSubsEfficiency30d.value,
+        }),
+      );
+    } catch (error) {
+      console.warn("持久化 TOP3 缓存失败", error);
+    }
+  }
+
+  function hydrateTopSummaryCache() {
+    if (typeof window === "undefined") {
+      return false;
+    }
+    try {
+      const raw = sessionStorage.getItem(getTopSummaryCacheKey());
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      kpiTopSubs30d.value = Array.isArray(parsed?.duration) ? parsed.duration : [];
+      kpiTopSubsEfficiency30d.value = Array.isArray(parsed?.efficiency)
+        ? parsed.efficiency
+        : [];
+      return (
+        kpiTopSubs30d.value.length > 0 || kpiTopSubsEfficiency30d.value.length > 0
+      );
+    } catch (error) {
+      console.warn("恢复 TOP3 缓存失败", error);
+      return false;
     }
   }
 
@@ -283,6 +327,7 @@ export const useChartsStore = defineStore("charts", () => {
   }
 
   hydrateUiState();
+  topSummaryLoading.value = !hydrateTopSummaryCache();
 
   // ========== 方法 ==========
 
@@ -653,9 +698,9 @@ export const useChartsStore = defineStore("charts", () => {
           percent: total > 0 ? Math.round((x.hours / total) * 100) : 0,
         }));
       kpiTopSubs30d.value = items;
+      persistTopSummaryCache();
     } catch (e) {
-      // 静默失败，不影响页面其他数据
-      kpiTopSubs30d.value = [];
+      console.warn("获取时长 TOP3 失败", e);
     }
   }
 
@@ -731,9 +776,22 @@ export const useChartsStore = defineStore("charts", () => {
           percent: total > 0 ? Math.round((x.hours / total) * 100) : 0,
         }));
       kpiTopSubsEfficiency30d.value = items;
+      persistTopSummaryCache();
     } catch (e) {
-      // 静默失败，不影响页面其他数据
-      kpiTopSubsEfficiency30d.value = [];
+      console.warn("获取效率 TOP3 失败", e);
+    }
+  }
+
+  async function refreshTopSummaries() {
+    const hasTopSummaryCache = hydrateTopSummaryCache();
+    topSummaryLoading.value = !hasTopSummaryCache;
+    try {
+      await Promise.all([
+        fetchTopSubsLast30d(),
+        fetchTopSubsEfficiencyLast30d(),
+      ]);
+    } finally {
+      topSummaryLoading.value = false;
     }
   }
 
@@ -873,6 +931,7 @@ export const useChartsStore = defineStore("charts", () => {
       activeTab.value,
     );
     refreshAllPromise = (async () => {
+      const topSummaryPromise = refreshTopSummaries();
       await fetchTrends();
       if (activeTab.value === "categories") {
         console.log(
@@ -886,10 +945,7 @@ export const useChartsStore = defineStore("charts", () => {
           "[Charts Store] Active tab is not categories, skipping category fetch",
         );
       }
-      // 计算 Top3 子分类（近30天）
-      await fetchTopSubsLast30d();
-      // 计算效率 Top3 子分类（近30天）
-      await fetchTopSubsEfficiencyLast30d();
+      await topSummaryPromise;
     })();
 
     try {
@@ -1037,6 +1093,7 @@ export const useChartsStore = defineStore("charts", () => {
     kpis,
     kpiTopSubs30d,
     kpiTopSubsEfficiency30d,
+    topSummaryLoading,
     trends,
     forecastStatus,
     forecastRetraining,
@@ -1061,6 +1118,7 @@ export const useChartsStore = defineStore("charts", () => {
     retrainForecasts,
     fetchTopSubsLast30d,
     fetchTopSubsEfficiencyLast30d,
+    refreshTopSummaries,
     fetchCategories,
     fetchCategoryTrend,
     drillCategory,
