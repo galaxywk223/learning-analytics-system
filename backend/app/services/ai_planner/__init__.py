@@ -1,3 +1,5 @@
+from .chat import create_chat_message, list_chat_messages, list_chat_sessions
+from .chat_context import ALLOWED_CHAT_MODULES, ALLOWED_TIME_WINDOWS, build_default_chat_context, build_global_chat_context, build_requested_modules, build_window_context, normalize_requested_modules, normalize_requested_windows
 from .aggregation import _aggregate_learning_data
 from .countdown import _build_countdown_context
 from .date_ranges import (
@@ -31,6 +33,14 @@ __all__ = [
     "_build_countdown_context",
     "_compute_efficiency_baseline",
     "_aggregate_learning_data",
+    "ALLOWED_CHAT_MODULES",
+    "ALLOWED_TIME_WINDOWS",
+    "build_default_chat_context",
+    "build_global_chat_context",
+    "build_requested_modules",
+    "build_window_context",
+    "normalize_requested_modules",
+    "normalize_requested_windows",
     "_build_analysis_prompt",
     "_build_plan_prompt",
     "_fallback_analysis_text",
@@ -38,6 +48,9 @@ __all__ = [
     "_configure_qwen",
     "_call_qwen",
     "_save_insight",
+    "create_chat_message",
+    "list_chat_sessions",
+    "list_chat_messages",
     "generate_briefing",
     "generate_analysis",
     "generate_plan",

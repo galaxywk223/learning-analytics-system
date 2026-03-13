@@ -3,11 +3,28 @@ from __future__ import annotations
 import json
 import math
 import re
+from difflib import SequenceMatcher
 from datetime import date
 from typing import Any, Dict, Optional
 
 from . import llm_client
 from .errors import AIPlannerError
+
+GENERIC_PHRASES = [
+    "节奏还没崩",
+    "结构性噪音",
+    "先纠偏再加码",
+    "把主轴任务做深",
+    "维持结构稳定",
+    "真正产出结果",
+    "只堆时长",
+    "面面俱到",
+    "做了很多",
+    "形成强势趋势",
+    "把节奏做稳",
+]
+
+MAX_SHORT_SENTENCE = 34
 
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
@@ -17,6 +34,13 @@ def _safe_float(value: Any, default: float = 0.0) -> float:
         return float(value)
     except (TypeError, ValueError):
         return default
+
+
+def _trim_text(value: Any, limit: int = MAX_SHORT_SENTENCE) -> str:
+    text = str(value or "").strip()
+    if len(text) <= limit:
+        return text
+    return text[: max(0, limit - 1)].rstrip("，。、；： ") + "…"
 
 
 def _format_hours(minutes: float) -> str:
@@ -445,10 +469,88 @@ def _render_narrative_markdown(
     lines_plan.extend(["", f"> 下一个复盘点：{battle_plan.get('next_review_point')}"])
 
     full_markdown = "\n".join(lines_analysis + ["", "---", ""] + lines_plan)
+    top_risk = (diagnosis.get("risks") or ["先找准当前最关键的问题。"])[0]
+    top_opportunity = (diagnosis.get("opportunities") or ["先抓住当前最值得放大的机会位。"])[0]
+    critical_tasks = battle_plan.get("critical_tasks") or []
+    top_task = critical_tasks[0] if len(critical_tasks) >= 1 else {}
+    second_task = critical_tasks[1] if len(critical_tasks) >= 2 else {}
+    top_rhythm = (battle_plan.get("execution_rhythm") or ["先推进主任务，再处理其他分支。"])[0]
+    top_stop = (battle_plan.get("anti_patterns") or ["停掉制造假忙碌的低收益动作。"])[0]
+    total_hours = metrics.get("total_hours")
+    average_efficiency = metrics.get("average_efficiency")
+    active_ratio = metrics.get("active_ratio")
+    vs_previous = metrics.get("vs_previous") or {}
+    hours_pct = vs_previous.get("hours_pct")
+    hours_desc = None
+    if hours_pct is not None:
+        direction = "少了" if float(hours_pct) < 0 else "多了"
+        hours_desc = f"{period_label}总时长 {total_hours}h，较上一周期{direction} {abs(float(hours_pct)):.1f}%"
+    elif total_hours is not None:
+        hours_desc = f"{period_label}总时长 {total_hours}h"
+
+    efficiency_desc = None
+    if average_efficiency is not None and active_ratio is not None:
+        efficiency_desc = (
+            f"平均效率 {average_efficiency}，活跃率 {round(_safe_float(active_ratio) * 100, 1)}%"
+        )
+    elif average_efficiency is not None:
+        efficiency_desc = f"平均效率 {average_efficiency}"
+
+    focus_desc = None
+    if category_focus:
+        focus_items = [
+            f"{item.get('name')} {item.get('percentage')}%"
+            for item in category_focus[:2]
+            if item.get("name")
+        ]
+        if focus_items:
+            focus_desc = "当前时间主要压在 " + "、".join(focus_items)
+
+    resource_allocation = battle_plan.get("resource_allocation") or []
+    top_allocation = resource_allocation[0] if len(resource_allocation) >= 1 else {}
+    second_allocation = resource_allocation[1] if len(resource_allocation) >= 2 else {}
+    allocation_parts = []
+    if top_allocation.get("target"):
+        allocation_parts.append(
+            f"{top_allocation.get('target')} {top_allocation.get('allocation_pct')}%"
+        )
+    if second_allocation.get("target"):
+        allocation_parts.append(
+            f"{second_allocation.get('target')} {second_allocation.get('allocation_pct')}%"
+        )
+
+    reply_lines = [f"先说结论：**{diagnosis.get('core_judgement')}**"]
+    facts = [item for item in [hours_desc, efficiency_desc, focus_desc] if item]
+    if facts:
+        reply_lines.append("")
+        reply_lines.append("你这周期最值得盯住的事实是：" + "；".join(facts) + "。")
+    reply_lines.append("")
+    reply_lines.append("现在最该处理的问题是：" + top_risk)
+    reply_lines.append("还能继续放大的点是：" + top_opportunity)
+    reply_lines.append("")
+    reply_lines.append(f"我建议你下一周期别再平均用力，先把 **{battle_plan.get('main_objective')}** 顶上去。")
+    if allocation_parts:
+        reply_lines.append("资源先按这个顺序压：**" + " -> ".join(allocation_parts) + "**。")
+    if top_task.get("task"):
+        reply_lines.append(
+            f"第一动作先做 **{top_task.get('task')}**：{top_task.get('focus') or '先把关键结果推进出来。'}"
+        )
+    if second_task.get("task"):
+        reply_lines.append(
+            f"第二动作补 **{second_task.get('task')}**：{second_task.get('focus') or '保持主线推进。'}"
+        )
+    reply_lines.append("执行节奏就按这条： " + top_rhythm)
+    reply_lines.append("立刻停掉： " + top_stop)
+    if top_task.get("guardrail"):
+        reply_lines.append("底线要求： " + top_task.get("guardrail"))
+    reply_lines.append(f"下一个复盘点：{battle_plan.get('next_review_point')}")
+
+    reply_markdown = "\n".join(reply_lines)
     return {
         "analysis_markdown": "\n".join(lines_analysis),
         "plan_markdown": "\n".join(lines_plan),
         "full_markdown": full_markdown,
+        "reply_markdown": reply_markdown,
     }
 
 
@@ -482,6 +584,9 @@ def _briefing_fallback(
             "next_period_label": meta["next_period_label"],
             "generated_at": meta.get("generated_at"),
             "stage_name": meta.get("stage_name"),
+            "generation_mode": "rule_fallback",
+            "generation_label": "规则兜底",
+            "model_name": None,
         },
         "diagnosis": diagnosis,
         "battle_plan": battle_plan,
@@ -490,7 +595,39 @@ def _briefing_fallback(
     }
 
 
+def _build_prompt_payload(fallback_briefing: Dict[str, Any]) -> Dict[str, Any]:
+    diagnosis = fallback_briefing.get("diagnosis") or {}
+    battle_plan = fallback_briefing.get("battle_plan") or {}
+    evidence = fallback_briefing.get("evidence") or {}
+    return {
+        "meta": fallback_briefing.get("meta") or {},
+        "evidence": evidence,
+        "rule_findings": {
+            "status_level": diagnosis.get("status_level"),
+            "core_judgement": diagnosis.get("core_judgement"),
+            "key_signals": diagnosis.get("key_signals") or [],
+            "risks": diagnosis.get("risks") or [],
+            "opportunities": diagnosis.get("opportunities") or [],
+            "strategy_bias": diagnosis.get("strategy_bias"),
+        },
+        "plan_constraints": {
+            "next_review_point": battle_plan.get("next_review_point"),
+            "resource_targets": [
+                item.get("target")
+                for item in (battle_plan.get("resource_allocation") or [])
+                if item.get("target")
+            ],
+            "critical_tasks": [
+                item.get("task")
+                for item in (battle_plan.get("critical_tasks") or [])
+                if item.get("task")
+            ],
+        },
+    }
+
+
 def _build_structured_briefing_prompt(fallback_briefing: Dict[str, Any]) -> str:
+    prompt_payload = _build_prompt_payload(fallback_briefing)
     return "\n".join(
         [
             "你是一位锋利直接的学习策略参谋。",
@@ -498,16 +635,73 @@ def _build_structured_briefing_prompt(fallback_briefing: Dict[str, Any]) -> str:
             "要求：",
             "1. 语气直接，不要鸡汤。",
             "2. 保持字段完整，不要缺字段。",
-            "3. 所有数组元素都必须是简洁中文句子。",
+            "3. 所有数组元素都必须是简洁中文句子，默认控制在 18-32 字。",
             "4. 只输出 JSON，不要输出 Markdown，不要解释。",
             "5. diagnosis.status_level 只能是 green/yellow/red。",
             "6. battle_plan.resource_allocation 为对象数组：target/allocation_pct/reason。",
             "7. battle_plan.critical_tasks 为对象数组：task/focus/guardrail。",
+            "8. 请优先依据证据独立判断，不要照抄规则初判原句。",
+            "9. 不要反复重复周期标签，不要生成套话，不要写“把任务拆到可验证的小结果”这类万能句。",
+            "10. diagnosis 的每条结论必须尽量绑定真实证据里的分类、任务、投入变化、效率变化和节奏问题。",
+            "11. battle_plan.main_objective / secondary_objectives / critical_tasks.focus 必须落到具体动作、产出或数量，不要只写方向。",
+            "12. execution_rhythm 必须给出有执行感的节奏安排，例如每日、每周几次、什么时段，而不是抽象口号。",
+            "13. 优先回答三个问题：现在真正卡住你的是什么、下一周期最该优先做什么、什么事情必须立刻停掉。",
+            "14. 禁止使用以下空泛表达：" + "、".join(GENERIC_PHRASES),
+            "15. narrative 字段可以省略，若提供也必须比结构化卡片更有信息量，不能只是改写一遍。",
+            "16. 如果提供 narrative.reply_markdown，请把它写成网页大模型会直接给用户的一段回复：先说结论，再点名问题，再给接下来一周怎么做，像真人在回用户，不要官话。",
+            "17. core_judgement 最好不超过 22 字；strategy_bias 不超过 24 字。",
+            "18. key_signals / risks / opportunities / secondary_objectives / execution_rhythm / anti_patterns 宁可少，不要凑数。",
+            "19. 少说抽象判断，多说具体事实、具体任务、具体数量、具体止损动作。",
+            "20. 用户不喜欢前置铺垫，不要写大段形容词，不要写气氛话。",
             "",
-            "请在保留当前证据事实的前提下，尽量强化判断与策略质量。",
+            "请在保留证据事实的前提下，尽量强化判断质量、区分度和可执行性。",
             "",
-            "证据与规则兜底如下：",
-            json.dumps(fallback_briefing, ensure_ascii=False, indent=2),
+            "证据、规则硬判断和任务约束如下：",
+            json.dumps(prompt_payload, ensure_ascii=False, indent=2),
+        ]
+    )
+
+
+def _build_distinctive_rewrite_prompt(
+    fallback_briefing: Dict[str, Any],
+    candidate: Dict[str, Any],
+) -> str:
+    prompt_payload = _build_prompt_payload(fallback_briefing)
+    diagnosis = fallback_briefing.get("diagnosis") or {}
+    battle_plan = fallback_briefing.get("battle_plan") or {}
+    banned_phrases = [
+        diagnosis.get("core_judgement"),
+        *(diagnosis.get("key_signals") or []),
+        *(diagnosis.get("risks") or []),
+        *(diagnosis.get("opportunities") or []),
+        diagnosis.get("strategy_bias"),
+        battle_plan.get("main_objective"),
+        *(battle_plan.get("secondary_objectives") or []),
+        *(battle_plan.get("execution_rhythm") or []),
+        *(battle_plan.get("anti_patterns") or []),
+    ]
+    banned_phrases = [item for item in banned_phrases if item]
+    return "\n".join(
+        [
+            "你上一版输出和规则兜底太像，现在请你重写成真正有判断力的版本。",
+            "要求：",
+            "1. 继续只输出严格 JSON。",
+            "2. diagnosis.core_judgement 必须重写，不能复用旧句。",
+            "3. key_signals/risks/opportunities 至少一半以上要和旧版不同措辞，并且更贴近真实证据。",
+            "4. battle_plan.main_objective、secondary_objectives、execution_rhythm 不能只是模板句，必须绑定当前任务和节奏约束。",
+            "5. 不要出现任何下面列出的禁用原句，也不要使用空泛表达：" + "、".join(GENERIC_PHRASES),
+            "6. 至少 2 条 diagnosis 结论必须带具体锚点：分类名、任务名，或带单位的数字（如 % / h / 天 / 套 / 篇 / 题 / 分钟）。",
+            "7. 至少 2 条 critical_tasks.focus / guardrail 必须带数量目标或触发条件。",
+            "8. 全部句子继续保持短，不要长段解释。",
+            "",
+            "禁用原句：",
+            json.dumps(banned_phrases, ensure_ascii=False, indent=2),
+            "",
+            "证据与约束：",
+            json.dumps(prompt_payload, ensure_ascii=False, indent=2),
+            "",
+            "你上一版过于接近兜底模板的输出如下，请不要复用这些表达：",
+            json.dumps(candidate, ensure_ascii=False, indent=2),
         ]
     )
 
@@ -545,25 +739,66 @@ def _normalize_briefing_payload(candidate: Dict[str, Any], fallback_briefing: Di
         "meta": {
             **fallback_meta,
             **(candidate.get("meta") or {}),
+            "generation_mode": "llm_enhanced",
+            "generation_label": "LLM增强",
         },
         "diagnosis": {
             **fallback_diag,
             **diagnosis,
-            "key_signals": (diagnosis.get("key_signals") or fallback_diag.get("key_signals") or [])[:5],
-            "risks": (diagnosis.get("risks") or fallback_diag.get("risks") or [])[:4],
-            "opportunities": (diagnosis.get("opportunities") or fallback_diag.get("opportunities") or [])[:3],
+            "core_judgement": _trim_text(
+                diagnosis.get("core_judgement") or fallback_diag.get("core_judgement"),
+                22,
+            ),
+            "strategy_bias": _trim_text(
+                diagnosis.get("strategy_bias") or fallback_diag.get("strategy_bias"),
+                24,
+            ),
+            "key_signals": [
+                _trim_text(item)
+                for item in (diagnosis.get("key_signals") or fallback_diag.get("key_signals") or [])[:3]
+            ],
+            "risks": [
+                _trim_text(item)
+                for item in (diagnosis.get("risks") or fallback_diag.get("risks") or [])[:3]
+            ],
+            "opportunities": [
+                _trim_text(item)
+                for item in (diagnosis.get("opportunities") or fallback_diag.get("opportunities") or [])[:2]
+            ],
         },
         "battle_plan": {
             **fallback_plan,
             **battle_plan,
-            "secondary_objectives": (battle_plan.get("secondary_objectives") or fallback_plan.get("secondary_objectives") or [])[:3],
+            "main_objective": _trim_text(
+                battle_plan.get("main_objective") or fallback_plan.get("main_objective"),
+                32,
+            ),
+            "secondary_objectives": [
+                _trim_text(item)
+                for item in (battle_plan.get("secondary_objectives") or fallback_plan.get("secondary_objectives") or [])[:2]
+            ],
             "resource_allocation": battle_plan.get("resource_allocation") or fallback_plan.get("resource_allocation") or [],
             "critical_tasks": battle_plan.get("critical_tasks") or fallback_plan.get("critical_tasks") or [],
-            "execution_rhythm": (battle_plan.get("execution_rhythm") or fallback_plan.get("execution_rhythm") or [])[:4],
-            "anti_patterns": (battle_plan.get("anti_patterns") or fallback_plan.get("anti_patterns") or [])[:4],
+            "execution_rhythm": [
+                _trim_text(item)
+                for item in (battle_plan.get("execution_rhythm") or fallback_plan.get("execution_rhythm") or [])[:3]
+            ],
+            "anti_patterns": [
+                _trim_text(item)
+                for item in (battle_plan.get("anti_patterns") or fallback_plan.get("anti_patterns") or [])[:2]
+            ],
         },
         "evidence": fallback_evidence,
     }
+    merged["battle_plan"]["critical_tasks"] = [
+        {
+            **item,
+            "task": _trim_text(item.get("task"), 26),
+            "focus": _trim_text(item.get("focus"), 34),
+            "guardrail": _trim_text(item.get("guardrail"), 34),
+        }
+        for item in (merged["battle_plan"].get("critical_tasks") or [])[:3]
+    ]
     merged_narrative = _render_narrative_markdown(
         merged["meta"],
         merged["diagnosis"],
@@ -576,11 +811,106 @@ def _normalize_briefing_payload(candidate: Dict[str, Any], fallback_briefing: Di
         "analysis_markdown": narrative.get("analysis_markdown") or merged_narrative["analysis_markdown"],
         "plan_markdown": narrative.get("plan_markdown") or merged_narrative["plan_markdown"],
         "full_markdown": narrative.get("full_markdown") or merged_narrative["full_markdown"],
+        "reply_markdown": narrative.get("reply_markdown") or merged_narrative["reply_markdown"],
     }
     status = str(merged["diagnosis"].get("status_level") or fallback_diag.get("status_level") or "yellow").lower()
     if status not in {"green", "yellow", "red"}:
         merged["diagnosis"]["status_level"] = fallback_diag.get("status_level", "yellow")
     return merged
+
+
+def _similarity_ratio(left: str | None, right: str | None) -> float:
+    if not left or not right:
+        return 0.0
+    return SequenceMatcher(None, left.strip(), right.strip()).ratio()
+
+
+def _contains_generic_phrase(text: str | None) -> bool:
+    if not text:
+        return False
+    return any(phrase in text for phrase in GENERIC_PHRASES)
+
+
+def _extract_anchor_terms(evidence: Dict[str, Any]) -> list[str]:
+    anchors: list[str] = []
+    for item in evidence.get("category_focus") or []:
+        name = str(item.get("name") or "").strip()
+        if name:
+            anchors.append(name)
+    for item in evidence.get("task_focus") or []:
+        task = str(item.get("task") or "").strip()
+        if task:
+            anchors.append(task)
+    return anchors
+
+
+def _contains_concrete_reference(text: str | None, anchor_terms: list[str]) -> bool:
+    if not text:
+        return False
+    if re.search(r"\d+(?:\.\d+)?\s*(%|h|天|套|篇|题|次|分钟|小时)", text):
+        return True
+    return any(term and term in text for term in anchor_terms)
+
+
+def _is_low_distinction(
+    merged: Dict[str, Any],
+    fallback_briefing: Dict[str, Any],
+) -> bool:
+    merged_diag = merged.get("diagnosis") or {}
+    fallback_diag = fallback_briefing.get("diagnosis") or {}
+    merged_plan = merged.get("battle_plan") or {}
+    fallback_plan = fallback_briefing.get("battle_plan") or {}
+    evidence = merged.get("evidence") or fallback_briefing.get("evidence") or {}
+    anchor_terms = _extract_anchor_terms(evidence)
+
+    core_similarity = _similarity_ratio(
+        merged_diag.get("core_judgement"),
+        fallback_diag.get("core_judgement"),
+    )
+    signal_overlap = sum(
+        1
+        for left, right in zip(
+            merged_diag.get("key_signals") or [],
+            fallback_diag.get("key_signals") or [],
+        )
+        if _similarity_ratio(left, right) >= 0.9
+    )
+    risk_overlap = sum(
+        1
+        for left, right in zip(
+            merged_diag.get("risks") or [],
+            fallback_diag.get("risks") or [],
+        )
+        if _similarity_ratio(left, right) >= 0.9
+    )
+    objective_similarity = _similarity_ratio(
+        merged_plan.get("main_objective"),
+        fallback_plan.get("main_objective"),
+    )
+    diagnostic_texts = [
+        *(merged_diag.get("key_signals") or []),
+        *(merged_diag.get("risks") or []),
+        *(merged_diag.get("opportunities") or []),
+    ]
+    anchored_diagnosis_count = sum(
+        1 for item in diagnostic_texts if _contains_concrete_reference(item, anchor_terms)
+    )
+    concrete_task_count = sum(
+        1
+        for item in (merged_plan.get("critical_tasks") or [])
+        if _contains_concrete_reference(item.get("focus"), anchor_terms)
+        or _contains_concrete_reference(item.get("guardrail"), anchor_terms)
+    )
+    return (
+        core_similarity >= 0.9
+        or _contains_generic_phrase(merged_diag.get("core_judgement"))
+        or _contains_generic_phrase(merged_diag.get("strategy_bias"))
+        or objective_similarity >= 0.9
+        or _contains_generic_phrase(merged_plan.get("main_objective"))
+        or (signal_overlap >= 1 and risk_overlap >= 1)
+        or anchored_diagnosis_count < 2
+        or concrete_task_count < 2
+    )
 
 
 def build_briefing_result(
@@ -593,7 +923,16 @@ def build_briefing_result(
     try:
         model_text = llm_client._call_qwen(prompt)
         parsed = _extract_json_block(model_text)
-        return _normalize_briefing_payload(parsed, fallback_briefing)
+        merged = _normalize_briefing_payload(parsed, fallback_briefing)
+        if _is_low_distinction(merged, fallback_briefing):
+            rewrite_prompt = _build_distinctive_rewrite_prompt(
+                fallback_briefing,
+                merged,
+            )
+            rewrite_text = llm_client._call_qwen(rewrite_prompt)
+            rewrite_parsed = _extract_json_block(rewrite_text)
+            merged = _normalize_briefing_payload(rewrite_parsed, fallback_briefing)
+        return merged
     except AIPlannerError:
         raise
     except Exception as exc:

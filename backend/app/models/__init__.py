@@ -21,7 +21,7 @@ from .features import CountdownEvent, Motto
 from .milestones import MilestoneCategory, Milestone, MilestoneAttachment
 
 # 导入 AI 模型
-from .ai import AIInsight
+from .ai import AIChatMessage, AIChatSession, AIInsight
 
 # 导出所有模型，保持向后兼容性
 __all__ = [
@@ -46,5 +46,7 @@ __all__ = [
     "MilestoneAttachment",
     # AI
     "AIInsight",
+    "AIChatSession",
+    "AIChatMessage",
 ]
 

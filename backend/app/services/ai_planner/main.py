@@ -97,8 +97,11 @@ def _persist_briefing_insight(
     snapshot = {
         "workflow_type": "briefing",
         "scope": scope,
+        "meta": briefing.get("meta"),
         "period_label": briefing["meta"].get("period_label"),
         "next_period_label": briefing["meta"].get("next_period_label"),
+        "generation_mode": briefing["meta"].get("generation_mode"),
+        "generation_label": briefing["meta"].get("generation_label"),
         "stats": context["stats"],
         "prev_stats": context["prev_stats"],
         "stage": context["stage"].name if context["stage"] else None,

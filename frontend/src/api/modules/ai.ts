@@ -1,114 +1,78 @@
 import request from "@/utils/request";
 
-export interface AIRequestPayload {
-  scope: "day" | "week" | "month" | "stage";
+export type AIChatScope = "global" | "day" | "week" | "month" | "stage";
+export type AIMessageRole = "user" | "assistant";
+export type AIGenerationMode = "llm_enhanced" | "rule_fallback";
+
+export interface AIChatSendPayload {
+  session_id?: number;
+  scope: AIChatScope;
   date?: string;
   stage_id?: number;
+  content: string;
 }
 
-export interface AIDiagnosis {
-  core_judgement: string;
-  status_level: "green" | "yellow" | "red";
-  key_signals: string[];
-  risks: string[];
-  opportunities: string[];
-  strategy_bias: string;
-  score?: number;
+export interface AIChatSession {
+  id: number;
+  user_id: number;
+  title: string;
+  scope: AIChatScope;
+  scope_reference?: number | null;
+  date_reference?: string | null;
+  created_at: string;
+  updated_at: string;
+  last_message_at: string;
 }
 
-export interface AIResourceAllocationItem {
-  target: string;
-  allocation_pct: number;
-  reason: string;
+export interface AIChatMessage {
+  id: number;
+  session_id: number;
+  user_id: number;
+  role: AIMessageRole;
+  content: string;
+  scope: AIChatScope;
+  scope_reference?: number | null;
+  date_reference?: string | null;
+  generation_mode?: AIGenerationMode | null;
+  model_name?: string | null;
+  meta?: Record<string, any>;
+  created_at: string;
 }
 
-export interface AICriticalTaskItem {
-  task: string;
-  focus: string;
-  guardrail: string;
-}
-
-export interface AIBattlePlan {
-  main_objective: string;
-  secondary_objectives: string[];
-  resource_allocation: AIResourceAllocationItem[];
-  critical_tasks: AICriticalTaskItem[];
-  execution_rhythm: string[];
-  anti_patterns: string[];
-  next_review_point: string;
-  budget_hours?: number;
-}
-
-export interface AIEvidence {
-  scope?: string;
-  stage_name?: string | null;
-  period_label?: string;
-  next_period_label?: string;
-  metrics?: Record<string, any>;
-  category_focus?: Array<Record<string, any>>;
-  task_focus?: Array<Record<string, any>>;
-  cadence?: Record<string, any>;
-  countdown_context?: Record<string, any>;
-}
-
-export interface AINarrative {
-  analysis_markdown?: string;
-  plan_markdown?: string;
-  full_markdown?: string;
-}
-
-export interface AIBriefingResult {
-  insight_id?: number;
+export interface AIChatMessageResponse {
+  session: AIChatSession;
+  user_message: AIChatMessage;
+  assistant_message: AIChatMessage;
   meta: {
-    scope: "day" | "week" | "month" | "stage";
+    generation_mode: AIGenerationMode;
+    generation_label: string;
+    model_name?: string | null;
+    used_modules: string[];
+    scope: AIChatScope;
     period_label: string;
-    next_period_label: string;
-    generated_at: string;
-    stage_name?: string | null;
   };
-  diagnosis: AIDiagnosis;
-  battle_plan: AIBattlePlan;
-  evidence: AIEvidence;
-  narrative: AINarrative;
-}
-
-export interface AIHistoryParams {
-  limit?: number;
-  offset?: number;
-  scope?: string;
-  type?: "analysis" | "plan" | "briefing" | "all";
 }
 
 export const aiAPI = {
-  createBriefing(data: AIRequestPayload) {
+  sendMessage(data: AIChatSendPayload) {
     return request({
-      url: "/api/ai/briefing",
+      url: "/api/ai/chat/messages",
       method: "post",
       data,
-      timeout: 120000,
+      timeout: 180000,
     });
   },
-  createAnalysis(data: AIRequestPayload) {
+  fetchSessions() {
     return request({
-      url: "/api/ai/analysis",
-      method: "post",
-      data,
-      timeout: 120000,
-    });
-  },
-  createPlan(data: AIRequestPayload) {
-    return request({
-      url: "/api/ai/plan",
-      method: "post",
-      data,
-      timeout: 120000,
-    });
-  },
-  fetchHistory(params: AIHistoryParams = {}) {
-    return request({
-      url: "/api/ai/history",
+      url: "/api/ai/chat/sessions",
       method: "get",
-      params,
+    });
+  },
+  fetchSessionMessages(sessionId: number) {
+    return request({
+      url: `/api/ai/chat/sessions/${sessionId}/messages`,
+      method: "get",
+      timeout: 120000,
     });
   },
 };

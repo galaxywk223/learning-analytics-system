@@ -8,6 +8,8 @@ this file keeps the public API stable for existing imports.
 from __future__ import annotations
 
 from app.services.ai_planner import (  # type: ignore[F401]
+    ALLOWED_CHAT_MODULES,
+    ALLOWED_TIME_WINDOWS,
     AIPlannerError,
     SCOPE_LABELS,
     _aggregate_learning_data,
@@ -25,10 +27,19 @@ from app.services.ai_planner import (  # type: ignore[F401]
     _get_prev_range,
     _parse_date,
     _save_insight,
+    build_default_chat_context,
+    build_global_chat_context,
+    build_requested_modules,
+    build_window_context,
+    create_chat_message,
     generate_analysis,
     generate_briefing,
     generate_plan,
+    list_chat_messages,
+    list_chat_sessions,
     list_history,
+    normalize_requested_modules,
+    normalize_requested_windows,
 )
 
 __all__ = [
@@ -42,6 +53,12 @@ __all__ = [
     "_build_countdown_context",
     "_compute_efficiency_baseline",
     "_aggregate_learning_data",
+    "ALLOWED_CHAT_MODULES",
+    "ALLOWED_TIME_WINDOWS",
+    "build_default_chat_context",
+    "build_global_chat_context",
+    "build_requested_modules",
+    "build_window_context",
     "_build_analysis_prompt",
     "_build_plan_prompt",
     "_fallback_analysis_text",
@@ -49,6 +66,11 @@ __all__ = [
     "_configure_qwen",
     "_call_qwen",
     "_save_insight",
+    "normalize_requested_modules",
+    "normalize_requested_windows",
+    "create_chat_message",
+    "list_chat_sessions",
+    "list_chat_messages",
     "generate_briefing",
     "generate_analysis",
     "generate_plan",
