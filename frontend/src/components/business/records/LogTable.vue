@@ -127,8 +127,9 @@ const paletteFamilies = [
 ];
 
 const getCategoryTheme = (log) => {
-  const categoryName = getCategoryPath(log);
-  const seedBase = `${props.colorSeed}:${log?.subcategory?.category_id || 0}:${categoryName}`;
+  const parentCategoryId = log?.subcategory?.category_id || 0;
+  const parentCategoryName = getCategoryParent(log);
+  const seedBase = `${props.colorSeed}:${parentCategoryId}:${parentCategoryName}`;
   const seed = hashString(seedBase);
   const family = paletteFamilies[seed % paletteFamilies.length];
   const variant = Math.floor(seed / paletteFamilies.length);
@@ -138,9 +139,6 @@ const getCategoryTheme = (log) => {
   const primarySaturation = 72 + saturationBoost;
   const secondarySaturation = 68 + ((variant + 2) % 7);
   const accentSaturation = 78 + ((variant + 1) % 5);
-  const chipTextColor =
-    family.primary >= 34 && family.primary <= 76 ? "#2f2300" : "#f8fbff";
-
   return {
     "--record-accent": `hsl(${family.accent} ${accentSaturation}% 55%)`,
     "--record-accent-soft": `hsla(${family.accent}, ${accentSaturation}%, 55%, 0.18)`,
@@ -152,11 +150,14 @@ const getCategoryTheme = (log) => {
     "--record-bg-dark-end": `hsla(${family.secondary}, ${secondarySaturation}%, ${12 + lightnessShift}%, 0.94)`,
     "--record-border-dark": `hsla(${family.accent}, ${accentSaturation}%, 66%, 0.28)`,
     "--record-glow": `hsla(${family.accent}, ${accentSaturation}%, 58%, 0.22)`,
-    "--record-chip-bg": `hsla(${family.primary}, ${primarySaturation - 8}%, 50%, 0.14)`,
-    "--record-chip-border": `hsla(${family.accent}, ${accentSaturation - 8}%, 54%, 0.26)`,
-    "--record-chip-parent": `hsl(${family.accent} ${accentSaturation}% 58%)`,
-    "--record-chip-child": `hsla(${family.secondary}, ${secondarySaturation - 8}%, 86%, 0.88)`,
-    "--record-chip-text": chipTextColor,
+    "--record-chip-bg": `hsla(${family.primary}, ${primarySaturation - 14}%, 97%, 0.78)`,
+    "--record-chip-border": `hsla(${family.accent}, ${accentSaturation - 6}%, 52%, 0.34)`,
+    "--record-chip-parent": `hsl(${family.accent} ${accentSaturation}% 46%)`,
+    "--record-chip-child": `hsl(${family.secondary} ${secondarySaturation - 10}% 33%)`,
+    "--record-chip-separator": `hsla(${family.primary}, ${primarySaturation - 12}%, 32%, 0.72)`,
+    "--record-chip-parent-dark": `hsl(${family.accent} ${accentSaturation}% 76%)`,
+    "--record-chip-child-dark": `hsla(${family.secondary}, ${secondarySaturation - 6}%, 88%, 0.92)`,
+    "--record-chip-separator-dark": `hsla(${family.secondary}, ${secondarySaturation - 8}%, 82%, 0.72)`,
     "--record-shadow": `0 18px 36px -28px hsla(${family.primary}, ${primarySaturation}%, 12%, 0.62)`,
   };
 };
@@ -341,7 +342,7 @@ const moodTitle = (mood) => {
   }
 
   .category-separator {
-    color: color-mix(in srgb, var(--record-chip-parent, var(--record-accent)) 48%, var(--color-text-muted));
+    color: var(--record-chip-separator, color-mix(in srgb, var(--record-chip-parent, var(--record-accent)) 48%, var(--color-text-muted)));
     flex-shrink: 0;
   }
 
@@ -485,6 +486,18 @@ const moodTitle = (mood) => {
 [data-theme="dark"] .col-time,
 [data-theme="dark"] .category-child {
   color: rgba(226, 232, 240, 0.78);
+}
+
+[data-theme="dark"] .col-category .category-parent {
+  color: var(--record-chip-parent-dark, var(--record-chip-parent, var(--record-accent)));
+}
+
+[data-theme="dark"] .col-category .category-child {
+  color: var(--record-chip-child-dark, rgba(226, 232, 240, 0.78));
+}
+
+[data-theme="dark"] .col-category .category-separator {
+  color: var(--record-chip-separator-dark, rgba(226, 232, 240, 0.62));
 }
 
 @media (max-width: 1280px) {
