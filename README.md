@@ -2,6 +2,22 @@
 
 一个从真实学习生活里长出来的个人项目。
 
+## 仓库说明
+
+当前项目的 Web 版本与历史主仓库维护在这里：
+
+- Web 仓库：[`learning-analytics-system`](https://github.com/galaxywk223/learning-analytics-system)
+
+基于这个仓库的桌面端重构版本已经拆分到独立仓库中维护：
+
+- 桌面端仓库：[`yinghuoji-desktop`](https://github.com/galaxywk223/yinghuoji-desktop)
+
+两个仓库是独立的 Git 仓库，职责区分如下：
+
+- 当前仓库继续作为 Web 版与原始实现仓库
+- 桌面端仓库负责单用户、本地优先的 Tauri + SQLite 版本
+- 两边不共享运行时代码，也不通过 submodule 绑定
+
 “萤火集”源于开发者作为一名大学生的亲身经历。面对长期而繁重的学业任务，开发者曾用 Excel 记录学习过程，也尝试过把倒计时、备忘录、学习日志拆散在不同工具里，但很快发现：表格会越来越长，记录会越来越机械，过程虽然留下来了，复盘却没有真正发生。
 
 于是，这个项目慢慢出现了。
