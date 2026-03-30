@@ -223,8 +223,10 @@ def _build_forecast_signature(
 ) -> str:
     signature_payload: dict[str, Any] = {
         "global_start_date": global_start_date.isoformat(),
-        "last_log_date": last_log_date.isoformat(),
     }
+    # Only hash stable training inputs. Ongoing buckets are display-only and
+    # should not invalidate the trained forecast within the same day/week.
+    del last_log_date
     for dataset_key in _FORECAST_DATASET_KEYS:
         dataset = trend_data.get(dataset_key) or {}
         signature_payload[dataset_key] = _deep_round(
@@ -233,9 +235,6 @@ def _build_forecast_signature(
                 "training_actuals": dataset.get("training_actuals") or [],
                 "training_stage_features": dataset.get("training_stage_features") or [],
                 "future_stage_features": dataset.get("future_stage_features") or [],
-                "ongoing_label": dataset.get("ongoing_label"),
-                "ongoing_value": dataset.get("ongoing_value"),
-                "ongoing": bool(dataset.get("ongoing")),
             }
         )
     digest_source = json.dumps(
@@ -553,7 +552,9 @@ def _prepare_trend_data(user_id, all_stages, all_logs):
         for offset in range(DAILY_CONFIG.horizon)
     ]
 
-    weekly_reference_date = today if weekly_incomplete else (last_log_date + timedelta(days=7))
+    # Keep weekly future features stable for the current day even if the user
+    # starts logging into the current week for the first time.
+    weekly_reference_date = today
     weekly_future_stage_features = []
     for offset in range(WEEKLY_CONFIG.horizon):
         target_date = weekly_reference_date + timedelta(days=offset * 7)

@@ -52,8 +52,8 @@ def test_chart_forecast_available_with_full_history(app, client, db_session, reg
         _token, user_id = register_and_login("forecast-ok", "forecast-ok@test.com")
         _create_history(
             user_id,
-            start_date=date.today() - timedelta(days=119),
-            days=100,
+            start_date=date.today() - timedelta(days=170),
+            days=140,
         )
 
         payload = get_chart_data_for_user(user_id)
@@ -385,5 +385,211 @@ def test_chart_overview_forecast_status_can_be_polled_async(
         assert ready_payload["status"] == "ready"
         assert ready_payload["forecasts"]["daily_duration_data"]["status"] == "ready"
         assert ready_payload["forecasts"]["daily_duration_data"]["available"] is True
+
+        app.config["CHART_FORECAST_SYNC_MODE"] = True
+
+
+def test_chart_forecast_signature_ignores_ongoing_buckets_and_last_log_date():
+    base_dataset = {
+        "training_labels": ["2025-03-01", "2025-03-02", "2025-03-03"],
+        "training_actuals": [1.2, 2.4, 3.6],
+        "training_stage_features": [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [2.0, 0.0, 0.0]],
+        "future_stage_features": [[3.0, 0.0, 0.0], [4.0, 0.0, 0.0]],
+    }
+
+    trend_data_a = {
+        dataset_key: {
+            **base_dataset,
+            "ongoing": True,
+            "ongoing_label": "2025-03-11" if "daily" in dataset_key else "2025-W11",
+            "ongoing_value": 4.2,
+        }
+        for dataset_key in chart_service._FORECAST_DATASET_KEYS
+    }
+    trend_data_b = {
+        dataset_key: {
+            **base_dataset,
+            "ongoing": False,
+            "ongoing_label": "2025-03-12" if "daily" in dataset_key else "2025-W12",
+            "ongoing_value": 9.9,
+        }
+        for dataset_key in chart_service._FORECAST_DATASET_KEYS
+    }
+
+    signature_a = chart_service._build_forecast_signature(
+        trend_data_a,
+        global_start_date=date(2025, 1, 1),
+        last_log_date=date(2025, 3, 11),
+    )
+    signature_b = chart_service._build_forecast_signature(
+        trend_data_b,
+        global_start_date=date(2025, 1, 1),
+        last_log_date=date(2025, 3, 12),
+    )
+
+    assert signature_a == signature_b
+
+
+def test_chart_forecast_signature_changes_when_completed_history_changes():
+    trend_data_a = {
+        dataset_key: {
+            "training_labels": ["2025-03-01", "2025-03-02", "2025-03-03"],
+            "training_actuals": [1.2, 2.4, 3.6],
+            "training_stage_features": [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [2.0, 0.0, 0.0]],
+            "future_stage_features": [[3.0, 0.0, 0.0], [4.0, 0.0, 0.0]],
+        }
+        for dataset_key in chart_service._FORECAST_DATASET_KEYS
+    }
+    trend_data_b = {
+        dataset_key: {
+            **trend_data_a[dataset_key],
+            "training_actuals": [1.2, 9.9, 3.6],
+        }
+        for dataset_key in chart_service._FORECAST_DATASET_KEYS
+    }
+
+    signature_a = chart_service._build_forecast_signature(
+        trend_data_a,
+        global_start_date=date(2025, 1, 1),
+        last_log_date=date(2025, 3, 10),
+    )
+    signature_b = chart_service._build_forecast_signature(
+        trend_data_b,
+        global_start_date=date(2025, 1, 1),
+        last_log_date=date(2025, 3, 10),
+    )
+
+    assert signature_a != signature_b
+
+
+def test_chart_forecast_reuses_ready_cache_when_only_today_changes(
+    app,
+    db_session,
+    register_and_login,
+    monkeypatch,
+):
+    with app.app_context():
+        app.config["CHART_FORECAST_SYNC_MODE"] = False
+        chart_service._overview_cache.clear()
+        chart_service._overview_inflight.clear()
+        chart_service._forecast_cache.clear()
+        chart_service._forecast_inflight.clear()
+
+        _token, user_id = register_and_login(
+            "forecast-today-cache",
+            "forecast-today-cache@test.com",
+        )
+        stage = _create_history(
+            user_id,
+            start_date=date.today() - timedelta(days=40),
+            days=40,
+        )
+
+        call_count = {"value": 0}
+        original_builder = chart_service.build_trend_forecasts
+
+        def counting_builder(**kwargs):
+            call_count["value"] += 1
+            return original_builder(**kwargs)
+
+        monkeypatch.setattr(chart_service, "build_trend_forecasts", counting_builder)
+
+        ready_status = None
+        for _ in range(40):
+            ready_status = chart_service.get_chart_forecast_status_for_user(user_id)
+            if ready_status["status"] == "ready":
+                break
+            time.sleep(0.05)
+
+        assert ready_status is not None
+        assert ready_status["status"] == "ready"
+        assert call_count["value"] == 1
+
+        today = date.today()
+        db.session.add(
+            LogEntry(
+                log_date=today,
+                task="今日新增",
+                actual_duration=95,
+                stage_id=stage.id,
+            )
+        )
+        db.session.add(
+            DailyData(
+                log_date=today,
+                efficiency=68.0,
+                stage_id=stage.id,
+            )
+        )
+        db.session.commit()
+
+        chart_service._overview_cache.clear()
+        chart_service._overview_inflight.clear()
+
+        reused_status = chart_service.get_chart_forecast_status_for_user(user_id)
+        payload = chart_service.get_chart_data_for_user(user_id)
+
+        assert reused_status["status"] == "ready"
+        assert call_count["value"] == 1
+        assert payload["forecast_status"]["state"] == "ready"
+        assert today.isoformat() in payload["daily_duration_data"]["labels"]
+        assert payload["daily_duration_data"]["forecast"]["status"] == "ready"
+
+        app.config["CHART_FORECAST_SYNC_MODE"] = True
+
+
+def test_chart_forecast_manual_retrain_still_rebuilds_when_signature_unchanged(
+    app,
+    db_session,
+    register_and_login,
+    monkeypatch,
+):
+    with app.app_context():
+        app.config["CHART_FORECAST_SYNC_MODE"] = False
+        chart_service._overview_cache.clear()
+        chart_service._overview_inflight.clear()
+        chart_service._forecast_cache.clear()
+        chart_service._forecast_inflight.clear()
+
+        _token, user_id = register_and_login(
+            "forecast-retrain-force",
+            "forecast-retrain-force@test.com",
+        )
+        _create_history(
+            user_id,
+            start_date=date.today() - timedelta(days=45),
+            days=45,
+        )
+
+        call_count = {"value": 0}
+        original_builder = chart_service.build_trend_forecasts
+
+        def counting_builder(**kwargs):
+            call_count["value"] += 1
+            return original_builder(**kwargs)
+
+        monkeypatch.setattr(chart_service, "build_trend_forecasts", counting_builder)
+
+        initial_status = None
+        for _ in range(40):
+            initial_status = chart_service.get_chart_forecast_status_for_user(user_id)
+            if initial_status["status"] == "ready":
+                break
+            time.sleep(0.05)
+
+        assert initial_status is not None
+        assert initial_status["status"] == "ready"
+        assert call_count["value"] == 1
+
+        retrain_status = chart_service.retrain_chart_forecasts_for_user(user_id)
+        if retrain_status["status"] != "ready":
+            for _ in range(40):
+                retrain_status = chart_service.get_chart_forecast_status_for_user(user_id)
+                if retrain_status["status"] == "ready":
+                    break
+                time.sleep(0.05)
+
+        assert retrain_status["status"] == "ready"
+        assert call_count["value"] >= 2
 
         app.config["CHART_FORECAST_SYNC_MODE"] = True
