@@ -2,58 +2,56 @@
   <el-dialog
     :model-value="visible"
     :title="isEdit ? '编辑分类' : '新增分类'"
-    width="420px"
+    width="520px"
     :close-on-click-modal="false"
-    class="ios-dialog"
+    class="ios-dialog category-dialog"
     align-center
+    destroy-on-close
     @close="handleClose"
   >
-    <form class="dialog-form" @submit.prevent="handleSubmit">
-      <div class="ios-input-group">
-        <div class="input-row">
-          <label>名称</label>
-          <input
+    <form class="dialog-form category-dialog-form" @submit.prevent="handleSubmit">
+      <div class="dialog-intro">
+        <p class="dialog-kicker">
+          {{ isEdit ? "调整分类信息" : "创建新的分类节点" }}
+        </p>
+        <p class="dialog-subtitle">
+          {{ dialogSubtitle }}
+        </p>
+      </div>
+
+      <div class="field-grid">
+        <label class="field-card">
+          <span class="field-label">名称</span>
+          <span class="field-hint">给这个分类起一个清晰、好找的名字。</span>
+          <el-input
             v-model="form.name"
-            type="text"
-            placeholder="请输入分类名称"
-            required
+            placeholder="例如：面试、保研、课程复盘"
             maxlength="50"
+            clearable
           />
-        </div>
+        </label>
 
-        <!-- Parent Category Selection -->
-        <div class="input-row">
-          <label>父分类</label>
-
-          <!-- Case 1: Creating subcategory (parent pre-determined but changeable) or Editing subcategory -->
-          <div v-if="isSubCategory || parentCategory" class="select-wrapper">
-            <select v-model="form.parent_id" class="custom-select">
-              <option :value="null">无 (设为根分类)</option>
-              <option
-                v-for="p in availableParents"
-                :key="p.id"
-                :value="p.id"
-                :disabled="p.id === form.id"
-              >
-                {{ p.name }}
-              </option>
-            </select>
-          </div>
-          <!-- Case 2: Creating root category or Editing root -->
-          <div v-else class="select-wrapper">
-            <select v-model="form.parent_id" class="custom-select">
-              <option :value="null">无 (根分类)</option>
-              <option
-                v-for="p in availableParents"
-                :key="p.id"
-                :value="p.id"
-                :disabled="p.id === form.id"
-              >
-                {{ p.name }}
-              </option>
-            </select>
-          </div>
-        </div>
+        <label class="field-card">
+          <span class="field-label">父分类</span>
+          <span class="field-hint">{{ parentHint }}</span>
+          <el-select
+            v-model="form.parent_id"
+            class="field-select"
+            placeholder="不选择则作为根分类"
+          >
+            <el-option
+              :label="isSubCategory || parentCategory ? '无，设为根分类' : '无，作为根分类'"
+              :value="null"
+            />
+            <el-option
+              v-for="p in availableParents"
+              :key="p.id"
+              :label="p.name"
+              :value="p.id"
+              :disabled="p.id === form.id"
+            />
+          </el-select>
+        </label>
       </div>
 
       <div class="dialog-footer">
@@ -121,6 +119,30 @@ const isSubCategory = computed(() => {
   if (isEdit.value) return !!props.categoryData.category_id;
   // If creating, check if parentCategory prop is passed
   return !!props.parentCategory;
+});
+
+const dialogSubtitle = computed(() => {
+  if (isEdit.value) {
+    return "可以在这里修改分类名称，或者重新整理它所在的层级。";
+  }
+
+  if (props.parentCategory?.name) {
+    return `当前会默认创建在“${props.parentCategory.name}”下，你也可以在下方调整。`;
+  }
+
+  return "为学习内容建立更清晰的分组，后续记录和统计都会更直观。";
+});
+
+const parentHint = computed(() => {
+  if (props.parentCategory?.name) {
+    return `默认归属到“${props.parentCategory.name}”，如有需要可改成其他根分类。`;
+  }
+
+  if (isEdit.value && props.categoryData?.category_id) {
+    return "可以重新挂到其他根分类下，也可以直接设为根分类。";
+  }
+
+  return "留空时会直接作为一级分类显示。";
 });
 
 // 初始化或填充表单数据
@@ -204,131 +226,151 @@ watch(
 </script>
 
 <style scoped>
-/* Reuse iOS Dialog Styles */
-.ios-input-group {
-  background: var(--surface-card-muted);
-  border-radius: 12px;
-  padding: 0 16px;
-  border: 1px solid var(--stroke-soft);
-  margin-bottom: 24px;
-}
-
-.input-row {
+.category-dialog-form {
   display: flex;
-  align-items: center;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--stroke-soft);
+  flex-direction: column;
+  gap: 18px;
 }
 
-.input-row:last-child {
-  border-bottom: none;
+.dialog-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.input-row label {
-  width: 70px;
+.dialog-kicker {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand-primary-strong);
+}
+
+.dialog-subtitle {
+  margin: 0;
   font-size: 14px;
-  font-weight: 500;
+  line-height: 1.7;
   color: var(--color-text-secondary);
 }
 
-.input-row input {
-  flex: 1;
-  background: var(--surface-card);
-  border: none;
-  outline: none;
-  font-size: 14px;
-  color: var(--color-text-heading);
-  padding: 0;
+.field-grid {
+  display: grid;
+  gap: 14px;
 }
 
-.static-value {
-  flex: 1;
-  font-size: 14px;
-  color: var(--color-text-base);
+.field-card {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid var(--stroke-soft);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-soft) 68%, white) 0%,
+      var(--surface-card) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-line) 60%, transparent),
+    0 12px 28px -24px color-mix(in srgb, var(--brand-primary) 36%, transparent);
 }
 
-.static-value .icon {
-  font-size: 16px;
+.field-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-heading);
+}
+
+.field-hint {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.field-select {
+  width: 100%;
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  padding-top: 4px;
 }
 
-.btn {
-  border: none;
-  border-radius: 8px;
-  padding: 8px 20px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.dialog-footer .pill-btn {
+  min-width: 108px;
 }
 
-.btn.primary {
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
+:deep(.category-dialog) {
+  overflow: hidden;
 }
 
-.btn.primary:hover {
-  background: var(--color-primary-dark);
+:deep(.category-dialog .el-dialog__header) {
+  padding: 28px 28px 0;
+  border-bottom: none;
 }
 
-.btn.ghost {
-  background: transparent;
+:deep(.category-dialog .el-dialog__body) {
+  padding: 18px 28px 28px;
+}
+
+:deep(.category-dialog .el-dialog__title) {
+  font-size: clamp(1.45rem, 1.8vw, 1.8rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+:deep(.category-dialog .el-dialog__headerbtn) {
+  top: 22px;
+  right: 22px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--surface-soft) 80%, white);
+  transition:
+    background-color var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+:deep(.category-dialog .el-dialog__headerbtn:hover) {
+  background: var(--brand-primary-soft);
+  transform: rotate(90deg);
+}
+
+:deep(.category-dialog .el-dialog__close) {
   color: var(--color-text-secondary);
+  font-size: 18px;
 }
 
-.btn.ghost:hover {
-  background: var(--surface-card-muted);
-  color: var(--color-text-heading);
+:deep(.category-dialog .el-input__wrapper),
+:deep(.category-dialog .el-select__wrapper) {
+  border-radius: 16px !important;
+  min-height: 48px;
+  background: color-mix(in srgb, var(--bg-elevated) 92%, white) !important;
 }
 
-/* Override Element Dialog Styles locally if needed, 
-   but ideally these should be global or scoped to the dialog class */
-:deep(.el-dialog__header) {
-  margin-right: 0;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--stroke-soft);
-}
+@media (max-width: 640px) {
+  .dialog-footer {
+    flex-direction: column-reverse;
+  }
 
-:deep(.el-dialog__title) {
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--color-text-heading);
-}
+  .dialog-footer .pill-btn {
+    width: 100%;
+  }
 
-:deep(.el-dialog__body) {
-  padding: 24px;
-}
+  :deep(.category-dialog) {
+    width: min(92vw, 520px) !important;
+  }
 
-:deep(.el-dialog__footer) {
-  padding: 0; /* Custom footer used */
-}
+  :deep(.category-dialog .el-dialog__header) {
+    padding: 24px 20px 0;
+  }
 
-.select-wrapper {
-  flex: 1;
-}
-
-.custom-select {
-  width: 100%;
-  background: var(--surface-card);
-  border: 1px solid var(--color-border-input);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 14px;
-  color: var(--color-text-heading);
-  outline: none;
-  appearance: auto;
-}
-
-.custom-select:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-light);
+  :deep(.category-dialog .el-dialog__body) {
+    padding: 16px 20px 22px;
+  }
 }
 </style>
