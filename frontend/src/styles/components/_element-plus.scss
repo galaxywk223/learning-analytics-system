@@ -160,6 +160,18 @@
   color: var(--text-primary) !important;
 }
 
+.el-input__inner:focus,
+.el-input__inner:focus-visible,
+.el-textarea__inner:focus-visible,
+.el-select__input:focus,
+.el-select__input:focus-visible,
+.el-select__selected-item:focus,
+.el-select__selected-item:focus-visible,
+.el-select__placeholder:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .el-textarea__inner::placeholder,
 .el-input__inner::placeholder,
 .el-select__placeholder {
