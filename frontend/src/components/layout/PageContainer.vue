@@ -3,6 +3,7 @@
     class="page-container"
     :class="[
       customClass,
+      { 'page-container--fill-height': fillHeight },
       `page-container--${resolvedMaxWidth}`,
       `page-container--${density}`,
       `page-container--header-${headerAlign}`,
@@ -82,6 +83,7 @@ const props = withDefaults(
     headerVariant?: HeaderVariant;
     density?: Density;
     stickyActions?: boolean;
+    fillHeight?: boolean;
   }>(),
   {
     maxWidth: "default",
@@ -89,6 +91,7 @@ const props = withDefaults(
     headerVariant: "default",
     density: "comfortable",
     stickyActions: false,
+    fillHeight: false,
   },
 );
 
@@ -126,6 +129,13 @@ const containerStyle = computed(() =>
   width: min(100%, var(--page-container-max-width));
   margin: 0 auto;
   padding: var(--page-padding-y) var(--page-padding-x) calc(var(--page-padding-y) + 20px);
+}
+
+.page-container--fill-height {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .page-container--narrow {
@@ -253,6 +263,11 @@ const containerStyle = computed(() =>
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+.page-container--fill-height .page-body {
+  flex: 1;
+  min-height: 0;
 }
 
 .page-container--header-center .page-header__main,

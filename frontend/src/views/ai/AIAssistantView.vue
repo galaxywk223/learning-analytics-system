@@ -4,6 +4,7 @@
     <PageContainer
       :title="{ icon: 'lucide:sparkles', text: '智能规划' }"
       subtitle="基于你的学习数据，帮你梳理重点、拆解问题和安排下一步。"
+      fill-height
       custom-class="ai-chat-page"
       max-width="wide"
       density="compact"
@@ -263,10 +264,20 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .ai-chat-view {
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+:deep(.ai-chat-page) {
+  flex: 1;
+  min-height: 0;
 }
 
 :deep(.ai-chat-page .page-body) {
+  flex: 1;
+  min-height: 0;
   gap: 0;
 }
 
@@ -327,11 +338,13 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
   gap: 18px;
-  min-height: 720px;
+  flex: 1;
+  min-height: 0;
 }
 
 .planner-sidebar,
 .planner-main {
+  min-height: 0;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   background:
